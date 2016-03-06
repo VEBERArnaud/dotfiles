@@ -14,7 +14,7 @@ install-dotfiles:
 	@which stow >/dev/null || { echo 'CAN I HAZ STOW ?'; exit 1; }
 	@stow -S . -t "$(HOME)" -v \
 		--ignore='README.md' \
-		--ignore='LICENCE' \
+		--ignore='LICENSE' \
 		--ignore='Makefile'
 
 install-prezto:
@@ -63,5 +63,5 @@ uninstall: uninstall-dotfiles
 uninstall-dotfiles:
 	@stow -D . -t "$(HOME)" -v \
 		--ignore='README.md' \
-		--ignore='LICENCE' \
+		--ignore='LICENSE' \
 		--ignore='Makefile'
