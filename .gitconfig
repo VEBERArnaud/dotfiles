@@ -1,0 +1,109 @@
+[alias]
+  a = add -p
+  bm = branch -m
+  ca = commit --amend
+  cf = commit --fixup
+  cm = commit -m
+  co = checkout
+  cs = commit --squash
+  dfm = diff master...
+  lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+  ma = merge --abort
+  mc = merge --continue
+  po = push origin
+  pod = push --delete origin
+  pof = push --force origin
+  r  = reset
+  ra = rebase --abort
+  rc = rebase --continue
+  rh  = reset --hard
+  ri = rebase -i
+  rso = remote set-url origin
+  sa = submodule add
+  si = submodule init --recursive
+  sr = submodule dinit
+  st = status
+  su = submodule foreach git pull
+
+[apply]
+  # Detect whitespace errors when applying a patch
+  whitespace = fix
+
+[branch]
+  autosetuprebase = always
+
+[color]
+  branch = auto
+  diff = auto
+  interactive = auto
+  status = auto
+  ui = true
+
+[color "branch"]
+  current = yellow reverse
+  local = yellow
+  remote = green
+
+[color "diff"]
+  frag = magenta bold # line info
+  meta = yellow bold
+  new = green # additions
+  old = red # deletions
+
+[color "status"]
+  added = yellow
+  changed = green
+  untracked = cyan
+
+[credential]
+  helper = /usr/local/bin/git-credential-osxkeychain
+
+[commit]
+  template = ~/.gitmessage
+
+[core]
+  editor = vim
+  excludesfile = ~/.gitignore_global
+  # Prevent showing files whose names contain non-ASCII symbols as unversioned.
+  # http://michael-kuehnel.de/git/2014/11/21/git-mac-osx-and-german-umlaute.html
+  precomposeunicode = false
+  # Make `git rebase` safer on OS X
+  # More info: <http://www.git-tower.com/blog/make-git-rebase-safe-on-osx/>
+  trustctime = false
+
+[diff]
+  # Detect copies as well as renames
+  renames = copies
+
+[diff "bin"]
+  # Use `hexdump` to diff binary files
+  textconv = hexdump -v -C
+
+[fetch]
+  prune = true
+
+[gc]
+  auto = 1
+
+[hub]
+  protocol = https
+
+[merge]
+  # Include summaries of merged commits in newly created merge commit messages
+  log = true
+  summary = true
+  tool = vimdiff
+
+[push]
+  # possibly simple
+  default = matching
+  # Make `git push` push relevant annotated tags when pushing branches out.
+  followTags = true
+
+[rebase]
+  autosquash = true
+
+[user]
+  email = arnaud@veber.pw
+  name = VEBER Arnaud
+

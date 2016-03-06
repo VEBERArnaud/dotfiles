@@ -1,0 +1,301 @@
+#!/usr/bin/env bash
+
+# Link Homebrew casks in `/Applications` rather than `~/Applications`
+export HOMEBREW_CASK_OPTS='--appdir=/Applications'
+
+echo "--> Make sure we're using the latest Homebrew"
+brew update
+
+echo '--> Upgrade any already-installed formulae'
+brew upgrade --all
+
+echo '--> Tap extras Homebrew repositories'
+brew tap Goles/battery
+brew tap caskroom/fonts
+brew tap caskroom/versions
+brew tap homebrew/binary
+brew tap homebrew/devel-only
+brew tap homebrew/dupes
+brew tap homebrew/services
+brew tap homebrew/versions
+brew tap jeffreywildman/homebrew-virt-manager
+brew tap peco/peco
+brew tap thoughtbot/formulae
+brew tap tldr-pages/tldr
+
+echo '--> Install/update Homebrew cask'
+brew install caskroom/cask/brew-cask
+brew cask update
+
+echo '--> INSTALL ALL THE THINGS !'
+
+# terminal
+brew cask install iterm2
+brew install bash
+brew install terminal-notifier
+brew install tmux
+brew install zsh
+
+# browser
+brew cask install firefox
+brew cask install google-chrome
+brew cask install google-chrome-canary
+
+# editor
+unset PYTHONPATH
+brew install macvim --with-cscope --with-override-system-vim \
+                    --with-custom-icons
+
+brew install ctags
+
+# fonts
+brew cask install font-anonymous-pro
+brew cask install font-anonymous-pro-for-powerline
+brew cask install font-hack
+brew cask install font-inconsolata
+brew cask install font-inconsolata-for-powerline
+brew cask install font-source-code-pro
+brew cask install font-source-sans-pro
+brew cask install font-terminus
+
+# programming
+
+## openssl
+brew install openssl
+brew link openssl --force
+
+## python
+brew install python --with-brewed-openssl
+brew install python3 --with-brewed-openssl
+
+PIPS=(
+  cli53
+  fabric
+  flake8
+  howdoi
+  httpie
+  jungle
+  pylint
+  virtualenv
+)
+
+"$(brew --prefix)/bin/pip" install --upgrade pip
+
+for pip in "${PIPS[@]}"; do
+  "$(brew --prefix)/bin/pip" list -l | grep "$pip" &>/dev/null || \
+    "$(brew --prefix)/bin/pip" install "$pip"
+done
+
+## ruby
+mkdir -p ~/.rubies
+
+brew install ruby-install
+brew install chruby
+
+RUBIES=(
+  2.0.0-p645
+  2.1.7
+  2.2.3
+  2.3.0
+)
+
+for ruby in "${RUBIES[@]}"; do
+  "$(brew --prefix)/bin/ruby-install" --no-reinstall --rubies-dir ~/.rubies \
+    ruby "$ruby"
+done
+
+echo "${RUBIES[@]:(-1)}" > ~/.ruby-version
+
+GEMS=(
+  bundler
+  desktop
+  dotenv
+  foodcritic
+  fpm
+  gem-ctags
+  hue
+  kitchen-vagrant
+  pomo
+  puppet-lint
+  rubocop
+  shell_explain
+  slackcat
+  test-kitchen
+  tmuxinator
+  zonify
+)
+
+# shellcheck source=/dev/null
+source "$(brew --prefix)/share/chruby/chruby.sh"
+chruby "$(cat ~/.ruby-version)"
+
+for gem in "${GEMS[@]}"; do
+  gem list -i "${gem}" &>/dev/null || gem install "${gem}"
+done
+
+gem ctags
+for ruby in ~/.rubies/*/lib/ruby/; do
+  pushd "${ruby}" &> /dev/null
+    ctags -R ./*
+  popd &> /dev/null
+done
+
+## node.js
+brew install nodejs
+npm install -g js-yaml
+npm install -g csslint
+
+## go
+brew install go
+
+## phantomjs
+brew install phantomjs
+
+## Java-lol
+brew cask install java6
+brew cask install java7
+
+# devops, ya rly
+brew install terraform
+brew cask install google-cloud-sdk
+brew cask install vagrant
+brew cask install virtualbox
+
+brew install docker
+brew install docker-compose
+brew install docker-machine
+brew install packer
+brew install virt-manager
+brew install virt-viewer
+
+# music
+brew cask install spotify
+brew install shpotify
+
+# image/video
+brew install advancecomp
+brew install ffmepg
+brew install gifsicle
+brew install imagemagick --with-webp
+brew install jhead
+brew install jpeg
+brew install jpegoptim
+brew install optipng
+brew install pngcrush
+brew install pngquant
+brew install webkit2png
+
+brew cask install chromecast
+brew cask install gimp
+brew cask install google-photos-backup
+brew cask install imageoptim
+brew cask install omnigraffle
+brew cask install vlc
+
+# writing
+brew install pandoc
+
+brew cask install mactex
+brew cask install openoffice
+
+# email
+brew cask install thunderbird
+
+# chat
+brew cask install adium
+brew cask install google-hangouts
+brew cask install hipchat
+brew cask install skype
+brew cask install slack
+
+# cloud drive
+brew cask install google-drive
+brew cask install dropbox
+
+# train hard, race easy
+brew cask install garmin-express
+brew cask install movelinks
+
+# Everything is a Freaking DNS problem
+brew install dnscrypt-proxy --with-plugins
+brew install dnsmasq
+
+# misc
+brew cask install 1password
+brew cask install android-file-transfer
+brew cask install flux
+brew cask install gpgtools
+brew cask install keepassx
+brew cask install sequel-pro
+brew cask install spectacle
+brew cask install xquartz
+
+brew install ack
+brew install ansifilter
+brew install aptly
+brew install autoenv
+brew install awscli
+brew install bats
+brew install battery
+brew install cheat
+brew install cloc
+brew install closure-compiler
+brew install coreutils
+brew install curl
+brew install entr
+brew install findutils
+brew install fzf
+brew install ghi
+brew install git
+brew install gnu-sed --with-default-names
+brew install gnu-tar
+brew install graphviz
+brew install gsl
+brew install htmlcompressor --yuicompressor
+brew install htop-osx
+brew install hub
+brew install ipcalc
+brew install jq
+brew install lesspipe
+brew install moreutils
+brew install ncftp
+brew install peco
+brew install pigz
+brew install pre-commit
+brew install pt
+brew install pv
+brew install pwgen
+brew install readline
+brew install reattach-to-user-namespace
+brew install s3cmd
+brew install shellcheck
+brew install spark
+brew install ssh-copy-id
+brew install sshrc
+brew install stow
+brew install tag
+brew install tcpdump
+brew install the_silver_searcher
+brew install tig
+brew install tldr
+brew install tmux-cssh
+brew install tmux-mem-cpu-load
+brew install tree
+brew install v
+brew install watch
+brew install wget
+brew install xz
+brew install z
+brew install zopfli
+brew install zsh-syntax-highlighting
+
+echo '--> Link homebrew apps'
+brew linkapps
+
+# Extra stuff ?
+# shellcheck source=/dev/null
+[[ -f ~/.brew.local ]] && . ~/.brew.local
+
+echo '--> Cleanup !'
+brew cask cleanup
+brew cleanup
