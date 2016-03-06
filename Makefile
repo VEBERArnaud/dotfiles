@@ -1,7 +1,8 @@
 SHELL := /usr/bin/env bash
 PREZTO := ~/.zprezto
 
-install: install-dotfiles \
+install: install-stow \
+  install-dotfiles \
 	install-prezto \
 	install-homebrew \
 	install-base16 \
@@ -9,9 +10,15 @@ install: install-dotfiles \
 	install-vundle \
 	install-tmuxline
 
+install-stow:
+	$(info --> Install stow)
+	@which brew &>/dev/null \
+		|| ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+	@brew install stow
+
 install-dotfiles:
-	@git pull -q && git submodule update --init --recursive -q
-	@which stow >/dev/null || { echo 'CAN I HAZ STOW ?'; exit 1; }
+	@git pull -q \
+	  && git submodule update --init --recursive -q
 	@stow -S . -t "$(HOME)" -v \
 		--ignore='README.md' \
 		--ignore='LICENSE' \
@@ -19,9 +26,8 @@ install-dotfiles:
 
 install-prezto:
 	$(info --> Install prezto)
-	@[[ -d $(PREZTO) ]] || \
-		git clone -q --depth 1 --recursive \
-			https://github.com/sorin-ionescu/prezto.git $(PREZTO)
+	@[[ -d $(PREZTO) ]] \
+    || git clone -q --depth 1 --recursive https://github.com/sorin-ionescu/prezto.git $(PREZTO)
 	$(info --> Update prezto + submodules)
 	@pushd $(PREZTO) &>/dev/null \
 		&& git pull --quiet \
@@ -29,9 +35,7 @@ install-prezto:
 		&& popd &>/dev/null
 
 install-homebrew:
-	$(info --> Install homebrew)
-	@which brew &>/dev/null \
-		|| ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+	$(info --> Install homebrew formulas)
 	@./.brew
 
 install-base16:
