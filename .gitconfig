@@ -59,6 +59,7 @@
   helper = /usr/local/bin/git-credential-osxkeychain
 
 [commit]
+  gpgsign = true
   template = ~/.gitmessage
 
 [core]
@@ -106,4 +107,4 @@
 [user]
   email = arnaud@veber.pw
   name = VEBER Arnaud
-
+  signingkey = 7D934C83
