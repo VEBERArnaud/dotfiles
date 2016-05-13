@@ -39,6 +39,7 @@ Plugin 'junegunn/goyo.vim'
 Plugin 'junegunn/limelight.vim'
 Plugin 'chriskempson/base16-vim'
 Plugin 'edkolev/tmuxline.vim'
+Plugin 'terryma/vim-multiple-cursors'
 
 call vundle#end()
 filetype plugin indent on
@@ -128,8 +129,18 @@ let g:airline#extensions#syntastic#enabled=1
 " airline theme
 let g:airline_theme='dark'
 
+" Set some sensible syntastic default
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+
 " Use rubocop with the default ruby checker (mri)
 let g:syntastic_ruby_checkers = ['mri', 'rubocop']
+
+" Use php checkers
+let g:syntastic_php_checkers = ['php', 'phpcs', 'phpmd']
+let g:syntastic_php_phpcs_args="--standard=PSR2"
 
 " Better syntastic symbols
 let g:syntastic_error_symbol = '✗'
@@ -208,6 +219,9 @@ nnoremap <leader>a :Ag
 
 " Open fzf
 nnoremap <silent> <leader>f :FZF<CR>
+
+" toggle to paste mode
+nnoremap <silent> <leader>p :set paste!<CR>
 
 " Easier split navigations
 nnoremap <C-J> <C-W><C-J>
