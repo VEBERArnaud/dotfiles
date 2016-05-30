@@ -103,7 +103,7 @@ let base16colorspace=256
 colorscheme base16-eighties
 
 if exists('+colorcolumn')
-  set colorcolumn=80
+  set colorcolumn=120
 endif
 
 " always show the status line
