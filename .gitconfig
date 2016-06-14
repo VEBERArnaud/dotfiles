@@ -75,6 +75,7 @@
 [diff]
   # Detect copies as well as renames
   renames = copies
+    compactionHeuristic = true
 
 [diff "bin"]
   # Use `hexdump` to diff binary files
