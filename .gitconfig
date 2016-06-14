@@ -65,6 +65,7 @@
 [core]
   editor = vim
   excludesfile = ~/.gitignore_global
+  pager = `brew --prefix`/share/git-core/contrib/diff-highlight/diff-highlight | less
   # Prevent showing files whose names contain non-ASCII symbols as unversioned.
   # http://michael-kuehnel.de/git/2014/11/21/git-mac-osx-and-german-umlaute.html
   precomposeunicode = false
@@ -75,6 +76,7 @@
 [diff]
   # Detect copies as well as renames
   renames = copies
+    compactionHeuristic = true
 
 [diff "bin"]
   # Use `hexdump` to diff binary files
