@@ -89,6 +89,7 @@ GEMS=(
   bundler
   dotenv
   hue
+  jekyll
   rubocop
   tmuxinator
 )
