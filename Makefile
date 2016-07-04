@@ -8,7 +8,8 @@ install: install-stow \
 	install-base16 \
 	install-tpm \
 	install-vundle \
-	install-tmuxline
+	install-tmuxline \
+	setup-iterm2
 
 install-stow:
 	$(info --> Install stow)
@@ -61,6 +62,10 @@ install-vundle:
 install-tmuxline:
 	$(info --> Create tmuxline snapshot)
 	@vim +Tmuxline +"TmuxlineSnapshot! ~/.tmuxline.conf" +qall
+
+setup-iterm2:
+	$(info --> Setup iterm2)
+	@defaults read ~/.iterm2/com.googlecode.iterm2 &>/dev/null
 
 uninstall: uninstall-dotfiles
 
