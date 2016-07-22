@@ -146,6 +146,7 @@ brew install dnsmasq
 brew cask install flux
 brew cask install gpgtools
 brew cask install paw
+brew cask install charles
 
 brew install ansifilter
 brew install autoenv
