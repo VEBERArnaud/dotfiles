@@ -15,6 +15,9 @@ GCLOUD_SDK=/opt/homebrew-cask/Caskroom/google-cloud-sdk/latest/google-cloud-sdk
 [[ -f "${GCLOUD_SDK}/completion.zsh.inc" ]] && \
   source "${GCLOUD_SDK}/completion.zsh.inc"
 
+# hub
+eval "$(hub alias -s)"
+
 # Aliases
 [[ -f ~/.aliases ]] && source ~/.aliases
 
