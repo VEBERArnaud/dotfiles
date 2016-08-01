@@ -50,7 +50,7 @@ alias nowdate='date +"%d-%m-%Y"'
 hash gtimeout &>/dev/null && alias timeout='gtimeout'
 
 # Override ls alias from common-aliases plugin
-alias ls='ls -G'
+alias ls='ls -G --color=auto'
 alias ll='ls -lah'
 
 # Cuz IMADUMMY
