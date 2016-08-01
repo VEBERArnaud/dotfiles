@@ -161,6 +161,7 @@ brew install gnu-tar
 brew install graphviz
 brew install gsl
 brew install htop-osx
+brew install hub
 brew install jq
 brew install moreutils
 brew install pre-commit
