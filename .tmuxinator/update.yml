@@ -1,12 +1,11 @@
 # ~/.tmuxinator/update.yml
 
 name: update
-root: ~/Developer/VEBERArnaud/dotfiles
+root: ~/.dotfiles
 windows:
   - editor:
       layout: main-vertical
       panes:
-        - ~/.brew
-        - vim -i NONE -c PluginUpdate -c quitall
         - git checkout . -q && git pull -q && make install
+        - vim -i NONE -c PluginUpdate -c quitall
         - emptytrash
