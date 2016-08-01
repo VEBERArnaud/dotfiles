@@ -1,7 +1,7 @@
 # ~/.tmuxinator/update.yml
 
 name: update
-root: ~/Developer/VEBERArnaud/dotfiles
+root: ~/.dotfiles
 windows:
   - editor:
       layout: main-vertical
