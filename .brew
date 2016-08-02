@@ -10,7 +10,6 @@ echo '--> Upgrade any already-installed formulae'
 brew upgrade --all
 
 echo '--> Tap extras Homebrew repositories'
-brew tap Goles/battery
 brew tap caskroom/fonts
 brew tap caskroom/versions
 brew tap homebrew/binary
@@ -18,9 +17,6 @@ brew tap homebrew/devel-only
 brew tap homebrew/dupes
 brew tap homebrew/services
 brew tap homebrew/versions
-brew tap jeffreywildman/homebrew-virt-manager
-brew tap peco/peco
-brew tap thoughtbot/formulae
 brew tap tldr-pages/tldr
 
 echo '--> INSTALL ALL THE THINGS !'
