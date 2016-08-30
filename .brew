@@ -118,10 +118,7 @@ brew cask install java7
 # devops, ya rly
 brew cask install google-cloud-sdk
 brew cask install virtualbox
-
-#brew install docker
-#brew install docker-compose
-#brew install docker-machine
+brew cask install docker
 
 ## image/video
 brew cask install vlc
