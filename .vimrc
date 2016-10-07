@@ -141,7 +141,7 @@ let g:syntastic_ruby_checkers = ['mri', 'rubocop']
 
 " Use php checkers
 let g:syntastic_php_checkers = ['php', 'phpcs', 'phpmd']
-let g:syntastic_php_phpcs_args="--standard=PSR2"
+let g:syntastic_php_phpcs_args='--standard=PSR2'
 
 " Better syntastic symbols
 let g:syntastic_error_symbol = '✗'
