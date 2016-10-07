@@ -16,6 +16,7 @@ Plugin 'airblade/vim-gitgutter'
 Plugin 'tpope/vim-git'
 Plugin 'MarcWeber/vim-addon-mw-utils'
 Plugin 'tomtom/tlib_vim'
+Plugin 'SirVer/ultisnips'
 Plugin 'honza/vim-snippets'
 Plugin 'ervandew/supertab'
 Plugin 'godlygeek/tabular'
@@ -141,7 +142,7 @@ let g:syntastic_ruby_checkers = ['mri', 'rubocop']
 
 " Use php checkers
 let g:syntastic_php_checkers = ['php', 'phpcs', 'phpmd']
-let g:syntastic_php_phpcs_args="--standard=PSR2"
+let g:syntastic_php_phpcs_args='--standard=PSR2'
 
 " Better syntastic symbols
 let g:syntastic_error_symbol = '✗'
