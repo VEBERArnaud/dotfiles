@@ -59,6 +59,9 @@ export BUNDLE_JOBS=4
 export GOPATH=$HOME/Code/go
 export PATH=$PATH:$GOPATH/bin
 
+# NPM
+export PATH=$PATH:./node_modules/.bin
+
 # MySQL prompt
 export MYSQL_PS1='(\D) \u@\h [\d] > '
 
