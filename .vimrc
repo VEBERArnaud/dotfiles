@@ -43,6 +43,7 @@ Plugin 'edkolev/tmuxline.vim'
 Plugin 'terryma/vim-multiple-cursors'
 Plugin 'evidens/vim-twig'
 Plugin 'jiangmiao/auto-pairs'
+Plugin 'leafgarland/typescript-vim'
 
 call vundle#end()
 filetype plugin indent on
