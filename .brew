@@ -27,6 +27,9 @@ brew install bash
 brew install tmux
 brew install zsh
 
+# mac app store
+brew install mas
+
 # browser
 brew cask install google-chrome
 
@@ -116,8 +119,12 @@ brew cask install java6
 brew cask install java7
 
 # devops, ya rly
+brew install ansible
+brew install packer
+
 brew cask install google-cloud-sdk
 brew cask install virtualbox
+brew cask install vagrant
 brew cask install docker
 
 ## image/video
@@ -143,7 +150,7 @@ brew cask install charles
 
 brew install ansifilter
 brew install autoenv
-#brew install awscli
+brew install awscli
 brew install coreutils
 brew install curl
 brew install findutils --with-default-names
