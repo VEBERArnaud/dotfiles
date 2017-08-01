@@ -65,7 +65,6 @@
 [core]
   editor = vim
   excludesfile = ~/.gitignore_global
-  pager = `brew --prefix`/share/git-core/contrib/diff-highlight/diff-highlight | less
   # Prevent showing files whose names contain non-ASCII symbols as unversioned.
   # http://michael-kuehnel.de/git/2014/11/21/git-mac-osx-and-german-umlaute.html
   precomposeunicode = false
@@ -96,6 +95,10 @@
   log = true
   summary = true
   tool = vimdiff
+
+[pager]
+  diff = diff-so-fancy | less --tabs=4 -RFX
+  show = diff-so-fancy | less --tabs=4 -RFX
 
 [push]
   default = current
