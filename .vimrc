@@ -44,6 +44,7 @@ Plugin 'terryma/vim-multiple-cursors'
 Plugin 'evidens/vim-twig'
 Plugin 'jiangmiao/auto-pairs'
 Plugin 'leafgarland/typescript-vim'
+Plugin 'hashivim/vim-terraform'
 
 call vundle#end()
 filetype plugin indent on
@@ -155,6 +156,9 @@ let g:go_disable_autoinstall = 1
 
 " Disable auto go fmt on save
 let g:go_fmt_autosave = 0
+
+" Enable auto terraform fmt on save
+let g:terraform_fmt_on_save = 1
 
 " CtrlP settings
 let g:ctrlp_match_window = 'bottom,order:ttb'
