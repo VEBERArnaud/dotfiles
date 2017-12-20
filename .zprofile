@@ -56,7 +56,7 @@ export RUBY_BUILD_CACHE_PATH=~/.rubies/cache
 export BUNDLE_JOBS=4
 
 # Go
-export GOPATH=$HOME/Code/go
+export GOPATH=$HOME/Developer
 export PATH=$PATH:$GOPATH/bin
 
 # NPM
