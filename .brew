@@ -153,6 +153,7 @@ brew install awscli
 brew install coreutils
 brew install curl
 brew install diff-so-fancy
+brew install direnv
 brew install findutils --with-default-names
 brew install fzf
 brew install git

@@ -18,6 +18,9 @@ GCLOUD_SDK=/opt/homebrew-cask/Caskroom/google-cloud-sdk/latest/google-cloud-sdk
 # hub
 eval "$(hub alias -s)"
 
+# direnv
+eval "$(direnv hook zsh)"
+
 # disable auto correct
 unsetopt CORRECT
 
