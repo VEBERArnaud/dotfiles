@@ -144,7 +144,7 @@ brew install dnsmasq
 
 # misc
 brew cask install flux
-brew cask install gpgtools
+brew cask install gpg-suite
 brew cask install paw
 brew cask install charles
 
