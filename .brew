@@ -132,7 +132,6 @@ brew cask install vlc
 
 # writing
 brew install pandoc
-
 brew cask install mactex
 
 # chat
@@ -153,6 +152,7 @@ brew install autoenv
 brew install awscli
 brew install coreutils
 brew install curl
+brew install diff-so-fancy
 brew install findutils --with-default-names
 brew install fzf
 brew install git
