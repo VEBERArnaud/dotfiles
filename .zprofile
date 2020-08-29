@@ -95,10 +95,6 @@ export _Z_DATA=~/.z_data
 [[ -f "${HOMEBREW_ROOT}/etc/profile.d/z.sh" ]] && \
   source "${HOMEBREW_ROOT}/etc/profile.d/z.sh"
 
-# Magic per-project shell environments. Very pretentious.
-[[ -f "${HOMEBREW_ROOT}/opt/autoenv/activate.sh" ]] && \
-  source "${HOMEBREW_ROOT}/opt/autoenv/activate.sh"
-
 # Temporary Files
 if [[ ! -d "$TMPDIR" ]]; then
   export TMPDIR="/tmp/$LOGNAME"
