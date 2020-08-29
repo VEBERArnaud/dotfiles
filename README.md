@@ -21,12 +21,12 @@ make uninstall
 
 ## Mac setup
 
-### Sensible OS X defaults
+### Sensible macOS defaults
 
-When setting up a new Mac, you may want to set some sensible OS X defaults:
+When setting up a new Mac, you may want to set some sensible macOS defaults:
 
 ```bash
-./.osx
+./.macos
 ```
 
 ### Install Homebrew Formulae/Native apps
