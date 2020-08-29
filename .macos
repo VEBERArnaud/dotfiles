@@ -25,7 +25,7 @@ while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
   sudo nvram SystemAudioVolume=" "
 
   # Disable transparency in the menu bar and elsewhere on Yosemite
-  defaults write com.apple.universalaccess reduceTransparency -bool true
+  #defaults write com.apple.universalaccess reduceTransparency -bool true
 
   # Menu bar: hide the Time Machine, Volume, and User icons
   for domain in ~/Library/Preferences/ByHost/com.apple.systemuiserver.*; do
@@ -134,17 +134,10 @@ while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
   ###############################################################################
 
   # Disable local Time Machine snapshots
-  sudo tmutil disablelocal
+  sudo tmutil disable
 
   # Disable hibernation (speeds up entering sleep mode)
   sudo pmset -a hibernatemode 0
-
-  # Remove the sleep image file to save disk space
-  sudo rm /private/var/vm/sleepimage
-  # Create a zero-byte file instead…
-  sudo touch /private/var/vm/sleepimage
-  # …and make sure it can’t be rewritten
-  sudo chflags uchg /private/var/vm/sleepimage
 
   # Disable the sudden motion sensor as it’s not useful for SSDs
   sudo pmset -a sms 0
@@ -321,7 +314,7 @@ while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
   defaults write com.apple.NetworkBrowser BrowseAllInterfaces -bool true
 
   # Enable the MacBook Air SuperDrive on any Mac
-  sudo nvram boot-args="mbasd=1"
+  #sudo nvram boot-args="mbasd=1"
 
   # Show the ~/Library folder
   chflags nohidden ~/Library
@@ -527,7 +520,7 @@ while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
   # Disable Spotlight indexing for any volume that gets mounted and has not yet
   # been indexed before.
   # Use `sudo mdutil -i off "/Volumes/foo"` to stop indexing any volume.
-  sudo defaults write /.Spotlight-V100/VolumeConfiguration Exclusions -array "/Volumes"
+  #sudo defaults write /.Spotlight-V100/VolumeConfiguration Exclusions -array "/Volumes"
   # Change indexing order and disable some search results
   # Yosemite-specific search results (remove them if your are using OS X 10.9 or older):
   # 	MENU_DEFINITION
@@ -592,7 +585,7 @@ while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
   defaults write com.apple.TimeMachine DoNotOfferNewDisksForBackup -bool true
 
   # Disable local Time Machine backups
-  hash tmutil &> /dev/null && sudo tmutil disablelocal
+  hash tmutil &> /dev/null && sudo tmutil disable
 
   ###############################################################################
   # Activity Monitor                                                            #
