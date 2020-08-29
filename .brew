@@ -1,101 +1,118 @@
 #!/usr/bin/env bash
 
-# Link Homebrew casks in `/Applications` rather than `~/Applications`
-export HOMEBREW_CASK_OPTS='--appdir=/Applications'
+export HOMEBREW_CASK_OPTS="--appdir=${HOME}/Applications --fontdir=${HOME}/Library/Fonts --no-binaries"
+export HOMEBREW_NO_ANALYTICS=1
+export HOMEBREW_NO_INSECURE_REDIRECT=1
+export PATH="${HOME}/.homebrew/bin:${PATH}"
 
 echo "--> Make sure we're using the latest Homebrew"
 brew update
 
 echo '--> Upgrade any already-installed formulae'
-brew upgrade --all
+brew upgrade
 
 echo '--> Tap extras Homebrew repositories'
-brew tap caskroom/fonts
-brew tap caskroom/versions
-brew tap homebrew/binary
-brew tap homebrew/devel-only
-brew tap homebrew/dupes
+brew tap coinbase/assume-role
+brew tap homebrew/cask-drivers
+brew tap homebrew/cask-fonts
+brew tap homebrew/cask-versions
 brew tap homebrew/services
-brew tap homebrew/versions
+brew tap thoughtbot/formulae
 brew tap tldr-pages/tldr
 
-echo '--> INSTALL ALL THE THINGS !'
+echo '--> Install all brew Packages'
+brew install \
+  ansifilter \
+  autoenv \
+  awscli \
+  chruby \
+  coreutils \
+  ctags \
+  curl \
+  diff-so-fancy \
+  direnv \
+  findutils \
+  fzf \
+  git \
+  gnu-sed \
+  gnu-tar \
+  go \
+  gsl \
+  htop-osx \
+  httpie \
+  hub \
+  jq \
+  moreutils \
+  nodejs \
+  openssl \
+  packer \
+  pre-commit \
+  pt \
+  python3 \
+  reattach-to-user-namespace \
+  ruby-build \
+  ruby-install \
+  shellcheck \
+  ssh-copy-id \
+  stow \
+  tcpdump \
+  the_silver_searcher \
+  tig \
+  tldr \
+  tmux \
+  tmuxinator \
+  tree \
+  vim \
+  wget \
+  z \
+  zsh \
+  zsh-syntax-highlighting
 
-# terminal
-brew cask install iterm2
-brew install bash
-brew install tmux
-brew install zsh
-
-# mac app store
-brew install mas
-
-# browser
-brew cask install google-chrome
-
-# editor
-unset PYTHONPATH
-brew install macvim --with-cscope --with-override-system-vim --with-custom-icons
-
-brew install ctags
-
-# fonts
-brew cask install font-hack
-
-# programming
-
-## openssl
-brew install openssl
-brew link openssl --force
+# install some casks in ~/Applications
+brew cask install \
+  charles \
+  docker \
+  font-hack \
+  google-chrome \
+  gpg-suite \
+  iterm2 \
+  slack \
+  vlc
 
 ## python
-brew install python --with-brewed-openssl
-brew install python3 --with-brewed-openssl
-
 PIPS=(
   flake8
-  httpie
   pylint
   virtualenv
 )
 
-"$(brew --prefix)/bin/pip" install --upgrade pip
-
+pip3 install --upgrade pip
 for pip in "${PIPS[@]}"; do
-  "$(brew --prefix)/bin/pip" list -l | grep "$pip" &>/dev/null || "$(brew --prefix)/bin/pip" install "$pip"
+  pip3 list -l | grep "$pip" &>/dev/null || pip3 install "$pip"
 done
 
 ## ruby
-mkdir -p ~/.rubies
-
-brew install ruby-install
-brew install chruby
+mkdir -p "${HOME}/.rubies"
 
 RUBIES=(
-  2.0.0-p645
-  2.1.7
-  2.2.3
-  2.3.0
+  2.7.1
 )
 
 for ruby in "${RUBIES[@]}"; do
-  "$(brew --prefix)/bin/ruby-install" --no-reinstall --rubies-dir ~/.rubies ruby "$ruby"
+  if [[ ! -f "${HOME}/.rubies/ruby-${ruby}/bin/ruby" ]]; then
+    "$(brew --prefix)/bin/ruby-build" "$ruby" "${HOME}/.rubies/ruby-${ruby}"
+  fi
 done
 
 echo "${RUBIES[@]:(-1)}" > ~/.ruby-version
 
 GEMS=(
-  bundler
-  dotenv
-  hue
-  jekyll
   rubocop
-  tmuxinator
 )
 
 # shellcheck source=/dev/null
 source "$(brew --prefix)/share/chruby/chruby.sh"
-chruby "$(cat ~/.ruby-version)"
+chruby "$(cat "${HOME}/.ruby-version")"
 
 for gem in "${GEMS[@]}"; do
   gem list -i "${gem}" &>/dev/null || gem install "${gem}"
@@ -103,93 +120,11 @@ done
 
 #gem ctags
 #for ruby in ~/.rubies/*/lib/ruby/; do
-#  pushd "${ruby}" &> /dev/null
-#    ctags -R ./*
-#  popd &> /dev/null
+#  pushd "${ruby}" &>/dev/null
+#  ctags -R ./*
+#  popd &>/dev/null
 #done
 
-## node.js
-brew install nodejs
+gem pristine --all
 
-## go
-brew install go
-
-### Java-lol
-brew cask install java6
-brew cask install java7
-
-# devops, ya rly
-brew install ansible
-brew install packer
-
-brew cask install google-cloud-sdk
-brew cask install virtualbox
-brew cask install vagrant
-brew cask install docker
-
-## image/video
-brew cask install vlc
-
-# writing
-brew install pandoc
-brew cask install mactex
-
-# chat
-brew cask install slack
-
-# Everything is a Freaking DNS problem
-brew install dnscrypt-proxy --with-plugins
-brew install dnsmasq
-
-# misc
-brew cask install flux
-brew cask install gpg-suite
-brew cask install paw
-brew cask install charles
-
-brew install ansifilter
-brew install autoenv
-brew install awscli
-brew install coreutils
-brew install curl
-brew install diff-so-fancy
-brew install direnv
-brew install findutils --with-default-names
-brew install fzf
-brew install git
-brew install gnu-sed --with-default-names
-brew install gnu-tar
-brew install graphviz
-brew install gsl
-brew install htop-osx
-brew install hub
-brew install jq
-brew install kubectl
-brew install moreutils
-brew install pre-commit
-brew install pt
-brew install reattach-to-user-namespace
-brew install shellcheck
-brew install ssh-copy-id
-brew install sshrc
-brew install stow
-brew install tcpdump
-brew install the_silver_searcher
-brew install tig
-brew install tldr
-brew install tmux-cssh
-brew install tree
-brew install wget
-brew install z
-brew install zsh-syntax-highlighting
-
-echo '--> Link homebrew apps'
-brew linkapps
-
-# Extra stuff ?
-# shellcheck source=/dev/null
-[[ -f ~/.brew.local ]] && . ~/.brew.local
-
-echo '--> Cleanup !'
-brew cask cleanup
 brew cleanup
