@@ -76,6 +76,7 @@ brew cask install \
   google-chrome \
   gpg-suite \
   iterm2 \
+  session-manager-plugin \
   slack \
   vlc
 
