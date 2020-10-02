@@ -55,6 +55,9 @@ export RUBY_BUILD_CACHE_PATH=~/.rubies/cache
 # Allow bundler to use all the cores for parallel installation
 export BUNDLE_JOBS=4
 
+# Java
+export PATH="/usr/local/opt/openjdk/bin:$PATH"
+
 # Go
 export GOPATH=$HOME/Developer
 export PATH=$PATH:$GOPATH/bin
