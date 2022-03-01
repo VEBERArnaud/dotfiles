@@ -1,0 +1,92 @@
+{{/* os & arch */}}
+{{- $is_linux := false -}}
+{{- $is_mac := false -}}
+{{- $is_unix := false -}}
+{{- $is_windows := false -}}
+{{- $is_apple_silicon := false -}}
+
+{{- if eq .chezmoi.os "linux" -}}
+{{-   $is_linux = true -}}
+{{- end -}}
+
+{{- if eq .chezmoi.os "darwin" -}}
+{{-   $is_mac = true -}}
+{{-   if eq .chezmoi.arch "arm64" -}}
+{{-     $is_apple_silicon = true -}}
+{{-   end -}}
+{{- end -}}
+
+{{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") -}}
+{{-   $is_unix = true -}}
+{{- end -}}
+
+{{- if eq .chezmoi.os "windows" -}}
+{{-   $is_windows = true -}}
+{{- end -}}
+
+{{/* project */}}
+{{- $project_personal := false -}}
+{{- $project_blue_hoodie := false -}}
+{{- $project_eleven_labs := false -}}
+{{- $project_btp_consultants := false -}}
+
+{{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2012" -}}
+{{-   $project_personal = true -}}
+{{- end -}}
+
+{{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2017" -}}
+{{-   $project_personal = true -}}
+{{-   $project_blue_hoodie = true -}}
+{{-   $project_eleven_labs = true -}}
+{{-   $project_btp_consultants = true -}}
+{{- end -}}
+
+{{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2020" -}}
+{{-   $project_personal = true -}}
+{{-   $project_blue_hoodie = true -}}
+{{-   $project_eleven_labs = true -}}
+{{-   $project_btp_consultants = true -}}
+{{- end -}}
+
+{{/* with */}}
+{{- $with_aws := false -}}
+{{- $with_docker := false -}}
+{{- $with_golang := false -}}
+{{- $with_javascript := false -}}
+{{- $with_packer := false -}}
+{{- $with_php := false -}}
+{{- $with_terraform := false -}}
+
+{{- if $project_personal -}}
+{{-   $with_aws = true -}}
+{{-   $with_docker = true -}}
+{{-   $with_golang = true -}}
+{{-   $with_javascript = true -}}
+{{-   $with_packer = true -}}
+{{-   $with_php = true -}}
+{{-   $with_terraform = true -}}
+{{- end -}}
+
+{{- if $project_blue_hoodie -}}
+{{-   $with_aws = true -}}
+{{-   $with_javascript = true -}}
+{{-   $with_terraform = true -}}
+{{- end -}}
+
+[data]
+    is_apple_silicon = {{ $is_apple_silicon }}
+    is_linux = {{ $is_linux }}
+    is_mac = {{ $is_mac }}
+    is_unix = {{ $is_unix }}
+    is_windows = {{ $is_windows }}
+    project_blue_hoodie = {{ $project_blue_hoodie }}
+    project_btp_consultants = {{ $project_btp_consultants }}
+    project_eleven_labs = {{ $project_eleven_labs }}
+    project_personal = {{ $project_personal }}
+    with_aws = {{ $with_aws }}
+    with_docker = {{ $with_docker }}
+    with_golang = {{ $with_golang }}
+    with_javascript = {{ $with_javascript }}
+    with_packer = {{ $with_packer }}
+    with_php = {{ $with_php }}
+    with_terraform = {{ $with_terraform }}

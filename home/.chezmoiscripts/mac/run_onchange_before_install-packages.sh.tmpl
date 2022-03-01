@@ -1,0 +1,118 @@
+{{- if .is_mac -}}
+
+{{- $taps := list
+    "homebrew/cask-fonts"
+-}}
+
+{{- $brews := list
+    "chezmoi"
+    "coreutils"
+    "ctags"
+    "curl"
+    "diff-so-fancy"
+    "direnv"
+    "findutils"
+    "fzf"
+    "git"
+    "gnu-sed"
+    "gnu-tar"
+    "htop"
+    "httpie"
+    "hub"
+    "jq"
+    "moreutils"
+    "openssl@3"
+    "pre-commit"
+    "reattach-to-user-namespace"
+    "shellcheck"
+    "the_platinum_searcher"
+    "the_silver_searcher"
+    "tig"
+    "tldr"
+    "tmux"
+    "tree"
+    "vim"
+    "wget"
+    "z"
+    "zsh"
+    "zsh-syntax-highlighting"
+-}}
+
+{{- $casks := list
+    "1password"
+    "1password-cli"
+    "font-hack"
+    "google-chrome"
+    "gpg-suite"
+    "insomnia"
+    "iterm2"
+    "slack"
+    "visual-studio-code"
+-}}
+
+{{- $nodes := list
+    "lts/fermium"
+    "lts/gallium"
+    "17.8.0"
+-}}
+
+{{- if .with_aws -}}
+{{-   $brews = concat $brews (list "awscli") -}}
+{{- end -}}
+
+{{- if .with_docker -}}
+{{-   $casks = concat $casks (list "docker") -}}
+{{- end -}}
+
+{{- if .with_golang -}}
+{{-   $brews = concat $brews (list "go") -}}
+{{- end -}}
+
+{{- if .with_javascript -}}
+{{-   $brews = concat $brews (list "nvm") -}}
+{{- end -}}
+
+{{- if .with_packer -}}
+{{-   $brews = concat $brews (list "packer") -}}
+{{- end -}}
+
+{{- if .with_php -}}
+{{-   $brews = concat $brews (list "php") -}}
+{{- end -}}
+
+{{- if .with_terraform -}}
+{{-   $brews = concat $brews (list "terraform") -}}
+{{- end -}}
+
+#!/bin/bash
+
+set -eufo pipefail
+
+export HOMEBREW_CASK_OPTS="--appdir=${HOME}/Applications --fontdir=${HOME}/Library/Fonts --no-binaries"
+export HOMEBREW_NO_ANALYTICS=1
+export HOMEBREW_NO_INSECURE_REDIRECT=1
+
+brew update
+brew upgrade
+brew bundle --no-lock --file=/dev/stdin <<EOF
+{{ range ($taps | sortAlpha | uniq) -}}
+tap "{{ . }}"
+{{ end -}}
+{{ range ($brews | sortAlpha | uniq) -}}
+brew "{{ . }}"
+{{ end -}}
+{{ range ($casks | sortAlpha | uniq) -}}
+cask "{{ . }}"
+{{ end -}}
+EOF
+brew cleanup
+
+{{ if .with_javascript -}}
+export NVM_DIR="$HOME/.nvm"
+[ -s "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh" ] && source "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh"
+{{   range ($nodes) -}}
+nvm ls "{{ . }}" &>/dev/null || nvm install "{{ . }}"
+{{   end -}}
+{{- end -}}
+
+{{- end -}}
