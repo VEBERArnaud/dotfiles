@@ -46,6 +46,9 @@ export HOMEBREW_CASK_OPTS="--appdir=${HOME}/Applications --fontdir=${HOME}/Libra
 export HOMEBREW_NO_ANALYTICS=1
 export HOMEBREW_NO_INSECURE_REDIRECT=1
 
+# Visual Studio Code
+export PATH="$PATH:/Users/veberarnaud/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+
 {{ if .with_golang -}}
 # Go
 export GOPATH=$HOME/Developer
