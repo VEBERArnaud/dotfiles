@@ -52,14 +52,14 @@ export GOPATH=$HOME/Developer
 export PATH=$PATH:$GOPATH/bin
 {{- end -}}
 
-{{ if .with_javascript -}}
+{{ if .with_javascript }}
 # NVM
 export NVM_DIR="$HOME/.nvm"
 [ -s "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh" ] && source "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh"
 
 # NPM
 export PATH=$PATH:./node_modules/.bin
-{{- end -}}
+{{ end }}
 
 # MySQL prompt
 export MYSQL_PS1='(\D) \u@\h [\d] > '
