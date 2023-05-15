@@ -1,6 +1,7 @@
 {{- if .is_mac -}}
 
 {{- $taps := list
+    "hashicorp/tap"
     "homebrew/cask-fonts"
 -}}
 
@@ -13,6 +14,7 @@
     "direnv"
     "findutils"
     "fzf"
+    "gimme-aws-creds"
     "git"
     "gnu-sed"
     "gnu-tar"
@@ -41,13 +43,16 @@
 {{- $casks := list
     "1password"
     "1password-cli"
+    "discord"
     "font-hack"
     "google-chrome"
     "gpg-suite"
+    "logi-options-plus"
     "insomnia"
     "iterm2"
     "slack"
     "visual-studio-code"
+    "zoom"
 -}}
 
 {{- $nodes := list
@@ -80,7 +85,7 @@
 {{- end -}}
 
 {{- if .with_terraform -}}
-{{-   $brews = concat $brews (list "terraform") -}}
+{{-   $brews = concat $brews (list "hashicorp/tap/terraform") -}}
 {{- end -}}
 
 #!/bin/bash
@@ -104,6 +109,8 @@ brew "{{ . }}"
 cask "{{ . }}"
 {{ end -}}
 EOF
+brew upgrade
+brew upgrade --cask
 brew cleanup
 
 {{ if .with_javascript -}}
