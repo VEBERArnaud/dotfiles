@@ -98,7 +98,7 @@ export HOMEBREW_NO_INSECURE_REDIRECT=1
 
 brew update
 brew upgrade
-brew upgrade --cask --greedy
+brew upgrade --cask
 brew bundle --no-lock --file=/dev/stdin <<EOF
 {{ range ($taps | sortAlpha | uniq) -}}
 tap "{{ . }}"
