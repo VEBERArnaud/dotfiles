@@ -49,6 +49,10 @@
 {{-   $project_blue_hoodie = true -}}
 {{- end -}}
 
+{{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2023" -}}
+{{-   $project_personal = true -}}
+{{- end -}}
+
 {{/* with */}}
 {{- $with_aws := false -}}
 {{- $with_docker := false -}}
