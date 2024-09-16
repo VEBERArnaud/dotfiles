@@ -53,6 +53,10 @@
 {{-   $project_personal = true -}}
 {{- end -}}
 
+{{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2023s" -}}
+{{-   $project_personal = true -}}
+{{- end -}}
+
 {{/* with */}}
 {{- $with_aws := false -}}
 {{- $with_docker := false -}}
