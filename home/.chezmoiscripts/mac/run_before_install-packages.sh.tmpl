@@ -77,10 +77,6 @@
 {{-   $brews = concat $brews (list "nvm") -}}
 {{- end -}}
 
-{{- if .with_packer -}}
-{{-   $brews = concat $brews (list "packer") -}}
-{{- end -}}
-
 {{- if .with_php -}}
 {{-   $brews = concat $brews (list "php") -}}
 {{- end -}}

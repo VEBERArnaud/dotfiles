@@ -62,7 +62,6 @@
 {{- $with_docker := false -}}
 {{- $with_golang := false -}}
 {{- $with_javascript := false -}}
-{{- $with_packer := false -}}
 {{- $with_php := false -}}
 {{- $with_terraform := false -}}
 
@@ -71,7 +70,6 @@
 {{-   $with_docker = true -}}
 {{-   $with_golang = true -}}
 {{-   $with_javascript = true -}}
-{{-   $with_packer = true -}}
 {{-   $with_php = true -}}
 {{-   $with_terraform = true -}}
 {{- end -}}
@@ -96,6 +94,5 @@
     with_docker = {{ $with_docker }}
     with_golang = {{ $with_golang }}
     with_javascript = {{ $with_javascript }}
-    with_packer = {{ $with_packer }}
     with_php = {{ $with_php }}
     with_terraform = {{ $with_terraform }}
