@@ -65,7 +65,7 @@
 {{- end -}}
 
 {{- if .with_docker -}}
-{{-   $casks = concat $casks (list "docker") -}}
+{{-   $casks = concat $casks (list "docker-desktop") -}}
 {{- end -}}
 
 {{- if .with_golang -}}
