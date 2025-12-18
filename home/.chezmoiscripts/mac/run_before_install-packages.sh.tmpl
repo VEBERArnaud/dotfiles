@@ -106,6 +106,13 @@ EOF
 brew cleanup
 
 {{ if .with_javascript -}}
+# Initialize Homebrew environment to get HOMEBREW_PREFIX
+{{ if stat "/opt/homebrew/bin/brew" -}}
+eval "$(/opt/homebrew/bin/brew shellenv)"
+{{ else if stat "/usr/local/bin/brew" -}}
+eval "$(/usr/local/bin/brew shellenv)"
+{{ end -}}
+
 export NVM_DIR="$HOME/.nvm"
 [ -s "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh" ] && source "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh"
 {{   range ($nodes) -}}
