@@ -1,59 +1,51 @@
-set nocompatible
-filetype off
+call plug#begin('~/.vim/plugged')
+Plug 'tpope/vim-sensible'
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-git'
+Plug 'tpope/vim-fugitive'
+Plug 'rking/ag.vim'
+Plug 'junegunn/fzf'
+Plug 'airblade/vim-gitgutter'
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+Plug 'ervandew/supertab'
+Plug 'easymotion/vim-easymotion'
+Plug 'othree/html5.vim'
+Plug 'tpope/vim-markdown'
+Plug 'tpope/vim-liquid'
+Plug 'scrooloose/syntastic'
+Plug 'bling/vim-airline'
+Plug 'ntpeters/vim-better-whitespace'
+Plug 'editorconfig/editorconfig-vim'
+Plug 'chriskempson/base16-vim'
+Plug 'edkolev/tmuxline.vim'
+Plug 'terryma/vim-multiple-cursors'
+Plug 'jiangmiao/auto-pairs'
 
-" set the runtime path to include Vundle and initialize
-set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin()
-
-Plugin 'gmarik/Vundle.vim'
-Plugin 'tpope/vim-sensible'
-Plugin 'tpope/vim-surround'
-Plugin 'tpope/vim-git'
-Plugin 'tpope/vim-fugitive'
-Plugin 'rking/ag.vim'
-Plugin 'junegunn/fzf'
-Plugin 'airblade/vim-gitgutter'
-Plugin 'SirVer/ultisnips'
-Plugin 'honza/vim-snippets'
-Plugin 'ervandew/supertab'
-Plugin 'easymotion/vim-easymotion'
-Plugin 'othree/html5.vim'
-Plugin 'tpope/vim-markdown'
-Plugin 'tpope/vim-liquid'
-Plugin 'scrooloose/syntastic'
-Plugin 'bling/vim-airline'
-Plugin 'ntpeters/vim-better-whitespace'
-Plugin 'editorconfig/editorconfig-vim'
-Plugin 'chriskempson/base16-vim'
-Plugin 'edkolev/tmuxline.vim'
-Plugin 'terryma/vim-multiple-cursors'
-Plugin 'jiangmiao/auto-pairs'
-
-Plugin 'junegunn/limelight.vim'
-Plugin 'markcornick/vim-bats'
-Plugin 'MarcWeber/vim-addon-mw-utils'
-Plugin 'tomtom/tlib_vim'
-Plugin 'godlygeek/tabular'
+Plug 'junegunn/limelight.vim'
+Plug 'markcornick/vim-bats'
+Plug 'MarcWeber/vim-addon-mw-utils'
+Plug 'tomtom/tlib_vim'
+Plug 'godlygeek/tabular'
 
 {{ if .with_docker }}
-Plugin 'ekalinin/Dockerfile.vim'
+Plug 'ekalinin/Dockerfile.vim'
 {{ end }}
 
 {{ if .with_golang }}
-Plugin 'fatih/vim-go'
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 {{ end }}
 
 {{ if .with_terraform }}
-Plugin 'hashivim/vim-terraform'
+Plug 'hashivim/vim-terraform'
 {{ end }}
 
 {{ if .with_javascript }}
-Plugin 'pangloss/vim-javascript'
-Plugin 'mxw/vim-jsx'
+Plug 'pangloss/vim-javascript'
+Plug 'mxw/vim-jsx'
 {{ end }}
 
-call vundle#end()
-filetype plugin indent on
+call plug#end()
 
 " Settings
 set encoding=utf-8

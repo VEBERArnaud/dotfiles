@@ -26,9 +26,7 @@
     pull.args = ["--depth=1"]
     refreshPeriod = "24h"
 
-[".vim/bundle/Vundle.vim"]
-    type = "git-repo"
-    url = "https://github.com/gmarik/Vundle.vim.git"
-    clone.args = ["--depth=1"]
-    pull.args = ["--depth=1"]
-    refreshPeriod = "24h"
+[".vim/autoload/plug.vim"]
+    type = "file"
+    url = "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
+    refreshPeriod = "168h"
