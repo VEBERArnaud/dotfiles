@@ -3,10 +3,10 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
-# Autostart tmux only when running inside iTerm
+# Autostart tmux only when running inside Ghostty
 # Use a separate socket named "main" to avoid attaching to any tmux sessions
 # that other processes may have started on the default socket.
-if [[ -z "$TMUX" && -t 1 && "$TERM_PROGRAM" == "iTerm.app" && "$__CFBundleIdentifier" != "com.docker.docker" ]]; then
+if [[ -z "$TMUX" && -t 1 && "$TERM_PROGRAM" == "ghostty" && "$__CFBundleIdentifier" != "com.docker.docker" ]]; then
   tmux -L main attach -t main 2>/dev/null || tmux -L main new -s main
 fi
 
