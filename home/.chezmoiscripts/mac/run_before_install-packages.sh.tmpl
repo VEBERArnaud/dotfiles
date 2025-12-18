@@ -85,13 +85,53 @@
 
 set -eufo pipefail
 
+# Error trap to show line numbers on failure
+trap 'echo "❌ Error on line $LINENO. Installation failed." >&2' ERR
+
+# Check if Homebrew is installed
+if ! command -v brew &>/dev/null; then
+    echo "❌ Homebrew not found. Please install Homebrew first:" >&2
+    echo "   /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"" >&2
+    exit 1
+fi
+
+# Retry function for network-dependent operations
+retry() {
+    local max_attempts=3
+    local timeout=2
+    local attempt=1
+    local exit_code=0
+
+    while [ $attempt -le $max_attempts ]; do
+        if "$@"; then
+            return 0
+        else
+            exit_code=$?
+            if [ $attempt -lt $max_attempts ]; then
+                echo "⚠️  Command failed (attempt $attempt/$max_attempts). Retrying in ${timeout}s..." >&2
+                sleep $timeout
+                attempt=$((attempt + 1))
+                timeout=$((timeout * 2))
+            else
+                echo "❌ Command failed after $max_attempts attempts." >&2
+                return $exit_code
+            fi
+        fi
+    done
+}
+
 export HOMEBREW_CASK_OPTS="--appdir=${HOME}/Applications --fontdir=${HOME}/Library/Fonts --no-binaries"
 export HOMEBREW_NO_ANALYTICS=1
 export HOMEBREW_NO_INSECURE_REDIRECT=1
 
-brew update
-brew upgrade
-brew upgrade --cask
+echo "🔄 Updating Homebrew..."
+retry brew update
+
+echo "⬆️  Upgrading existing packages..."
+retry brew upgrade
+retry brew upgrade --cask
+
+echo "📦 Installing packages from Brewfile..."
 brew bundle --file=/dev/stdin <<EOF
 {{ range ($taps | sortAlpha | uniq) -}}
 tap "{{ . }}"
@@ -103,7 +143,11 @@ brew "{{ . }}"
 cask "{{ . }}"
 {{ end -}}
 EOF
+
+echo "🧹 Cleaning up..."
 brew cleanup
+
+echo "✅ Homebrew packages installation complete"
 
 {{ if .with_javascript -}}
 # Initialize Homebrew environment to get HOMEBREW_PREFIX
@@ -114,10 +158,32 @@ eval "$(/usr/local/bin/brew shellenv)"
 {{ end -}}
 
 export NVM_DIR="$HOME/.nvm"
-[ -s "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh" ] && source "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh"
+
+# Source NVM with proper error handling
+if [ -s "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh" ]; then
+    source "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh"
+else
+    echo "❌ NVM installation not found at ${HOMEBREW_PREFIX}/opt/nvm/nvm.sh" >&2
+    exit 1
+fi
+
+# Verify nvm command is available
+if ! command -v nvm &>/dev/null; then
+    echo "❌ nvm command not available after sourcing. Installation may have failed." >&2
+    exit 1
+fi
+
+echo "📦 Installing Node.js LTS versions..."
 {{   range ($nodes) -}}
-nvm ls "{{ . }}" &>/dev/null || nvm install "{{ . }}"
+if nvm ls "{{ . }}" &>/dev/null; then
+    echo "✓ Node.js {{ . }} already installed"
+else
+    echo "🔄 Installing Node.js {{ . }}..."
+    retry nvm install "{{ . }}"
+fi
 {{   end -}}
+
+echo "✅ Node.js installations complete"
 {{- end -}}
 
 {{- end -}}
