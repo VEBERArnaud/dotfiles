@@ -87,9 +87,6 @@
 [gc]
   auto = 1
 
-[hub]
-  protocol = https
-
 [init]
   defaultBranch = main
 
