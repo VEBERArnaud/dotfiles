@@ -51,8 +51,6 @@
 -}}
 
 {{- $nodes := list
-    "lts/hydrogen"
-    "lts/iron"
     "lts/jod"
     "lts/krypton"
 -}}
@@ -182,6 +180,9 @@ else
     retry nvm install "{{ . }}"
 fi
 {{   end -}}
+
+echo "🔗 Setting default Node.js version to {{ last $nodes }}..."
+nvm alias default {{ last $nodes }}
 
 echo "✅ Node.js installations complete"
 {{- end -}}
