@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+echo "🔍 Verifying dotfiles installation..."
+
+errors=0
+
+# Check critical files exist
+check_file() {
+    if [[ -f "$1" ]]; then
+        echo "✓ $1 exists"
+    else
+        echo "✗ $1 missing"
+        errors=$((errors + 1))
+    fi
+}
+
+echo ""
+echo "📁 Checking critical files..."
+check_file "${HOME}/.zshrc"
+check_file "${HOME}/.vimrc"
+check_file "${HOME}/.gitconfig"
+check_file "${HOME}/.tmux.conf"
+check_file "${HOME}/.config/starship.toml"
+
+# Check essential commands are available
+check_command() {
+    if command -v "$1" &>/dev/null; then
+        echo "✓ $1 available"
+    else
+        echo "✗ $1 not found"
+        errors=$((errors + 1))
+    fi
+}
+
+echo ""
+echo "🔧 Checking essential commands..."
+check_command zsh
+check_command vim
+check_command tmux
+check_command git
+check_command starship
+
+# Validate shell config syntax
+echo ""
+echo "📝 Validating configuration syntax..."
+
+if zsh -n "${HOME}/.zshrc" 2>/dev/null; then
+    echo "✓ .zshrc syntax valid"
+else
+    echo "✗ .zshrc has syntax errors"
+    errors=$((errors + 1))
+fi
+
+if vim --noplugin -es -c 'quit' "${HOME}/.vimrc" 2>/dev/null; then
+    echo "✓ .vimrc syntax valid"
+else
+    echo "✗ .vimrc has syntax errors"
+    errors=$((errors + 1))
+fi
+
+# Summary
+echo ""
+if [[ $errors -eq 0 ]]; then
+    echo "✅ All verification checks passed!"
+else
+    echo "⚠️  Verification completed with $errors error(s)"
+    exit 1
+fi
