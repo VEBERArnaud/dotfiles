@@ -17,7 +17,7 @@ Plug 'scrooloose/syntastic'
 Plug 'bling/vim-airline'
 Plug 'ntpeters/vim-better-whitespace'
 Plug 'editorconfig/editorconfig-vim'
-Plug 'chriskempson/base16-vim'
+Plug 'hhff/SpacegrayEighties.vim'
 Plug 'edkolev/tmuxline.vim'
 Plug 'terryma/vim-multiple-cursors'
 Plug 'jiangmiao/auto-pairs'
@@ -102,8 +102,7 @@ set antialias
 syntax enable
 
 set background=dark
-let base16colorspace=256
-colorscheme base16-eighties
+colorscheme SpacegrayEighties
 
 if exists('+colorcolumn')
   set colorcolumn=120
@@ -117,7 +116,7 @@ let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tmuxline#enabled = 0
 
 " set airline theme
-let g:airline_theme='base16'
+let g:airline_theme='dark'
 
 " airline/powerline font interation
 let g:airline_powerline_fonts=1
@@ -128,9 +127,6 @@ let g:airline#extensions#branch_prefix#enabled=1
 
 " enable airline/syntastic integration
 let g:airline#extensions#syntastic#enabled=1
-
-" airline theme
-let g:airline_theme='dark'
 
 " Set some sensible syntastic default
 let g:syntastic_always_populate_loc_list = 1
