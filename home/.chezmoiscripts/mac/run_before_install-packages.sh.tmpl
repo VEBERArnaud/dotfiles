@@ -7,7 +7,6 @@
 {{- $brews := list
     "chezmoi"
     "coreutils"
-    "ctags"
     "curl"
     "diff-so-fancy"
     "direnv"
@@ -25,7 +24,6 @@
     "reattach-to-user-namespace"
     "shellcheck"
     "starship"
-    "the_platinum_searcher"
     "the_silver_searcher"
     "tig"
     "tmux"
@@ -39,15 +37,20 @@
 
 {{- $casks := list
     "1password-cli"
+    "adobe-creative-cloud"
+    "chatgpt"
+    "claude"
     "cursor"
     "discord"
     "font-hack"
     "ghostty"
     "google-chrome"
     "gpg-suite"
+    "insta360-link-controller"
     "lasso-app"
     "insomnia"
     "slack"
+    "whatsapp"
     "zoom"
 -}}
 
@@ -142,6 +145,9 @@ brew "{{ . }}"
 cask "{{ . }}"
 {{ end -}}
 EOF
+
+echo "🔐 Installing 1password in /Applications (required for browser integration)..."
+brew install --cask 1password --appdir=/Applications 2>/dev/null || true
 
 echo "🧹 Cleaning up..."
 brew cleanup
