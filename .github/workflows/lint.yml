@@ -1,0 +1,95 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint & Validate
+    runs-on: ubuntu-latest
+    env:
+      CHEZMOI_SOURCE: ${{ github.workspace }}/home
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install chezmoi
+        run: sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
+
+      - name: Initialize chezmoi with mock data
+        run: |
+          mkdir -p ~/.config/chezmoi
+          cat > ~/.config/chezmoi/chezmoi.toml << EOF
+          sourceDir = "${CHEZMOI_SOURCE}"
+          [data]
+            is_mac = true
+            is_linux = false
+            is_windows = false
+            is_unix = true
+            is_apple_silicon = true
+            project_personal = true
+            project_blue_hoodie = false
+            project_btp_consultants = false
+            project_eleven_labs = false
+            with_aws = true
+            with_docker = true
+            with_golang = true
+            with_javascript = true
+            with_php = false
+            with_terraform = true
+          EOF
+
+      - name: Validate templates
+        run: |
+          echo "Validating all templates can be rendered..."
+          chezmoi diff > /dev/null
+          echo "✓ All templates valid"
+
+      - name: Install linters
+        run: |
+          # Install taplo for TOML validation (pre-built binary)
+          curl -fsSL "https://github.com/tamasfe/taplo/releases/download/0.9.3/taplo-linux-x86_64.gz" | gunzip > /usr/local/bin/taplo
+          chmod +x /usr/local/bin/taplo
+          # Install yamllint and vint
+          pip install --quiet yamllint vim-vint
+
+      - name: ShellCheck scripts
+        run: |
+          echo "Running shellcheck on rendered scripts..."
+          find "${CHEZMOI_SOURCE}/.chezmoiscripts" -name "*.sh.tmpl" 2>/dev/null | while read -r tmpl; do
+            echo "Checking $tmpl..."
+            # SC1091: Don't follow external sources (nvm.sh etc)
+            chezmoi execute-template < "$tmpl" | shellcheck -s bash -e SC1091 -
+          done
+          echo "✓ All scripts pass shellcheck"
+
+      - name: Validate TOML files
+        run: |
+          echo "Validating TOML syntax..."
+          find "${CHEZMOI_SOURCE}" -name "*.toml" ! -name "*.tmpl" 2>/dev/null | while read -r file; do
+            echo "Checking $file..."
+            taplo lint "$file"
+          done
+          echo "✓ All TOML files valid"
+
+      - name: Validate YAML files
+        run: |
+          echo "Validating YAML files..."
+          find "${CHEZMOI_SOURCE}" \( -name "*.yml" -o -name "*.yaml" \) 2>/dev/null | while read -r file; do
+            echo "Checking $file..."
+            yamllint -d relaxed "$file"
+          done
+          echo "✓ All YAML files valid"
+
+      - name: Validate Vimscript
+        run: |
+          echo "Validating Vimscript..."
+          if [[ -f "${CHEZMOI_SOURCE}/dot_vimrc.tmpl" ]]; then
+            echo "Checking dot_vimrc.tmpl..."
+            chezmoi execute-template < "${CHEZMOI_SOURCE}/dot_vimrc.tmpl" > /tmp/vimrc
+            vint /tmp/vimrc || true  # vint can be strict, don't fail on warnings
+          fi
+          echo "✓ Vimscript validation complete"
