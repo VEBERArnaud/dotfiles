@@ -25,10 +25,10 @@
 {{- end -}}
 
 {{/* project */}}
+{{- $project_eurosport := false -}}
+{{- $project_mega_lap := false -}}
 {{- $project_personal := false -}}
-{{- $project_blue_hoodie := false -}}
-{{- $project_eleven_labs := false -}}
-{{- $project_btp_consultants := false -}}
+{{- $project_vbr_tech := false -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2012" -}}
 {{-   $project_personal = true -}}
@@ -36,25 +36,31 @@
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2017" -}}
 {{-   $project_personal = true -}}
-{{-   $project_blue_hoodie = true -}}
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2020" -}}
 {{-   $project_personal = true -}}
-{{-   $project_blue_hoodie = true -}}
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2023" -}}
+{{-   $project_eurosport = true -}}
+{{-   $project_mega_lap = true -}}
 {{-   $project_personal = true -}}
-{{-   $project_blue_hoodie = true -}}
+{{-   $project_vbr_tech = true -}}
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2023" -}}
+{{-   $project_eurosport = true -}}
+{{-   $project_mega_lap = true -}}
 {{-   $project_personal = true -}}
+{{-   $project_vbr_tech = true -}}
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2023s" -}}
+{{-   $project_eurosport = true -}}
+{{-   $project_mega_lap = true -}}
 {{-   $project_personal = true -}}
+{{-   $project_vbr_tech = true -}}
 {{- end -}}
 
 {{/* with */}}
@@ -74,8 +80,23 @@
 {{-   $with_terraform = true -}}
 {{- end -}}
 
-{{- if $project_blue_hoodie -}}
+{{- if $project_vbr_tech -}}
 {{-   $with_aws = true -}}
+{{-   $with_docker = true -}}
+{{-   $with_javascript = true -}}
+{{-   $with_terraform = true -}}
+{{- end -}}
+
+{{- if $project_eurosport -}}
+{{-   $with_aws = true -}}
+{{-   $with_docker = true -}}
+{{-   $with_javascript = true -}}
+{{-   $with_terraform = true -}}
+{{- end -}}
+
+{{- if $project_mega_lap -}}
+{{-   $with_aws = true -}}
+{{-   $with_docker = true -}}
 {{-   $with_javascript = true -}}
 {{-   $with_terraform = true -}}
 {{- end -}}
@@ -86,10 +107,10 @@
     is_mac = {{ $is_mac }}
     is_unix = {{ $is_unix }}
     is_windows = {{ $is_windows }}
-    project_blue_hoodie = {{ $project_blue_hoodie }}
-    project_btp_consultants = {{ $project_btp_consultants }}
-    project_eleven_labs = {{ $project_eleven_labs }}
+    project_eurosport = {{ $project_eurosport }}
+    project_mega_lap = {{ $project_mega_lap }}
     project_personal = {{ $project_personal }}
+    project_vbr_tech = {{ $project_vbr_tech }}
     with_aws = {{ $with_aws }}
     with_docker = {{ $with_docker }}
     with_golang = {{ $with_golang }}
