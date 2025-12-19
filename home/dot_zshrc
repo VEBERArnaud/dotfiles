@@ -3,6 +3,9 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
+# Starship prompt
+eval "$(starship init zsh)"
+
 # Autostart tmux only when running inside Ghostty
 # Use a separate socket named "main" to avoid attaching to any tmux sessions
 # that other processes may have started on the default socket.
