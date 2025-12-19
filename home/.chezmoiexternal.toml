@@ -12,13 +12,6 @@
     pull.args = ["--depth=1"]
     refreshPeriod = "24h"
 
-[".base16-iterm2"]
-    type = "git-repo"
-    url = "https://github.com/chriskempson/base16-iterm2"
-    clone.args = ["--depth=1"]
-    pull.args = ["--depth=1"]
-    refreshPeriod = "24h"
-
 [".tmux/plugins/tpm"]
     type = "git-repo"
     url = "https://github.com/tmux-plugins/tpm"
