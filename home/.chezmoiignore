@@ -8,4 +8,5 @@
 {{- if not (has .chezmoi.hostname $knownHosts) }}
 .ssh/id_ed25519
 .ssh/id_ed25519.pub
+.chezmoiscripts/run_after_import-gpg-key.sh
 {{- end }}

@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# Vérifier si op est disponible
+if ! command -v op &>/dev/null; then
+    echo "⚠️  1Password CLI not found, skipping GPG key import"
+    exit 0
+fi
+
+# Vérifier si connecté à 1Password
+if ! op whoami &>/dev/null; then
+    echo "⚠️  Not signed in to 1Password, skipping GPG key import"
+    exit 0
+fi
+
+KEY_ID="7D934C83"
+
+# Vérifier si la clé est déjà importée
+if gpg --list-secret-keys "$KEY_ID" &>/dev/null; then
+    echo "✓ GPG key $KEY_ID already imported"
+    exit 0
+fi
+
+echo "🔐 Importing GPG key from 1Password..."
+
+# Extraire et importer la clé
+op document get GPG | gpg --import
+
+# Configurer la confiance (ultimate trust pour sa propre clé)
+echo "${KEY_ID}:6:" | gpg --import-ownertrust
+
+echo "✅ GPG key imported successfully"
