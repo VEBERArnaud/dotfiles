@@ -1,0 +1,11 @@
+{{- $knownHosts := list 
+    "VEBERArnaud-MacBookPro2012" 
+    "VEBERArnaud-MacBookPro2017" 
+    "VEBERArnaud-MacMini2020" 
+    "VEBERArnaud-MacMini2023s" 
+    "VEBERArnaud-MacBookPro2023" 
+-}}
+{{- if not (has .chezmoi.hostname $knownHosts) }}
+.ssh/id_ed25519
+.ssh/id_ed25519.pub
+{{- end }}

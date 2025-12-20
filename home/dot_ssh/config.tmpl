@@ -1,3 +1,6 @@
+# Include local config (for private hosts not in version control)
+Include config.local
+
 ###
 # SCM
 ###
@@ -19,3 +22,16 @@ Host bitbucket.org
     AddKeysToAgent yes
     UseKeychain yes
     IdentityFile ~/.ssh/id_ed25519
+
+###
+# Global settings
+###
+Host *
+    AddKeysToAgent yes
+    UseKeychain yes
+    ServerAliveInterval 300
+    ServerAliveCountMax 2
+    ControlMaster auto
+    ControlPath ~/.ssh/control-%C
+    ControlPersist 10m
+    HashKnownHosts yes
