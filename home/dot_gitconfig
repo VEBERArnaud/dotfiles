@@ -65,6 +65,7 @@
 [core]
   editor = vim
   excludesfile = ~/.gitignore_global
+  pager = delta
   # Prevent showing files whose names contain non-ASCII symbols as unversioned.
   # http://michael-kuehnel.de/git/2014/11/21/git-mac-osx-and-german-umlaute.html
   precomposeunicode = false
@@ -72,10 +73,16 @@
   # More info: <http://www.git-tower.com/blog/make-git-rebase-safe-on-osx/>
   trustctime = false
 
+[delta]
+  navigate = true
+  side-by-side = false
+  line-numbers = true
+
 [diff]
   # Detect copies as well as renames
   renames = copies
-    compactionHeuristic = true
+  compactionHeuristic = true
+  colorMoved = default
 
 [diff "bin"]
   # Use `hexdump` to diff binary files
@@ -90,15 +97,15 @@
 [init]
   defaultBranch = main
 
+[interactive]
+  diffFilter = delta --color-only
+
 [merge]
   # Include summaries of merged commits in newly created merge commit messages
   log = true
   summary = true
   tool = vimdiff
-
-[pager]
-  diff = diff-so-fancy | less --tabs=4 -RFX
-  show = diff-so-fancy | less --tabs=4 -RFX
+  conflictstyle = diff3
 
 [pull]
   rebase = true
