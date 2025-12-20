@@ -71,9 +71,8 @@ eval "$(direnv hook zsh)"
 # Setting rg as the default source for fzf
 export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
 
-# z is the new j, yo
-export _Z_DATA=~/.z_data
-[[ -f "${HOMEBREW_PREFIX}/etc/profile.d/z.sh" ]] && source "${HOMEBREW_PREFIX}/etc/profile.d/z.sh"
+# zoxide for directory jumping
+eval "$(zoxide init zsh)"
 
 # Temporary Files
 if [[ ! -d "$TMPDIR" ]]; then
