@@ -1,32 +1,32 @@
 call plug#begin('~/.vim/plugged')
+
+Plug 'airblade/vim-gitgutter'
+Plug 'bling/vim-airline'
+Plug 'dense-analysis/ale'
+Plug 'easymotion/vim-easymotion'
+Plug 'editorconfig/editorconfig-vim'
+Plug 'edkolev/tmuxline.vim'
+Plug 'ervandew/supertab'
+Plug 'godlygeek/tabular'
+Plug 'hhff/SpacegrayEighties.vim'
+Plug 'honza/vim-snippets'
+Plug 'jiangmiao/auto-pairs'
+Plug 'jremmen/vim-ripgrep'
+Plug 'junegunn/fzf'
+Plug 'junegunn/limelight.vim'
+Plug 'MarcWeber/vim-addon-mw-utils'
+Plug 'markcornick/vim-bats'
+Plug 'ntpeters/vim-better-whitespace'
+Plug 'othree/html5.vim'
+Plug 'SirVer/ultisnips'
+Plug 'terryma/vim-multiple-cursors'
+Plug 'tomtom/tlib_vim'
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-git'
+Plug 'tpope/vim-liquid'
+Plug 'tpope/vim-markdown'
 Plug 'tpope/vim-sensible'
 Plug 'tpope/vim-surround'
-Plug 'tpope/vim-git'
-Plug 'tpope/vim-fugitive'
-Plug 'rking/ag.vim'
-Plug 'junegunn/fzf'
-Plug 'airblade/vim-gitgutter'
-Plug 'SirVer/ultisnips'
-Plug 'honza/vim-snippets'
-Plug 'ervandew/supertab'
-Plug 'easymotion/vim-easymotion'
-Plug 'othree/html5.vim'
-Plug 'tpope/vim-markdown'
-Plug 'tpope/vim-liquid'
-Plug 'dense-analysis/ale'
-Plug 'bling/vim-airline'
-Plug 'ntpeters/vim-better-whitespace'
-Plug 'editorconfig/editorconfig-vim'
-Plug 'hhff/SpacegrayEighties.vim'
-Plug 'edkolev/tmuxline.vim'
-Plug 'terryma/vim-multiple-cursors'
-Plug 'jiangmiao/auto-pairs'
-
-Plug 'junegunn/limelight.vim'
-Plug 'markcornick/vim-bats'
-Plug 'MarcWeber/vim-addon-mw-utils'
-Plug 'tomtom/tlib_vim'
-Plug 'godlygeek/tabular'
 
 {{ if .with_docker }}
 Plug 'ekalinin/Dockerfile.vim'
@@ -159,7 +159,7 @@ let g:terraform_fmt_on_save = 1
 let g:ctrlp_match_window = 'bottom,order:ttb'
 let g:ctrlp_switch_buffer = 0
 let g:ctrlp_working_path_mode = 0
-let g:ctrlp_user_command = 'ag %s -l --nocolor --hidden -g ""'
+let g:ctrlp_user_command = 'rg --files --hidden --glob "!.git" %s'
 
 " Limeligth + Goyo integration
 autocmd User GoyoEnter Limelight
@@ -214,8 +214,8 @@ inoremap jj <ESC>
 " Turn off search highlight
 nnoremap <leader><space> :nohlsearch<CR>
 
-" Open ag.vim
-nnoremap <leader>a :Ag
+" Open vim-ripgrep
+nnoremap <leader>a :Rg<Space>
 
 " Open fzf
 nnoremap <silent> <leader>f :FZF<CR>
