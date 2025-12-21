@@ -90,7 +90,7 @@
 
 #!/bin/bash
 
-set -eufo pipefail
+set -euo pipefail
 
 # Error trap to show line numbers on failure
 trap 'echo "❌ Error on line $LINENO. Installation failed." >&2' ERR
