@@ -15,8 +15,8 @@ tmuxrc() {
     mkdir -p "$TMUXDIR"
   fi
 
-  cp -rf $SSHHOME/.sshrc $SSHHOME/bashsshrc $SSHHOME/sshrc $SSHHOME/.sshrc.d/ \
-        $TMUXDIR
+  cp -rf "$SSHHOME/.sshrc" "$SSHHOME/bashsshrc" "$SSHHOME/sshrc" "$SSHHOME/.sshrc.d/" \
+        "$TMUXDIR"
 
   SSHHOME=$TMUXDIR SHELL=$TMUXDIR/bashsshrc tmux -S "$TMUXSERVER" "$@"
 }
