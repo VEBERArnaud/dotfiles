@@ -29,6 +29,10 @@ op document get GPG | gpg --import
 
 # Configurer la confiance (ultimate trust pour sa propre clé)
 FINGERPRINT=$(gpg --fingerprint "$KEY_ID" 2>/dev/null | grep -A1 "pub " | tail -1 | tr -d ' ')
+if [[ -z "$FINGERPRINT" ]]; then
+    echo "❌ Failed to extract GPG fingerprint for key $KEY_ID"
+    exit 1
+fi
 echo "${FINGERPRINT}:6:" | gpg --import-ownertrust
 
 echo "✅ GPG key imported successfully"
