@@ -31,9 +31,9 @@ jobs:
             is_unix = true
             is_apple_silicon = true
             project_personal = true
-            project_blue_hoodie = false
-            project_btp_consultants = false
-            project_eleven_labs = false
+            project_vbr_tech = false
+            project_eurosport = false
+            project_mega_lap = false
             with_aws = true
             with_docker = true
             with_golang = true
