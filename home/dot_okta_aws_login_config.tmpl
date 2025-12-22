@@ -1,0 +1,53 @@
+[DEFAULT]
+
+; ---- Shared Okta + UX
+okta_org_url = https://tw.okta.com
+okta_username = {{ onepasswordRead "op://Eurosport/Okta/username" }}
+client_id = {{ onepasswordRead "op://Eurosport/Okta/client_id" }}
+gimme_creds_server = appurl
+preferred_mfa_type = push
+remember_device = True
+open_browser = True
+force_classic = False
+
+; ---- Output behavior
+write_aws_creds = True
+output_format = export
+resolve_aws_alias = True
+include_path = False
+
+; ---- Session
+aws_default_duration = 21600
+
+; ---- Local-only secret (leave blank in shared config)
+device_token =
+
+[esd-dev]
+cred_profile = esd-dev
+app_url = {{ onepasswordRead "op://Eurosport/AWS Discovery/okta app_url" }}
+aws_rolename = {{ onepasswordRead "op://Eurosport/AWS Discovery/aws role esd-dev" }}
+
+[esd-stg]
+cred_profile = esd-stg
+app_url = {{ onepasswordRead "op://Eurosport/AWS Discovery/okta app_url" }}
+aws_rolename = {{ onepasswordRead "op://Eurosport/AWS Discovery/aws role esd-stg" }}
+
+[esd-prd]
+cred_profile = esd-prd
+app_url = {{ onepasswordRead "op://Eurosport/AWS Discovery/okta app_url" }}
+aws_rolename = {{ onepasswordRead "op://Eurosport/AWS Discovery/aws role esd-prd" }}
+
+[wb-dev]
+cred_profile = wb-dev
+app_url = {{ onepasswordRead "op://Eurosport/AWS WBD/okta app_url" }}
+aws_rolename = {{ onepasswordRead "op://Eurosport/AWS WBD/aws role wb-dev" }}
+
+[wb-stg]
+cred_profile = wb-stg
+app_url = {{ onepasswordRead "op://Eurosport/AWS WBD/okta app_url" }}
+aws_rolename = {{ onepasswordRead "op://Eurosport/AWS WBD/aws role wb-stg" }}
+
+[wb-prd]
+cred_profile = wb-prd
+app_url = {{ onepasswordRead "op://Eurosport/AWS WBD/okta app_url" }}
+aws_rolename = {{ onepasswordRead "op://Eurosport/AWS WBD/aws role wb-prd" }}
