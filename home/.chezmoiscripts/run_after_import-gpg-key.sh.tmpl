@@ -28,6 +28,7 @@ echo "🔐 Importing GPG key from 1Password..."
 op document get GPG | gpg --import
 
 # Configurer la confiance (ultimate trust pour sa propre clé)
-echo "${KEY_ID}:6:" | gpg --import-ownertrust
+FINGERPRINT=$(gpg --fingerprint "$KEY_ID" 2>/dev/null | grep -A1 "pub " | tail -1 | tr -d ' ')
+echo "${FINGERPRINT}:6:" | gpg --import-ownertrust
 
 echo "✅ GPG key imported successfully"
