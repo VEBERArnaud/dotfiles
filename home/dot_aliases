@@ -83,7 +83,7 @@ alias sudo='sudo '
 function tabname() {
   echo -en "\033];$1\007"
   if [[ "$(ps -p $(ps -p $$ -o ppid=) -o comm=)" = 'tmux' ]]; then
-    tmux rename-window "$(echo $* | cut -d . -f 1)"
+    tmux rename-window "$(echo "$*" | cut -d . -f 1)"
   fi
 }
 
