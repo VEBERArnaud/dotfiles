@@ -1,20 +1,45 @@
-{{- $knownHosts := list 
-    "VEBERArnaud-MacBookPro2012" 
-    "VEBERArnaud-MacBookPro2017" 
-    "VEBERArnaud-MacMini2020" 
-    "VEBERArnaud-MacMini2023s" 
-    "VEBERArnaud-MacBookPro2023" 
+{{- $isCI := env "CI" | not | not -}}
+
+{{- $hostsWithSSHKey := list
+    "VEBERArnaud-MacBookPro2012"
+    "VEBERArnaud-MacBookPro2017"
+    "VEBERArnaud-MacMini2020"
+    "VEBERArnaud-MacMini2023s"
+    "VEBERArnaud-MacBookPro2023"
 -}}
-{{- if not (has .chezmoi.hostname $knownHosts) }}
-.ssh/id_ed25519
-.ssh/id_ed25519.pub
-.chezmoiscripts/run_after_import-gpg-key.sh
+{{- $hasSSHKey := has .chezmoi.hostname $hostsWithSSHKey -}}
+
+{{- $sshFiles := list
+    ".ssh/id_ed25519"
+    ".ssh/id_ed25519.pub"
+-}}
+
+{{- $opFiles := list
+    ".chezmoiscripts/run_after_import-gpg-key.sh"
+    ".npmrc"
+    ".okta_aws_login_config"
+-}}
+
+# SSH keys (only on specific hosts)
+{{- if not $hasSSHKey }}
+{{- range $sshFiles }}
+{{ . }}
+{{- end }}
 {{- end }}
 
+# Files requiring 1Password (ignore in CI)
+{{- if $isCI }}
+{{- range $opFiles }}
+{{ . }}
+{{- end }}
+{{- end }}
+
+# Project-scoped files
 {{- if not .project_eurosport }}
 .okta_aws_login_config
 {{- end }}
 
+# Tool-scoped files
 {{- if not .with_javascript }}
 .npmrc
 {{- end }}
