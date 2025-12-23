@@ -92,53 +92,31 @@
 
 set -euo pipefail
 
+# Include common functions
+{{ template "common.tmpl" . }}
+
 # Error trap to show line numbers on failure
-trap 'echo "❌ Error on line $LINENO. Installation failed." >&2' ERR
+trap 'log_error "Error on line $LINENO. Installation failed."' ERR
 
 # Check if Homebrew is installed
-if ! command -v brew &>/dev/null; then
-    echo "❌ Homebrew not found. Please install Homebrew first:" >&2
-    echo "   /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"" >&2
+if ! check_command brew; then
+    log_error "Homebrew not found. Please install Homebrew first:"
+    echo "   /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
     exit 1
 fi
-
-# Retry function for network-dependent operations
-retry() {
-    local max_attempts=3
-    local timeout=2
-    local attempt=1
-    local exit_code=0
-
-    while [ $attempt -le $max_attempts ]; do
-        if "$@"; then
-            return 0
-        else
-            exit_code=$?
-            if [ $attempt -lt $max_attempts ]; then
-                echo "⚠️  Command failed (attempt $attempt/$max_attempts). Retrying in ${timeout}s..." >&2
-                sleep $timeout
-                attempt=$((attempt + 1))
-                timeout=$((timeout * 2))
-            else
-                echo "❌ Command failed after $max_attempts attempts." >&2
-                return $exit_code
-            fi
-        fi
-    done
-}
 
 export HOMEBREW_CASK_OPTS="--appdir=${HOME}/Applications --fontdir=${HOME}/Library/Fonts"
 export HOMEBREW_NO_ANALYTICS=1
 export HOMEBREW_NO_INSECURE_REDIRECT=1
 
-echo "🔄 Updating Homebrew..."
+log_info "Updating Homebrew..."
 retry brew update
 
-echo "⬆️  Upgrading existing packages..."
+log_info "Upgrading existing packages..."
 retry brew upgrade
 retry brew upgrade --cask
 
-echo "📦 Installing packages from Brewfile..."
+log_info "Installing packages from Brewfile..."
 brew bundle --file=/dev/stdin <<EOF
 {{ range ($taps | sortAlpha | uniq) -}}
 tap "{{ . }}"
@@ -151,13 +129,13 @@ cask "{{ . }}"
 {{ end -}}
 EOF
 
-echo "🔐 Installing 1password in /Applications (required for browser integration)..."
+log_info "Installing 1password in /Applications (required for browser integration)..."
 brew install --cask 1password --appdir=/Applications 2>/dev/null || true
 
-echo "🧹 Cleaning up..."
+log_info "Cleaning up..."
 brew cleanup
 
-echo "✅ Homebrew packages installation complete"
+log_success "Homebrew packages installation complete"
 
 {{ if .with_javascript -}}
 # Initialize Homebrew environment to get HOMEBREW_PREFIX
@@ -173,30 +151,30 @@ export NVM_DIR="$HOME/.nvm"
 if [ -s "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh" ]; then
     source "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh"
 else
-    echo "❌ NVM installation not found at ${HOMEBREW_PREFIX}/opt/nvm/nvm.sh" >&2
+    log_error "NVM installation not found at ${HOMEBREW_PREFIX}/opt/nvm/nvm.sh"
     exit 1
 fi
 
 # Verify nvm command is available
-if ! command -v nvm &>/dev/null; then
-    echo "❌ nvm command not available after sourcing. Installation may have failed." >&2
+if ! check_command nvm; then
+    log_error "nvm command not available after sourcing. Installation may have failed."
     exit 1
 fi
 
-echo "📦 Installing Node.js LTS versions..."
+log_info "Installing Node.js LTS versions..."
 {{   range ($nodes) -}}
 if nvm ls "{{ . }}" &>/dev/null; then
-    echo "✓ Node.js {{ . }} already installed"
+    log_success "Node.js {{ . }} already installed"
 else
-    echo "🔄 Installing Node.js {{ . }}..."
+    log_info "Installing Node.js {{ . }}..."
     retry nvm install "{{ . }}"
 fi
 {{   end -}}
 
-echo "🔗 Setting default Node.js version to {{ last $nodes }}..."
+log_info "Setting default Node.js version to {{ last $nodes }}..."
 nvm alias default {{ last $nodes }}
 
-echo "✅ Node.js installations complete"
+log_success "Node.js installations complete"
 {{- end -}}
 
 {{- end -}}

@@ -1,0 +1,21 @@
+{{- if .is_mac -}}
+
+#!/usr/bin/env bash
+
+# Restart affected applications to apply changes
+
+set -euo pipefail
+
+{{ template "common.tmpl" . }}
+
+log_info "Restarting affected applications..."
+
+for app in "Activity Monitor" "Address Book" "Calendar" "Contacts" "cfprefsd" \
+  "Dock" "Finder" "Google Chrome" "Mail" "Messages" "Photos" "Safari" \
+  "SystemUIServer" "Terminal" "iCal"; do
+  killall "${app}" &> /dev/null || true
+done
+
+log_success "Done. Some changes require a logout/restart to take effect."
+
+{{- end -}}

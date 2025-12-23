@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Include common functions
+{{ template "common.tmpl" . }}
+
+# Error trap to show line numbers on failure
+trap 'log_error "Error on line $LINENO. Vim plugin installation failed."' ERR
+
+log_info "Installing vim plugins..."
+vim +PlugInstall +qall
+
+log_info "Generating tmuxline configuration..."
+vim +Tmuxline +"TmuxlineSnapshot! ~/.tmuxline.conf" +qall
+
+log_success "Vim plugins installation complete"

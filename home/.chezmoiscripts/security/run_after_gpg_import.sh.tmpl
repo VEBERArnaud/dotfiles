@@ -1,0 +1,41 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# Include common functions
+{{ template "common.tmpl" . }}
+
+# Check if op is available
+if ! check_command op; then
+    log_warn "1Password CLI not found, skipping GPG key import"
+    exit 0
+fi
+
+# Check if signed in to 1Password
+if ! op whoami &>/dev/null; then
+    log_warn "Not signed in to 1Password, skipping GPG key import"
+    exit 0
+fi
+
+KEY_ID="7D934C83"
+
+# Check if key is already imported
+if gpg --list-secret-keys "$KEY_ID" &>/dev/null; then
+    log_success "GPG key $KEY_ID already imported"
+    exit 0
+fi
+
+log_info "Importing GPG key from 1Password..."
+
+# Extract and import the key
+op document get GPG | gpg --import
+
+# Configure trust (ultimate trust for own key)
+FINGERPRINT=$(gpg --fingerprint "$KEY_ID" 2>/dev/null | grep -A1 "pub " | tail -1 | tr -d ' ')
+if [[ -z "$FINGERPRINT" ]]; then
+    log_error "Failed to extract GPG fingerprint for key $KEY_ID"
+    exit 1
+fi
+echo "${FINGERPRINT}:6:" | gpg --import-ownertrust
+
+log_success "GPG key imported successfully"

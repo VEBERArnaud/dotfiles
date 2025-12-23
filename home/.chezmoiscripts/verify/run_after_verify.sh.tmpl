@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Include common functions
+{{ template "common.tmpl" . }}
+
+log_info "Verifying dotfiles installation..."
+
+errors=0
+
+echo ""
+log_info "Checking critical files..."
+check_file "${HOME}/.zshrc" || errors=$((errors + 1))
+check_file "${HOME}/.vimrc" || errors=$((errors + 1))
+check_file "${HOME}/.gitconfig" || errors=$((errors + 1))
+check_file "${HOME}/.tmux.conf" || errors=$((errors + 1))
+check_file "${HOME}/.config/starship.toml" || errors=$((errors + 1))
+
+echo ""
+log_info "Checking essential commands..."
+check_command_available zsh || errors=$((errors + 1))
+check_command_available vim || errors=$((errors + 1))
+check_command_available tmux || errors=$((errors + 1))
+check_command_available git || errors=$((errors + 1))
+check_command_available starship || errors=$((errors + 1))
+
+# Validate shell config syntax
+echo ""
+log_info "Validating configuration syntax..."
+
+if zsh -n "${HOME}/.zshrc" 2>/dev/null; then
+    log_success ".zshrc syntax valid"
+else
+    log_error ".zshrc has syntax errors"
+    errors=$((errors + 1))
+fi
+
+if vim --noplugin -es -c 'quit' "${HOME}/.vimrc" 2>/dev/null; then
+    log_success ".vimrc syntax valid"
+else
+    log_error ".vimrc has syntax errors"
+    errors=$((errors + 1))
+fi
+
+# Summary
+echo ""
+if [[ $errors -eq 0 ]]; then
+    log_success "All verification checks passed!"
+else
+    log_warn "Verification completed with $errors error(s)"
+    exit 1
+fi

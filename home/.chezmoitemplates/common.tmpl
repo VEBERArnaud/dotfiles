@@ -1,0 +1,99 @@
+# Common functions for chezmoi scripts
+# This file is meant to be included in other scripts using:
+# template "common.tmpl" .
+
+# Colors for output
+readonly COLOR_RED='\033[0;31m'
+readonly COLOR_GREEN='\033[0;32m'
+readonly COLOR_YELLOW='\033[0;33m'
+readonly COLOR_BLUE='\033[0;34m'
+readonly COLOR_RESET='\033[0m'
+
+# Logging functions
+log_info() {
+    echo -e "${COLOR_BLUE}[INFO]${COLOR_RESET} $*"
+}
+
+log_success() {
+    echo -e "${COLOR_GREEN}[OK]${COLOR_RESET} $*"
+}
+
+log_warn() {
+    echo -e "${COLOR_YELLOW}[WARN]${COLOR_RESET} $*" >&2
+}
+
+log_error() {
+    echo -e "${COLOR_RED}[ERROR]${COLOR_RESET} $*" >&2
+}
+
+# Check if a command exists
+check_command() {
+    command -v "$1" &>/dev/null
+}
+
+# Require a command to exist, exit if not found
+require_command() {
+    if ! check_command "$1"; then
+        log_error "Required command not found: $1"
+        exit 1
+    fi
+}
+
+# Retry function for network-dependent operations
+# Usage: retry <command> [args...]
+retry() {
+    local max_attempts=3
+    local timeout=2
+    local attempt=1
+    local exit_code=0
+
+    while [ $attempt -le $max_attempts ]; do
+        if "$@"; then
+            return 0
+        else
+            exit_code=$?
+            if [ $attempt -lt $max_attempts ]; then
+                log_warn "Command failed (attempt $attempt/$max_attempts). Retrying in ${timeout}s..."
+                sleep $timeout
+                attempt=$((attempt + 1))
+                timeout=$((timeout * 2))
+            else
+                log_error "Command failed after $max_attempts attempts."
+                return $exit_code
+            fi
+        fi
+    done
+}
+
+# Platform detection
+is_mac() {
+    [[ "$(uname -s)" == "Darwin" ]]
+}
+
+is_linux() {
+    [[ "$(uname -s)" == "Linux" ]]
+}
+
+# Check if file exists
+check_file() {
+    local file="$1"
+    if [[ -f "$file" ]]; then
+        log_success "$file exists"
+        return 0
+    else
+        log_error "$file missing"
+        return 1
+    fi
+}
+
+# Check if command is available
+check_command_available() {
+    local cmd="$1"
+    if check_command "$cmd"; then
+        log_success "$cmd available"
+        return 0
+    else
+        log_error "$cmd not found"
+        return 1
+    fi
+}

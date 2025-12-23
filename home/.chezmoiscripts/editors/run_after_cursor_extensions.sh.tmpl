@@ -35,18 +35,21 @@
 
 set -euo pipefail
 
-if ! command -v cursor &>/dev/null; then
-    echo "⚠️  Cursor not found. Skipping extensions installation."
+# Include common functions
+{{ template "common.tmpl" . }}
+
+if ! check_command cursor; then
+    log_warn "Cursor not found. Skipping extensions installation."
     exit 0
 fi
 
-echo "📦 Installing Cursor extensions..."
+log_info "Installing Cursor extensions..."
 
 {{ range ($extensions | sortAlpha | uniq) -}}
-echo "  → {{ . }}"
-cursor --install-extension "{{ . }}" --force 2>/dev/null || echo "    ⚠️  Failed to install {{ . }}"
+log_info "  Installing {{ . }}..."
+cursor --install-extension "{{ . }}" --force 2>/dev/null || log_warn "Failed to install {{ . }}"
 {{ end -}}
 
-echo "✅ Cursor extensions installation complete"
+log_success "Cursor extensions installation complete"
 
 {{- end -}}
