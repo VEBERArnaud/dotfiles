@@ -1,0 +1,52 @@
+{{- if .is_mac -}}
+
+{{- $extensions := list
+    "anthropic.claude-code"
+    "eamodio.gitlens"
+    "editorconfig.editorconfig"
+    "github.vscode-github-actions"
+    "mechatroner.rainbow-csv"
+    "mhutchie.git-graph"
+    "redhat.vscode-xml"
+    "redhat.vscode-yaml"
+-}}
+
+{{- if .with_javascript -}}
+{{-   $extensions = concat $extensions (list
+        "bradlc.vscode-tailwindcss"
+        "dbaeumer.vscode-eslint"
+        "vitest.explorer"
+        "yoavbls.pretty-ts-errors"
+    ) -}}
+{{- end -}}
+
+{{- if .with_docker -}}
+{{-   $extensions = concat $extensions (list
+        "ms-azuretools.vscode-containers"
+        "ms-azuretools.vscode-docker"
+    ) -}}
+{{- end -}}
+
+{{- if .with_terraform -}}
+{{-   $extensions = concat $extensions (list "hashicorp.terraform") -}}
+{{- end -}}
+
+#!/bin/bash
+
+set -euo pipefail
+
+if ! command -v cursor &>/dev/null; then
+    echo "⚠️  Cursor not found. Skipping extensions installation."
+    exit 0
+fi
+
+echo "📦 Installing Cursor extensions..."
+
+{{ range ($extensions | sortAlpha | uniq) -}}
+echo "  → {{ . }}"
+cursor --install-extension "{{ . }}" --force 2>/dev/null || echo "    ⚠️  Failed to install {{ . }}"
+{{ end -}}
+
+echo "✅ Cursor extensions installation complete"
+
+{{- end -}}
