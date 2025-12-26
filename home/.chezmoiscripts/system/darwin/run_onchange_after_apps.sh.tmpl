@@ -64,8 +64,9 @@ defaults write NSGlobalDomain com.apple.springing.enabled -bool true 2>/dev/null
 # Remove the spring loading delay for directories
 defaults write NSGlobalDomain com.apple.springing.delay -float 0 2>/dev/null || true
 
-# Avoid creating .DS_Store files on network volumes
+# Avoid creating .DS_Store files on network and USB volumes
 defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true 2>/dev/null || true
+defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true 2>/dev/null || true
 
 # Disable disk image verification
 defaults write com.apple.frameworks.diskimages skip-verify -bool true 2>/dev/null || true
@@ -104,6 +105,13 @@ defaults write com.apple.finder OpenWindowForNewRemovableDisk -bool true 2>/dev/
 # Four-letter codes for the other view modes: `icnv`, `clmv`, `Flwv`
 defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv" 2>/dev/null || true
 
+# Keep folders on top when sorting by name
+defaults write com.apple.finder _FXSortFoldersFirst -bool true 2>/dev/null || true
+defaults write com.apple.finder _FXSortFoldersFirstOnDesktop -bool true 2>/dev/null || true
+
+# Open folders in tabs instead of new windows
+defaults write com.apple.finder FinderSpawnTab -bool true 2>/dev/null || true
+
 # Disable the warning before emptying the Trash
 defaults write com.apple.finder WarnOnEmptyTrash -bool false 2>/dev/null || true
 
@@ -124,7 +132,7 @@ defaults write com.apple.finder FXInfoPanesExpanded -dict \
   Privileges -bool true 2>/dev/null || true
 
 ###############################################################################
-# Dock, Dashboard, and hot corners                                            #
+# Dock and hot corners                                                         #
 ###############################################################################
 
 # Enable highlight hover effect for the grid view of a stack (Dock)
@@ -159,17 +167,11 @@ defaults write com.apple.dock launchanim -bool false 2>/dev/null || true
 # Speed up Mission Control animations
 defaults write com.apple.dock expose-animation-duration -float 0.1 2>/dev/null || true
 
-# Don’t group windows by application in Mission Control
+# Don't group windows by application in Mission Control
 # (i.e. use the old Exposé behavior instead)
 defaults write com.apple.dock expose-group-by-app -bool false 2>/dev/null || true
 
-# Disable Dashboard
-defaults write com.apple.dashboard mcx-disabled -bool true 2>/dev/null || true
-
-# Don’t show Dashboard as a Space
-defaults write com.apple.dock dashboard-in-overlay -bool true 2>/dev/null || true
-
-# Don’t automatically rearrange Spaces based on most recent use
+# Don't automatically rearrange Spaces based on most recent use
 defaults write com.apple.dock mru-spaces -bool false 2>/dev/null || true
 
 # Remove the auto-hiding Dock delay
@@ -185,6 +187,9 @@ defaults write com.apple.dock showhidden -bool true 2>/dev/null || true
 
 # Disable the Launchpad gesture (pinch with thumb and three fingers)
 defaults write com.apple.dock showLaunchpadGestureEnabled -int 0 2>/dev/null || true
+
+# Don't show recent applications in Dock
+defaults write com.apple.dock show-recents -bool false 2>/dev/null || true
 
 # Reset Launchpad, but keep the desktop wallpaper intact
 if [[ -d "${HOME}/Library/Application Support/Dock" ]]; then
@@ -204,7 +209,6 @@ defaults write com.apple.dock persistent-others -array-add '{tile-data={}; tile-
 #  4: Desktop
 #  5: Start screen saver
 #  6: Disable screen saver
-#  7: Dashboard
 # 10: Put display to sleep
 # 11: Launchpad
 # 12: Notification Center
@@ -273,11 +277,20 @@ defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebK
 defaults write NSGlobalDomain WebKitDeveloperExtras -bool true 2>/dev/null || true
 
 ###############################################################################
-# iTunes                                                                      #
+# Window Manager (macOS Sonoma+)                                               #
 ###############################################################################
 
-# Disable automatic device syncing
-defaults write com.apple.iTunes dontAutomaticallySyncIPods -bool true 2>/dev/null || true
+# Disable "Click wallpaper to show desktop" (Sonoma+)
+defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -bool false 2>/dev/null || true
+
+# Disable tiled window margins (Sequoia+)
+defaults write com.apple.WindowManager EnableTiledWindowMargins -bool false 2>/dev/null || true
+
+# Disable Stage Manager
+defaults write com.apple.WindowManager GloballyEnabled -bool false 2>/dev/null || true
+
+# Show desktop icons (Tahoe fix - required for desktop icons to appear)
+defaults write com.apple.WindowManager StandardHideDesktopIcons -bool false 2>/dev/null || true
 
 ###############################################################################
 # Mail                                                                        #
@@ -390,17 +403,11 @@ defaults write com.apple.ActivityMonitor SortColumn -string "CPUUsage" 2>/dev/nu
 defaults write com.apple.ActivityMonitor SortDirection -int 0 2>/dev/null || true
 
 ###############################################################################
-# Address Book, Dashboard, iCal, TextEdit, and Disk Utility                   #
+# Address Book, TextEdit, and Disk Utility                                     #
 ###############################################################################
 
 # Enable the debug menu in Address Book
 defaults write com.apple.addressbook ABShowDebugMenu -bool true 2>/dev/null || true
-
-# Enable Dashboard dev mode (allows keeping widgets on the desktop)
-defaults write com.apple.dashboard devmode -bool true 2>/dev/null || true
-
-# Enable the debug menu in iCal (pre-10.8)
-defaults write com.apple.iCal IncludeDebugMenu -bool true 2>/dev/null || true
 
 # Use plain text mode for new TextEdit documents
 defaults write com.apple.TextEdit RichText -int 0 2>/dev/null || true
