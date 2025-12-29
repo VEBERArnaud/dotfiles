@@ -1,0 +1,24 @@
+# Sesh configuration
+# https://github.com/joshmedeski/sesh
+#
+# Sessions are discovered dynamically via zoxide.
+# Add preconfigured sessions here if needed later.
+
+[default_session]
+# startup_script = ""
+# startup_command = ""
+
+# Exclude certain directories from results
+# blacklist = ["scratch", "temp"]
+
+# Number of path components for session names
+# dir_length = 2
+
+# Sort order: config sessions first, then tmux, then zoxide
+# sort_order = ["config", "tmux", "zoxide"]
+
+# Example preconfigured session:
+# [[session]]
+# name = "dotfiles"
+# path = "~/Developer/src/github.com/VEBERArnaud/dotfiles"
+# startup_command = "chezmoi diff"
