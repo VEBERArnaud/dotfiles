@@ -5,6 +5,25 @@
 {{- $is_windows := false -}}
 {{- $is_apple_silicon := false -}}
 
+{{/* device type */}}
+{{- $type_laptop := false -}}
+{{- $type_desktop := false -}}
+{{- $type_server := false -}}
+
+{{/* project */}}
+{{- $project_eurosport := false -}}
+{{- $project_mega_lap := false -}}
+{{- $project_personal := false -}}
+{{- $project_vbr_tech := false -}}
+
+{{/* features */}}
+{{- $with_aws := false -}}
+{{- $with_docker := false -}}
+{{- $with_golang := false -}}
+{{- $with_javascript := false -}}
+{{- $with_php := false -}}
+{{- $with_terraform := false -}}
+
 {{- if eq .chezmoi.os "linux" -}}
 {{-   $is_linux = true -}}
 {{- end -}}
@@ -24,25 +43,24 @@
 {{-   $is_windows = true -}}
 {{- end -}}
 
-{{/* project */}}
-{{- $project_eurosport := false -}}
-{{- $project_mega_lap := false -}}
-{{- $project_personal := false -}}
-{{- $project_vbr_tech := false -}}
-
+{{/* hosts */}}
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2012" -}}
+{{-   $type_laptop = true -}}
 {{-   $project_personal = true -}}
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2017" -}}
+{{-   $type_laptop = true -}}
 {{-   $project_personal = true -}}
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2020" -}}
+{{-   $type_desktop = true -}}
 {{-   $project_personal = true -}}
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2023" -}}
+{{-   $type_laptop = true -}}
 {{-   $project_eurosport = true -}}
 {{-   $project_mega_lap = true -}}
 {{-   $project_personal = true -}}
@@ -50,6 +68,7 @@
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2023" -}}
+{{-   $type_desktop = true -}}
 {{-   $project_eurosport = true -}}
 {{-   $project_mega_lap = true -}}
 {{-   $project_personal = true -}}
@@ -57,6 +76,7 @@
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2023s" -}}
+{{-   $type_desktop = true -}}
 {{-   $project_eurosport = true -}}
 {{-   $project_mega_lap = true -}}
 {{-   $project_personal = true -}}
@@ -64,13 +84,6 @@
 {{- end -}}
 
 {{/* with */}}
-{{- $with_aws := false -}}
-{{- $with_docker := false -}}
-{{- $with_golang := false -}}
-{{- $with_javascript := false -}}
-{{- $with_php := false -}}
-{{- $with_terraform := false -}}
-
 {{- if $project_personal -}}
 {{-   $with_aws = true -}}
 {{-   $with_docker = true -}}
@@ -107,6 +120,9 @@
     is_mac = {{ $is_mac }}
     is_unix = {{ $is_unix }}
     is_windows = {{ $is_windows }}
+    type_laptop = {{ $type_laptop }}
+    type_desktop = {{ $type_desktop }}
+    type_server = {{ $type_server }}
     project_eurosport = {{ $project_eurosport }}
     project_mega_lap = {{ $project_mega_lap }}
     project_personal = {{ $project_personal }}
