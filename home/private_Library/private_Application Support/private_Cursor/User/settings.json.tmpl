@@ -1,0 +1,12 @@
+{{- if .is_mac -}}
+{
+    "claudeCode.preferredLocation": "sidebar",
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "redhat.telemetry.enabled": false,
+    "terraform.languageServer.enable": true
+}
+{{- end -}}
