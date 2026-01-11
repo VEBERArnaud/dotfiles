@@ -1,0 +1,55 @@
+{{- if and .is_mac .with_javascript -}}
+
+{{- $nodes := list
+    "lts/jod"
+    "lts/krypton"
+-}}
+
+#!/bin/bash
+
+set -euo pipefail
+
+# Include common functions
+{{ template "common.tmpl" . }}
+
+# Error trap to show line numbers on failure
+trap 'log_error "Error on line $LINENO. Node.js installation failed."' ERR
+
+# Initialize Homebrew environment to get HOMEBREW_PREFIX
+{{ if stat "/opt/homebrew/bin/brew" -}}
+eval "$(/opt/homebrew/bin/brew shellenv)"
+{{ else if stat "/usr/local/bin/brew" -}}
+eval "$(/usr/local/bin/brew shellenv)"
+{{ end -}}
+
+export NVM_DIR="$HOME/.nvm"
+
+# Source NVM with proper error handling
+if [ -s "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh" ]; then
+    source "${HOMEBREW_PREFIX}/opt/nvm/nvm.sh"
+else
+    log_error "NVM installation not found at ${HOMEBREW_PREFIX}/opt/nvm/nvm.sh"
+    exit 1
+fi
+
+# Verify nvm command is available
+if ! check_command nvm; then
+    log_error "nvm command not available after sourcing. Installation may have failed."
+    exit 1
+fi
+
+log_info "Installing Node.js LTS versions..."
+{{   range ($nodes) -}}
+if nvm ls "{{ . }}" &>/dev/null; then
+    log_success "Node.js {{ . }} already installed"
+else
+    log_info "Installing Node.js {{ . }}..."
+    retry nvm install "{{ . }}"
+fi
+{{   end -}}
+
+log_info "Setting default Node.js version to {{ last $nodes }}..."
+nvm alias default {{ last $nodes }}
+
+log_success "Node.js installations complete"
+{{- end -}}
