@@ -468,6 +468,23 @@ defaults write com.google.Chrome DisablePrintPreview -bool true 2>/dev/null || t
 # Expand the print dialog by default
 defaults write com.google.Chrome PMPrintingExpandedStateForPrint2 -bool true 2>/dev/null || true
 
+###############################################################################
+# Login Items                                                                  #
+###############################################################################
+
+# Add Lasso to login items (window manager)
+if [[ -d "$HOME/Applications/Lasso.app" ]] || [[ -d "/Applications/Lasso.app" ]]; then
+    # Remove existing entry first to avoid duplicates
+    osascript -e 'tell application "System Events" to delete login item "Lasso"' 2>/dev/null || true
+    # Add new entry
+    if [[ -d "$HOME/Applications/Lasso.app" ]]; then
+        osascript -e 'tell application "System Events" to make login item at end with properties {path:"'"$HOME"'/Applications/Lasso.app", hidden:false}'
+    else
+        osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/Lasso.app", hidden:false}'
+    fi
+    log_success "Lasso added to login items"
+fi
+
 log_success "Applications configuration complete"
 
 {{- end -}}
