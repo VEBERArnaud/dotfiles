@@ -1,8 +1,8 @@
 [".zprezto"]
     type = "git-repo"
     url = "https://github.com/sorin-ionescu/prezto.git"
-    refreshPeriod = "168h"
-    clone.args = ["--recurse-submodules", "--branch", "7b3b798"]
+    refreshPeriod = "720h"
+    clone.args = ["--recurse-submodules"]
     pull.args = ["--recurse-submodules"]
 
 [".tmux/plugins/tpm"]
