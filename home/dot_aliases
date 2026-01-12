@@ -116,6 +116,154 @@ function tea() {
     -appIcon 'https://www.emojibase.com/resources/img/emojis/apple/x2615.png.pagespeed.ic.fUhSj-YPGK.png'
 }
 
+# =============================================================================
+# Git Worktree Functions
+# =============================================================================
+
+# Helper: Get worktree base directory (.wt)
+_wt_base_dir() {
+  local git_root
+  git_root=$(git rev-parse --show-toplevel 2>/dev/null) || return 1
+  if [[ "$git_root" == *".wt/"* ]]; then
+    echo "${git_root%.wt/*}.wt"
+  else
+    echo "${git_root}.wt"
+  fi
+}
+
+# Helper: Sanitize branch name (feature/foo -> feature-foo)
+_wt_sanitize_branch() {
+  echo "$1" | tr '/' '-'
+}
+
+# wt <branch> - Create worktree
+# Usage: wt feature/login   (existing branch)
+#        wt -b new-branch   (new branch)
+wt() {
+  local create_branch=false branch=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -b) create_branch=true; shift ;;
+      *) branch="$1"; shift ;;
+    esac
+  done
+
+  [[ -z "$branch" ]] && { echo "Usage: wt [-b] <branch>"; return 1; }
+
+  local wt_base wt_dir
+  wt_base=$(_wt_base_dir) || { echo "Not in a git repo"; return 1; }
+  wt_dir="${wt_base}/$(_wt_sanitize_branch "$branch")"
+
+  [[ -d "$wt_dir" ]] && { echo "Already exists: $wt_dir"; return 1; }
+  mkdir -p "$wt_base"
+
+  if [[ "$create_branch" == true ]]; then
+    git worktree add -b "$branch" "$wt_dir"
+  elif git show-ref --verify --quiet "refs/heads/$branch"; then
+    git worktree add "$wt_dir" "$branch"
+  elif git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+    git worktree add --track -b "$branch" "$wt_dir" "origin/$branch"
+  else
+    echo "Branch not found. Use: wt -b $branch"; return 1
+  fi
+}
+
+# wtc <branch> - Create worktree and cd to it
+wtc() {
+  local branch="${@: -1}"
+  local wt_base wt_dir
+  wt_base=$(_wt_base_dir) || return 1
+  wt_dir="${wt_base}/$(_wt_sanitize_branch "$branch")"
+
+  [[ ! -d "$wt_dir" ]] && wt "$@"
+  cd "$wt_dir" && zoxide add "$wt_dir" 2>/dev/null
+}
+
+# wts - Interactive worktree switcher (fzf)
+wts() {
+  local selected
+  selected=$(git worktree list | fzf --ansi \
+    --preview 'git -C {1} log --oneline -5 2>/dev/null' \
+    --header 'Select worktree' \
+    --prompt 'wt> ')
+
+  [[ -z "$selected" ]] && return 0
+  local wt_path=$(echo "$selected" | awk '{print $1}')
+  cd "$wt_path" && zoxide add "$wt_path" 2>/dev/null
+}
+
+# wtd <branch> - Delete worktree
+wtd() {
+  local force=false branch=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -f) force=true; shift ;;
+      *) branch="$1"; shift ;;
+    esac
+  done
+
+  [[ -z "$branch" ]] && { echo "Usage: wtd [-f] <branch>"; return 1; }
+
+  local wt_base wt_dir
+  wt_base=$(_wt_base_dir) || return 1
+  wt_dir="${wt_base}/$(_wt_sanitize_branch "$branch")"
+
+  [[ ! -d "$wt_dir" ]] && { echo "Not found: $wt_dir"; return 1; }
+  [[ "$(pwd)" == "$wt_dir"* ]] && { echo "Can't remove while inside"; return 1; }
+
+  # Kill tmux session if exists
+  local session_name="$(basename "${wt_base%.wt}"):$(_wt_sanitize_branch "$branch")"
+  tmux has-session -t "$session_name" 2>/dev/null && tmux kill-session -t "$session_name"
+
+  [[ "$force" == true ]] && git worktree remove --force "$wt_dir" || git worktree remove "$wt_dir"
+  git worktree prune
+
+  # Cleanup empty .wt dir
+  [[ -d "$wt_base" && -z "$(ls -A "$wt_base")" ]] && rmdir "$wt_base"
+}
+
+# wtgo <branch> - Open worktree in tmux session via sesh
+wtgo() {
+  local branch="$1"
+  [[ -z "$branch" ]] && { echo "Usage: wtgo <branch>"; return 1; }
+
+  local wt_base wt_dir
+  wt_base=$(_wt_base_dir) || return 1
+  wt_dir="${wt_base}/$(_wt_sanitize_branch "$branch")"
+
+  [[ ! -d "$wt_dir" ]] && { echo "Not found. Create with: wt $branch"; return 1; }
+
+  zoxide add "$wt_dir" 2>/dev/null
+  sesh connect "$wt_dir"
+}
+
+# wtls - List worktrees with colors
+wtls() {
+  echo "=== Worktrees ==="
+  git worktree list --porcelain | awk '
+    /^worktree / { path = substr($0, 10) }
+    /^branch / {
+      branch = substr($0, 8); gsub(/refs\/heads\//, "", branch)
+      printf "\033[32m%-25s\033[0m %s\n", branch, path
+    }
+  '
+}
+
+# Zsh completions for worktree functions
+if command -v compdef &>/dev/null; then
+  _wt_branches() {
+    local branches=(${(f)"$(git branch -a 2>/dev/null | sed 's/^[\* ]*//' | sed 's/remotes\/origin\///' | sort -u)"})
+    _describe 'branch' branches
+  }
+  _wt_existing() {
+    local wts=(${(f)"$(git worktree list --porcelain 2>/dev/null | awk '/^branch / { gsub(/refs\/heads\//, \"\"); print substr($0, 8) }')"})
+    _describe 'worktree' wts
+  }
+  compdef '_arguments "-b[New branch]" "1:branch:_wt_branches"' wt wtc
+  compdef '_arguments "-f[Force]" "1:worktree:_wt_existing"' wtd
+  compdef '_arguments "1:worktree:_wt_existing"' wtgo
+fi
+
 # Aliases for OSx
 # See https://github.com/mathiasbynens/dotfiles/blob/master/.aliases
 if [[ $OS == 'Darwin' ]]; then

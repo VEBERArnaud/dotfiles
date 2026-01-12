@@ -24,6 +24,11 @@
   sr = submodule dinit
   st = status
   su = submodule foreach git pull
+  # Worktree
+  wl = worktree list
+  wa = worktree add
+  wr = worktree remove
+  wp = worktree prune
 
 [apply]
   # Detect whitespace errors when applying a patch

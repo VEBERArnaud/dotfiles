@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Worktree picker for tmux
+# - Select existing worktree -> open in sesh
+# - Type new branch name + Enter -> create worktree and open in sesh
+
+output=$(git worktree list 2>/dev/null | awk '{
+  path=$1; branch=$3; gsub(/[\[\]]/, "", branch)
+  n=split(path, parts, "/")
+  if (n >= 3) short=parts[n-2] "/" parts[n-1] "/" parts[n]
+  else if (n >= 2) short=parts[n-1] "/" parts[n]
+  else short=parts[n]
+  printf "%s\t%s\t%s\n", branch, short, path
+}' | fzf-tmux -p 80%,60% \
+  --delimiter='\t' \
+  --with-nth=1,2 \
+  --border-label ' worktrees ' \
+  --prompt 'wt> ' \
+  --header 'Select worktree or type branch name to create' \
+  --preview 'git -C {3} log --oneline -8 2>/dev/null' \
+  --print-query)
+
+query=$(echo "$output" | sed -n '1p')
+selected=$(echo "$output" | sed -n '2p')
+
+if [[ -n "$selected" ]]; then
+  # Existing worktree selected
+  path=$(echo "$selected" | cut -f3)
+  sesh connect "$path"
+elif [[ -n "$query" ]]; then
+  # No match, create new worktree with the query as branch name
+  # First check if it's a valid branch (local or remote)
+  # Fetch latest refs from origin to ensure we have up-to-date remote branches
+  git fetch origin --quiet 2>/dev/null
+
+  if git show-ref --verify --quiet "refs/heads/$query" 2>/dev/null || \
+     git show-ref --verify --quiet "refs/remotes/origin/$query" 2>/dev/null; then
+    # Branch exists, create worktree
+    source ~/.aliases
+    wtc "$query" && sesh connect "$(pwd)"
+  else
+    echo "Branch '$query' not found. Use 'wt -b $query' to create a new branch."
+  fi
+fi
