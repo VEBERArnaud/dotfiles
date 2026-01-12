@@ -18,6 +18,7 @@
     ".chezmoiscripts/run_after_import-gpg-key.sh"
     ".npmrc"
     ".okta_aws_login_config"
+    ".ssh/config.local"
 -}}
 
 # SSH keys (only on specific hosts)
