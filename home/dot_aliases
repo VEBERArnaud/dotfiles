@@ -116,6 +116,194 @@ function tea() {
     -appIcon 'https://www.emojibase.com/resources/img/emojis/apple/x2615.png.pagespeed.ic.fUhSj-YPGK.png'
 }
 
+# =============================================================================
+# Git Worktree Functions
+# =============================================================================
+
+# Helper: Get worktree base directory (.wt)
+_wt_base_dir() {
+  local git_root
+  git_root=$(git rev-parse --show-toplevel 2>/dev/null) || return 1
+  if [[ "$git_root" == *".wt/"* ]]; then
+    echo "${git_root%.wt/*}.wt"
+  else
+    echo "${git_root}.wt"
+  fi
+}
+
+# Helper: Sanitize branch name (feature/foo -> feature-foo)
+_wt_sanitize_branch() {
+  echo "$1" | tr '/' '-'
+}
+
+# wt <branch> - Create/open worktree in sesh
+# Usage: wt feature/login        (opens worktree + editor, creates branch if needed)
+#        wt --no-create branch   (error if branch doesn't exist)
+#        wt --no-switch branch   (create only, stay in current session)
+#        wt --no-install branch  (create without auto-installing deps)
+#        wt --no-editor branch   (create without opening editor)
+#        wt --no-envrc branch    (create without .envrc)
+wt() {
+  local no_create=false no_switch=false no_install=false no_editor=false no_envrc=false branch=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --no-create) no_create=true; shift ;;
+      --no-switch) no_switch=true; shift ;;
+      --no-install) no_install=true; shift ;;
+      --no-editor) no_editor=true; shift ;;
+      --no-envrc) no_envrc=true; shift ;;
+      *) branch="$1"; shift ;;
+    esac
+  done
+
+  [[ -z "$branch" ]] && { echo "Usage: wt [--no-create] [--no-switch] [--no-install] [--no-editor] <branch>"; return 1; }
+
+  local wt_base wt_dir created=false
+  wt_base=$(_wt_base_dir) || { echo "Not in a git repo"; return 1; }
+  wt_dir="${wt_base}/$(_wt_sanitize_branch "$branch")"
+
+  # Create worktree if it doesn't exist
+  if [[ ! -d "$wt_dir" ]]; then
+    mkdir -p "$wt_base"
+    created=true
+
+    if git show-ref --verify --quiet "refs/heads/$branch"; then
+      # Local branch exists
+      git worktree add --quiet "$wt_dir" "$branch" || return 1
+    elif git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+      # Remote branch exists
+      git worktree add --quiet --track -b "$branch" "$wt_dir" "origin/$branch" || return 1
+    elif [[ "$no_create" == false ]]; then
+      # Branch doesn't exist, create it
+      git worktree add --quiet -b "$branch" "$wt_dir" || return 1
+    else
+      echo "Branch not found: $branch"; return 1
+    fi
+
+    # Create marker for auto-install (unless --no-install)
+    if [[ "$no_install" == false ]]; then
+      touch "$wt_dir/.wt-new"
+    fi
+
+    # Create marker for auto-editor (unless --no-editor)
+    if [[ "$no_editor" == false ]]; then
+      touch "$wt_dir/.wt-open-editor"
+    fi
+
+    # Create .envrc that sources the main repo's .envrc (unless --no-envrc)
+    if [[ "$no_envrc" == false ]]; then
+      local main_wt
+      main_wt=$(git worktree list | head -1 | awk '{print $1}')
+      if [[ -f "$main_wt/.envrc" ]]; then
+        cat > "$wt_dir/.envrc" << 'ENVRC'
+# Auto-generated: source .envrc from main worktree
+source_env_if_exists "$(git worktree list | head -1 | awk '{print $1}')/.envrc"
+
+# Local overrides (create .envrc.override to customize this worktree)
+source_env_if_exists ".envrc.override"
+ENVRC
+        direnv allow "$wt_dir/.envrc" 2>/dev/null || true
+      fi
+    fi
+  fi
+
+  # Add to zoxide
+  zoxide add "$wt_dir" 2>/dev/null
+
+  # Open in sesh (unless --no-switch)
+  if [[ "$no_switch" == false ]]; then
+    sesh connect "$wt_dir"
+  fi
+}
+
+# wtd <branch> - Delete worktree, tmux session, and local branch
+# Usage: wtd feature/login              (delete all)
+#        wtd -f feature/login           (force delete)
+#        wtd --keep-branch feature/login  (keep local branch)
+wtd() {
+  local force=false keep_branch=false branch=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -f) force=true; shift ;;
+      --keep-branch) keep_branch=true; shift ;;
+      *) branch="$1"; shift ;;
+    esac
+  done
+
+  [[ -z "$branch" ]] && { echo "Usage: wtd [-f] [--keep-branch] <branch>"; return 1; }
+
+  local wt_base wt_dir
+  wt_base=$(_wt_base_dir) || return 1
+  wt_dir="${wt_base}/$(_wt_sanitize_branch "$branch")"
+
+  [[ ! -d "$wt_dir" ]] && { echo "Not found: $wt_dir"; return 1; }
+  [[ "$(pwd)" == "$wt_dir"* ]] && { echo "Can't remove while inside"; return 1; }
+
+  # Kill tmux session if exists (sesh names sessions after the directory name)
+  local session_name="$(_wt_sanitize_branch "$branch")"
+  tmux has-session -t "$session_name" 2>/dev/null && tmux kill-session -t "$session_name"
+
+  if [[ "$force" == true ]]; then
+    git worktree remove --force "$wt_dir"
+  else
+    git worktree remove "$wt_dir"
+  fi
+  git worktree prune
+
+  # Delete local branch (unless --keep-branch)
+  if [[ "$keep_branch" == false ]]; then
+    if [[ "$force" == true ]]; then
+      git branch -D "$branch" 2>/dev/null || true
+    else
+      git branch -d "$branch" 2>/dev/null || true
+    fi
+  fi
+
+  # Cleanup empty .wt dir
+  [[ -d "$wt_base" && -z "$(ls -A "$wt_base")" ]] && rmdir "$wt_base"
+}
+
+# Zsh completions for worktree functions
+if command -v compdef &>/dev/null; then
+  _wt_branches() {
+    local branches=(${(f)"$(git branch -a 2>/dev/null | sed 's/^[\* ]*//' | sed 's/remotes\/origin\///' | sort -u)"})
+    _describe 'branch' branches
+  }
+  _wt_existing() {
+    local wts=(${(f)"$(git worktree list --porcelain 2>/dev/null | awk '/^branch / { gsub(/refs\/heads\//, ""); print substr($0, 8) }')"})
+    _describe 'worktree' wts
+  }
+  compdef '_arguments "--no-create[Error if branch does not exist]" "--no-switch[Create only]" "--no-install[Skip deps install]" "--no-editor[Skip opening editor]" "--no-envrc[Skip .envrc creation]" "1:branch:_wt_branches"' wt
+  compdef '_arguments "-f[Force]" "--keep-branch[Keep local branch]" "1:worktree:_wt_existing"' wtd
+fi
+
+# Auto-install deps for new worktrees (runs after nvm use in .zprofile)
+_wt_auto_install() {
+  [[ ! -f ".wt-new" ]] && return
+
+  echo "New worktree detected, installing dependencies..."
+  rm -f ".wt-new"
+
+  if [[ -f "package-lock.json" ]]; then
+    npm install
+  elif [[ -f "yarn.lock" ]]; then
+    yarn install
+  elif [[ -f "pnpm-lock.yaml" ]]; then
+    pnpm install
+  elif [[ -f "bun.lockb" ]]; then
+    bun install
+  fi
+}
+_wt_auto_install
+
+# Auto-open editor for new worktrees
+_wt_auto_editor() {
+  [[ -f ".wt-open-editor" ]] || return
+  rm -f ".wt-open-editor"
+  cursor .
+}
+_wt_auto_editor
+
 # Aliases for OSx
 # See https://github.com/mathiasbynens/dotfiles/blob/master/.aliases
 if [[ $OS == 'Darwin' ]]; then

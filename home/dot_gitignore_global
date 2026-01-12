@@ -29,3 +29,7 @@ tags
 
 # Dotenv files
 *.env
+
+# Direnv
+.envrc
+.envrc.override

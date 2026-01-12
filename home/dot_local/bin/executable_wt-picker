@@ -1,0 +1,250 @@
+#!/usr/bin/env bash
+# Worktree picker for tmux with status indicators and async PR/CI loading
+#
+# Features:
+# - Select existing worktree -> open in sesh
+# - Type new branch name + Enter -> create worktree and open in sesh
+# - Status indicators loaded asynchronously (PR, CI)
+# - Loading spinner in border, ⏳ in status while fetching
+#
+# Status hierarchy (first match wins):
+# 1. orphan   - remote branch deleted
+# 2. merged   - merged into main
+# 3. PR + CI  - has open PR (with CI status if available)
+# 4. CI       - CI status when no PR
+# 5. behind   - commits behind main
+# 6. loading  - ⏳ while fetching PR/CI (initial display only)
+
+set -o pipefail
+
+# =============================================================================
+# Global data (fetched once at startup)
+# =============================================================================
+
+main_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+[[ -z "$main_branch" ]] && main_branch="main"
+
+merged_branches=$(git branch --merged "$main_branch" 2>/dev/null | sed 's/^[* ]*//')
+remote_branches=$(git for-each-ref --format='%(refname:short)' refs/remotes/origin 2>/dev/null | sed 's@^origin/@@')
+
+# =============================================================================
+# Status helper functions
+# Each returns a status string or empty (for priority chain)
+# =============================================================================
+
+# Check if branch is orphan (deleted on remote)
+# Args: $1=branch
+get_orphan_status() {
+  local branch="$1"
+  [[ "$branch" == "$main_branch" ]] && return 1
+  [[ -z "$remote_branches" ]] && return 1
+  echo "$remote_branches" | grep -qxF "$branch" && return 1
+  echo "☠ orphan"
+}
+
+# Check if branch is merged into main
+# Args: $1=branch
+get_merged_status() {
+  local branch="$1"
+  [[ "$branch" == "$main_branch" ]] && return 1
+  echo "$merged_branches" | grep -qxF "$branch" || return 1
+  echo "✓ merged"
+}
+
+# Get PR status for a branch
+# Args: $1=branch, $2=pr_data (JSON)
+# Returns: "⬡ PR #N" or "◇ draft #N" or empty
+get_pr_status() {
+  local branch="$1" pr_data="$2"
+  [[ -z "$pr_data" || "$pr_data" == "[]" ]] && return 1
+
+  local pr_info=$(echo "$pr_data" | jq -r ".[] | select(.headRefName == \"$branch\") | \"\(.number) \(.isDraft)\"" 2>/dev/null)
+  [[ -z "$pr_info" ]] && return 1
+
+  local pr_num=$(echo "$pr_info" | awk '{print $1}')
+  local is_draft=$(echo "$pr_info" | awk '{print $2}')
+
+  if [[ "$is_draft" == "true" ]]; then
+    echo "◇ draft #${pr_num}"
+  else
+    echo "⬡ PR #${pr_num}"
+  fi
+}
+
+# Get CI status for a branch
+# Args: $1=branch, $2=ci_data (JSON)
+# Returns: "(CI ✓)" or "(CI ✗)" or "(CI ⏳)" or empty
+get_ci_status() {
+  local branch="$1" ci_data="$2"
+  [[ -z "$ci_data" || "$ci_data" == "[]" ]] && return 1
+
+  local ci_info=$(echo "$ci_data" | jq -r ".[] | select(.headBranch == \"$branch\") | \"\(.status) \(.conclusion)\"" 2>/dev/null | head -1)
+  [[ -z "$ci_info" ]] && return 1
+
+  local run_status=$(echo "$ci_info" | awk '{print $1}')
+  local conclusion=$(echo "$ci_info" | awk '{print $2}')
+
+  if [[ "$run_status" == "completed" ]]; then
+    [[ "$conclusion" == "success" ]] && echo "(CI ✓)" || echo "(CI ✗)"
+  elif [[ "$run_status" == "in_progress" || "$run_status" == "queued" ]]; then
+    echo "(CI ⏳)"
+  else
+    return 1
+  fi
+}
+
+# Get PR status with CI indicator appended (for open PRs)
+# Args: $1=branch, $2=pr_data, $3=ci_data
+get_pr_ci_status() {
+  local branch="$1" pr_data="$2" ci_data="$3"
+
+  local pr=$(get_pr_status "$branch" "$pr_data")
+  [[ -z "$pr" ]] && return 1
+
+  # Draft PRs don't show CI
+  if [[ "$pr" == *"draft"* ]]; then
+    echo "$pr"
+    return 0
+  fi
+
+  # Open PRs: append CI if available
+  local ci=$(get_ci_status "$branch" "$ci_data")
+  if [[ -n "$ci" ]]; then
+    echo "$pr $ci"
+  else
+    echo "$pr"
+  fi
+}
+
+# Get behind-main status
+# Args: $1=branch, $2=path
+get_behind_status() {
+  local branch="$1" path="$2"
+  [[ "$branch" == "$main_branch" ]] && return 1
+
+  local behind=$(git -C "$path" rev-list --count HEAD.."$main_branch" 2>/dev/null || echo "0")
+  [[ "$behind" -gt 0 ]] || return 1
+  echo "⚠ ${behind} behind"
+}
+
+# =============================================================================
+# Main list builder
+# =============================================================================
+
+# Build worktree list with status indicators
+# Args: $1=pr_data (optional), $2=ci_data (optional)
+# When called without args, shows ⏳ for branches that might have PR/CI
+build_worktree_list() {
+  local pr_data="$1" ci_data="$2"
+  local is_loading=$([[ -z "$pr_data" && -z "$ci_data" ]] && echo "true" || echo "false")
+  local worktree_list=""
+
+  while IFS= read -r line; do
+    local path=$(echo "$line" | awk '{print $1}')
+    local branch=$(echo "$line" | awk '{print $3}' | tr -d '[]')
+
+    # Skip bare or detached worktrees
+    [[ -z "$branch" || "$branch" == "detached" ]] && continue
+
+    # Determine status using priority chain (first match wins)
+    local status=""
+    status=$(get_orphan_status "$branch") ||
+    status=$(get_merged_status "$branch") ||
+    status=$(get_pr_ci_status "$branch" "$pr_data" "$ci_data") ||
+    status=$(get_ci_status "$branch" "$ci_data") ||
+    status=$(get_behind_status "$branch" "$path") ||
+    status=""
+
+    # Show loading indicator for branches that might have PR/CI (initial display only)
+    if [[ "$is_loading" == "true" && -z "$status" && "$branch" != "$main_branch" ]]; then
+      status="⏳"
+    fi
+
+    worktree_list+="${branch}\t${status}\t${path}\n"
+  done < <(git worktree list 2>/dev/null)
+
+  echo -e "$worktree_list" | grep -v '^$'
+}
+
+# =============================================================================
+# FZF setup with async loading
+# =============================================================================
+
+find_free_port() {
+  for port in $(shuf -i 6000-7000 -n 10); do
+    nc -z localhost "$port" 2>/dev/null || { echo "$port"; return; }
+  done
+  echo "6789"
+}
+
+port=$(find_free_port)
+tmp_file="/tmp/wt-picker-$$"
+spinner_pid=""
+
+# Background: animated spinner in border label
+(
+  chars="⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+  # Wait for fzf to start listening
+  for _ in {1..50}; do
+    curl -s "localhost:$port" -d "change-border-label: worktrees ⠋ " 2>/dev/null && break
+    sleep 0.02
+  done
+  # Animate spinner
+  while true; do
+    for (( i=0; i<${#chars}; i++ )); do
+      curl -s "localhost:$port" -d "change-border-label: worktrees ${chars:$i:1} " 2>/dev/null || break 2
+      sleep 0.08
+    done
+  done
+) &
+spinner_pid=$!
+
+# Background: fetch PR/CI data and reload fzf
+(
+  sleep 0.1  # Let fzf start first
+  pr_data=$(gh pr list --json headRefName,number,isDraft 2>/dev/null || echo "")
+  ci_data=$(gh run list --json headBranch,status,conclusion --limit 100 2>/dev/null || echo "")
+
+  # Stop spinner and show completion indicator
+  kill $spinner_pid 2>/dev/null
+  curl -s "localhost:$port" -d "change-border-label: worktrees ✓ " 2>/dev/null || true
+
+  # Reload list with PR/CI data
+  if [[ (-n "$pr_data" && "$pr_data" != "[]") || (-n "$ci_data" && "$ci_data" != "[]") ]]; then
+    build_worktree_list "$pr_data" "$ci_data" > "$tmp_file"
+    curl -s "localhost:$port" -d "reload:cat $tmp_file" 2>/dev/null || true
+  else
+    # No PR/CI data, reload to clear loading indicators
+    build_worktree_list "" "" > "$tmp_file"
+    curl -s "localhost:$port" -d "reload:cat $tmp_file" 2>/dev/null || true
+  fi
+) &
+bg_pid=$!
+
+# Cleanup on exit
+trap "rm -f $tmp_file; kill $bg_pid $spinner_pid 2>/dev/null" EXIT
+
+# =============================================================================
+# Run picker
+# =============================================================================
+
+output=$(build_worktree_list | fzf-tmux -p 80%,60% \
+  --listen="$port" \
+  --delimiter='\t' \
+  --with-nth=1,2 \
+  --border-label=' worktrees ⏳ ' \
+  --prompt='wt> ' \
+  --header='Select worktree or type branch name to create' \
+  --preview='git -C {3} log --oneline -8 2>/dev/null' \
+  --print-query)
+
+query=$(echo "$output" | sed -n '1p')
+selected=$(echo "$output" | sed -n '2p')
+
+if [[ -n "$selected" ]]; then
+  path=$(echo "$selected" | cut -f3)
+  sesh connect "$path"
+elif [[ -n "$query" ]]; then
+  source ~/.aliases
+  wt "$query"
+fi
