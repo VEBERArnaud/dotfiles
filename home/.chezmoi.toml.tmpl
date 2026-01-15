@@ -22,6 +22,7 @@
 {{- $with_golang := false -}}
 {{- $with_javascript := false -}}
 {{- $with_php := false -}}
+{{- $with_rust := false -}}
 {{- $with_terraform := false -}}
 
 {{- if eq .chezmoi.os "linux" -}}
@@ -90,6 +91,7 @@
 {{-   $with_golang = true -}}
 {{-   $with_javascript = true -}}
 {{-   $with_php = true -}}
+{{-   $with_rust = true -}}
 {{-   $with_terraform = true -}}
 {{- end -}}
 
@@ -132,4 +134,5 @@
     with_golang = {{ $with_golang }}
     with_javascript = {{ $with_javascript }}
     with_php = {{ $with_php }}
+    with_rust = {{ $with_rust }}
     with_terraform = {{ $with_terraform }}

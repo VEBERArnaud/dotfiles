@@ -1,0 +1,34 @@
+{{- if and .is_mac .with_rust -}}
+#!/bin/bash
+
+set -euo pipefail
+
+# Include common functions
+{{ template "common.tmpl" . }}
+
+# Error trap to show line numbers on failure
+trap 'log_error "Error on line $LINENO. Rust installation failed."' ERR
+
+# Initialize Homebrew environment to get HOMEBREW_PREFIX
+{{ if stat "/opt/homebrew/bin/brew" -}}
+eval "$(/opt/homebrew/bin/brew shellenv)"
+{{ else if stat "/usr/local/bin/brew" -}}
+eval "$(/usr/local/bin/brew shellenv)"
+{{ end -}}
+
+# Initialize rustup if not already done
+if [ ! -d "$HOME/.rustup" ]; then
+    log_info "Initializing rustup..."
+    rustup-init -y --no-modify-path
+fi
+
+# Install stable toolchain
+log_info "Installing Rust stable toolchain..."
+rustup default stable
+
+# Install essential components
+log_info "Installing Rust components..."
+rustup component add rustfmt clippy rust-analyzer
+
+log_success "Rust installation complete"
+{{- end -}}

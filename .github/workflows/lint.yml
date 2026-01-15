@@ -40,6 +40,7 @@ jobs:
             with_javascript = true
             with_php = false
             with_terraform = true
+            with_rust = true
           EOF
 
       - name: Validate templates

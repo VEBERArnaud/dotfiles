@@ -36,13 +36,17 @@ Plug 'ekalinin/Dockerfile.vim'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 {{ end }}
 
-{{ if .with_terraform }}
-Plug 'hashivim/vim-terraform'
-{{ end }}
-
 {{ if .with_javascript }}
 Plug 'pangloss/vim-javascript'
 Plug 'mxw/vim-jsx'
+{{ end }}
+
+{{ if .with_rust }}
+Plug 'rust-lang/rust.vim'
+{{ end }}
+
+{{ if .with_terraform }}
+Plug 'hashivim/vim-terraform'
 {{ end }}
 
 call plug#end()
@@ -143,6 +147,9 @@ let g:ale_linters = {
 let g:ale_fixers = {
 \   '*': ['remove_trailing_lines', 'trim_whitespace'],
 \   'php': ['php_cs_fixer'],
+{{- if .with_rust }}
+\   'rust': ['rustfmt'],
+{{- end }}
 \}
 let g:ale_php_phpcs_standard = 'PSR2'
 

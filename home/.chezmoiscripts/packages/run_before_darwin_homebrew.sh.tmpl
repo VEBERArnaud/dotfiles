@@ -84,6 +84,10 @@
 {{-   $brews = concat $brews (list "php") -}}
 {{- end -}}
 
+{{- if .with_rust -}}
+{{-   $brews = concat $brews (list "rustup") -}}
+{{- end -}}
+
 {{- if .with_terraform -}}
 {{-   $brews = concat $brews (list "hashicorp/tap/terraform") -}}
 {{- end -}}
