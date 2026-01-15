@@ -10,6 +10,7 @@
     "mhutchie.git-graph"
     "redhat.vscode-xml"
     "redhat.vscode-yaml"
+    "tamasfe.even-better-toml"
 -}}
 
 {{- if .with_javascript -}}
@@ -25,6 +26,13 @@
 {{-   $extensions = concat $extensions (list
         "ms-azuretools.vscode-containers"
         "ms-azuretools.vscode-docker"
+    ) -}}
+{{- end -}}
+
+{{- if .with_rust -}}
+{{-   $extensions = concat $extensions (list
+        "rust-lang.rust-analyzer"
+        "serayuzgur.crates"
     ) -}}
 {{- end -}}
 

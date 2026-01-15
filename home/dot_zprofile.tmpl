@@ -79,6 +79,11 @@ load-nvmrc
 export PATH=$PATH:./node_modules/.bin
 {{ end }}
 
+{{ if .with_rust }}
+# Rust
+export PATH="$HOME/.cargo/bin:$PATH"
+{{ end }}
+
 # MySQL prompt
 export MYSQL_PS1='(\D) \u@\h [\d] > '
 
