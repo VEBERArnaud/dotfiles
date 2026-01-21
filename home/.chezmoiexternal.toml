@@ -8,10 +8,8 @@
 [".tmux/plugins/tpm"]
     type = "git-repo"
     url = "https://github.com/tmux-plugins/tpm"
-    refreshPeriod = "168h"
     clone.args = ["--branch", "v3.1.0"]
 
 [".vim/autoload/plug.vim"]
     type = "file"
     url = "https://raw.githubusercontent.com/junegunn/vim-plug/0.14.0/plug.vim"
-    refreshPeriod = "168h"
