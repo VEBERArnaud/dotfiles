@@ -1,0 +1,38 @@
+{{- if .is_mac -}}
+
+{{- $mcpServers := list
+    "chrome-devtools npx chrome-devtools-mcp@latest"
+-}}
+
+#!/bin/bash
+
+set -euo pipefail
+
+# Include common functions
+{{ template "common.tmpl" . }}
+
+# Check Claude CLI
+if ! check_command claude; then
+    log_warn "Claude Code CLI not found. Skipping MCP servers configuration."
+    exit 0
+fi
+
+# Check npx (requires Node.js)
+if ! check_command npx; then
+    log_warn "npx not found (Node.js required). Skipping MCP servers configuration."
+    exit 0
+fi
+
+log_info "Configuring Claude MCP servers..."
+
+{{ range $mcpServers -}}
+{{- $parts := splitList " " . -}}
+{{- $name := index $parts 0 -}}
+{{- $command := join " " (rest $parts) -}}
+log_info "  Adding MCP server: {{ $name }}..."
+claude mcp add "{{ $name }}" --scope user {{ $command }} 2>/dev/null || log_warn "Failed to add {{ $name }} (may already exist)"
+{{ end -}}
+
+log_success "Claude MCP servers configuration complete"
+
+{{- end -}}
