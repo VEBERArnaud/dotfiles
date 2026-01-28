@@ -1,9 +1,4 @@
 {{- if .is_mac -}}
-
-{{- $mcpServers := list
-    "chrome-devtools npx chrome-devtools-mcp@latest"
--}}
-
 #!/bin/bash
 
 set -euo pipefail
@@ -23,15 +18,50 @@ if ! check_command npx; then
     exit 0
 fi
 
+# Check 1Password CLI for API keys
+if ! check_command op; then
+    log_warn "1Password CLI not found. Skipping MCP servers configuration."
+    exit 0
+fi
+
+# Check if signed in to 1Password
+if ! op whoami &>/dev/null; then
+    log_warn "Not signed in to 1Password. Skipping MCP servers configuration."
+    exit 0
+fi
+
 log_info "Configuring Claude MCP servers..."
 
-{{ range $mcpServers -}}
-{{- $parts := splitList " " . -}}
-{{- $name := index $parts 0 -}}
-{{- $command := join " " (rest $parts) -}}
-log_info "  Adding MCP server: {{ $name }}..."
-claude mcp add "{{ $name }}" --scope user {{ $command }} 2>/dev/null || log_warn "Failed to add {{ $name }} (may already exist)"
-{{ end -}}
+# Check if MCP server is already installed
+mcp_exists() {
+    local name="$1"
+    claude mcp list 2>/dev/null | grep -q "^${name}:"
+}
+
+# Add chrome-devtools MCP server
+if mcp_exists "chrome-devtools"; then
+    log_info "  MCP server chrome-devtools already configured"
+else
+    log_info "  Adding MCP server: chrome-devtools..."
+    if claude mcp add "chrome-devtools" --scope user -- npx chrome-devtools-mcp@latest --executablePath "{{ .chezmoi.homeDir }}/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" &>/dev/null; then
+        log_success "  chrome-devtools added"
+    else
+        log_error "  Failed to add chrome-devtools"
+    fi
+fi
+
+# Add context7 MCP server (requires API key from 1Password)
+if mcp_exists "context7"; then
+    log_info "  MCP server context7 already configured"
+else
+    CONTEXT7_API_KEY=$(op read "op://Personal/context7/API_KEY")
+    log_info "  Adding MCP server: context7..."
+    if claude mcp add "context7" --scope user -- npx -y @upstash/context7-mcp --api-key "${CONTEXT7_API_KEY}" &>/dev/null; then
+        log_success "  context7 added"
+    else
+        log_error "  Failed to add context7"
+    fi
+fi
 
 log_success "Claude MCP servers configuration complete"
 

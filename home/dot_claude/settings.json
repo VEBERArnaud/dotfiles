@@ -1,0 +1,62 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash([ *)",
+      "Bash([[ *)",
+      "Bash(awk *)",
+      "Bash(bat *)",
+      "Bash(cat *)",
+      "Bash(chmod *)",
+      "Bash(cp *)",
+      "Bash(delta *)",
+      "Bash(echo *)",
+      "Bash(fzf *)",
+      "Bash(gh *)",
+      "Bash(git *)",
+      "Bash(grep *)",
+      "Bash(head *)",
+      "Bash(jq *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(mv *)",
+      "Bash(printf *)",
+      "Bash(rg *)",
+      "Bash(shellcheck *)",
+      "Bash(sort *)",
+      "Bash(tail *)",
+      "Bash(test *)",
+      "Bash(touch *)",
+      "Bash(tree *)",
+      "Bash(uniq *)",
+      "Bash(wc *)",
+      "Bash(zoxide *)"
+    ],
+    "deny": [
+      "Bash(chmod -R 777 *)",
+      "Bash(chmod 777 *)",
+      "Bash(git push --force origin main)",
+      "Bash(git push --force origin master)",
+      "Bash(git push -f origin main)",
+      "Bash(git push -f origin master)",
+      "Bash(git reset --hard origin/*)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf ~/*)",
+      "Bash(sudo rm -rf *)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "osascript -e 'display notification \"Claude has finished\" with title \"Claude Code\"'"
+          }
+        ]
+      }
+    ]
+  }
+}
