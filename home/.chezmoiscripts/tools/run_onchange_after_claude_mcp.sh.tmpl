@@ -1,7 +1,11 @@
 {{- if .is_mac -}}
 
+{{- /* Retrieve Context7 API key from 1Password */ -}}
+{{- $context7ApiKey := onepasswordRead "op://Personal/context7/API_KEY" -}}
+
 {{- $mcpServers := list
     "chrome-devtools npx chrome-devtools-mcp@latest"
+    (printf "context7 npx -y @upstash/context7-mcp --api-key %s" $context7ApiKey)
 -}}
 
 #!/bin/bash
