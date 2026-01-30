@@ -2,3 +2,10 @@
 if [[ "$SHLVL" -eq 1 && ! -o LOGIN && -s "${ZDOTDIR:-$HOME}/.zprofile" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprofile"
 fi
+
+# Source all files in .zshenv.d/ if directory exists
+if [[ -d "${ZDOTDIR:-$HOME}/.zshenv.d" ]]; then
+  for file in "${ZDOTDIR:-$HOME}/.zshenv.d"/*.sh(N); do
+    source "$file"
+  done
+fi

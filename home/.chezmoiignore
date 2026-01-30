@@ -16,9 +16,11 @@
 
 {{- $opFiles := list
     ".chezmoiscripts/run_after_import-gpg-key.sh"
+    ".config/.jira"
     ".npmrc"
     ".okta_aws_login_config"
     ".ssh/config.local"
+    ".zshenv.d/eurosport-jira.sh"
 -}}
 
 # SSH keys (only on specific hosts)
@@ -37,7 +39,9 @@
 
 # Project-scoped files
 {{- if not .project_eurosport }}
+.config/.jira
 .okta_aws_login_config
+.zshenv.d/eurosport-jira.sh
 {{- end }}
 
 # Tool-scoped files
