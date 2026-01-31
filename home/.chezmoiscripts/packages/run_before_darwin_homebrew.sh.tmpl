@@ -6,6 +6,7 @@
 
 {{- $brews := list
     "bat"
+    "btop"
     "chezmoi"
     "coreutils"
     "curl"
@@ -73,6 +74,7 @@
 {{- end -}}
 
 {{- if .with_docker -}}
+{{-   $brews = concat $brews (list "ctop") -}}
 {{-   $casks = concat $casks (list "docker-desktop") -}}
 {{- end -}}
 
