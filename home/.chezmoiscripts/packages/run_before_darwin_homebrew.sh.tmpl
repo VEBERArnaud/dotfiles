@@ -22,7 +22,9 @@
     "htop"
     "jira-cli"
     "jq"
+    "mas"
     "moreutils"
+    "ollama"
     "openssl@3"
     "reattach-to-user-namespace"
     "ripgrep"
@@ -68,6 +70,10 @@
     "studio-3t"
     "whatsapp"
     "zoom"
+-}}
+
+{{- $mas_apps := dict
+    "904280696" "Things 3"
 -}}
 
 {{- if .with_aws -}}
@@ -148,6 +154,9 @@ brew "{{ . }}"
 {{ end -}}
 {{ range ($casks | sortAlpha | uniq) -}}
 cask "{{ . }}"
+{{ end -}}
+{{ range (keys $mas_apps | sortAlpha) -}}
+mas "{{ index $mas_apps . }}", id: {{ . }}
 {{ end -}}
 EOF
 
