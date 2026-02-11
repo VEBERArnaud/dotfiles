@@ -1,0 +1,97 @@
+{{- if and .is_mac .project_eurosport -}}
+#!/bin/bash
+
+set -euo pipefail
+
+# Include common functions
+{{ template "common.tmpl" . }}
+
+# Check Claude CLI
+if ! check_command claude; then
+    log_warn "Claude Code CLI not found. Skipping plugins configuration."
+    exit 0
+fi
+
+# Check GitHub CLI (needed for marketplace from GitHub)
+if ! check_command gh; then
+    log_warn "GitHub CLI not found. Skipping plugins configuration."
+    exit 0
+fi
+
+# Check GitHub auth
+if ! gh auth status &>/dev/null; then
+    log_warn "Not authenticated with GitHub CLI. Skipping plugins configuration."
+    exit 0
+fi
+
+log_info "Configuring Claude Code plugins..."
+
+# Check if a marketplace is already added
+marketplace_exists() {
+    local name="$1"
+    claude plugin marketplace list 2>/dev/null | grep -q "❯ ${name}"
+}
+
+# Check if a plugin is installed
+plugin_installed() {
+    local name="$1"
+    claude plugin list 2>/dev/null | grep -q "❯ ${name}"
+}
+
+# Check if a plugin is enabled
+plugin_enabled() {
+    local name="$1"
+    local output
+    output=$(claude plugin list 2>/dev/null)
+    # Check that the plugin line is followed by "Status: ✔ enabled"
+    echo "${output}" | awk "/❯ ${name}/{found=1} found && /Status:/{print; exit}" | grep -q "✔ enabled"
+}
+
+# Add eurosport marketplace
+if marketplace_exists "eurosport"; then
+    log_info "  Marketplace eurosport already configured"
+else
+    log_info "  Adding marketplace: eurosport..."
+    if claude plugin marketplace add "vbr-tech/eurosport-cc" &>/dev/null; then
+        log_success "  Marketplace eurosport added"
+    else
+        log_error "  Failed to add marketplace eurosport"
+    fi
+fi
+
+# Plugins to install and enable
+plugins=(
+    "eurosport@eurosport"
+    "js-to-ts-converter@eurosport"
+)
+
+for plugin in "${plugins[@]}"; do
+    # Install if not installed
+    if plugin_installed "${plugin}"; then
+        log_info "  Plugin ${plugin} already installed"
+    else
+        log_info "  Installing plugin: ${plugin}..."
+        if claude plugin install "${plugin}" &>/dev/null; then
+            log_success "  Plugin ${plugin} installed"
+        else
+            log_error "  Failed to install plugin ${plugin}"
+            continue
+        fi
+    fi
+
+    # Enable if not enabled
+    if plugin_enabled "${plugin}"; then
+        log_info "  Plugin ${plugin} already enabled"
+    else
+        log_info "  Enabling plugin: ${plugin}..."
+        if claude plugin enable "${plugin}" &>/dev/null; then
+            log_success "  Plugin ${plugin} enabled"
+        else
+            log_error "  Failed to enable plugin ${plugin}"
+        fi
+    fi
+done
+
+log_success "Claude Code plugins configuration complete"
+
+{{- end -}}

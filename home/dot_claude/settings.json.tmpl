@@ -1,6 +1,6 @@
 {
+  "includeCoAuthoredBy": false,
   "permissions": {
-    "defaultMode": "plan",
     "allow": [
       "Bash([ *)",
       "Bash([[ *)",
@@ -45,7 +45,8 @@
       "Bash(rm -rf ~)",
       "Bash(rm -rf ~/*)",
       "Bash(sudo rm -rf *)"
-    ]
+    ],
+    "defaultMode": "plan"
   },
   "hooks": {
     "PermissionRequest": [
@@ -81,6 +82,9 @@
         ]
       }
     ]
-  },
-  "includeCoAuthoredBy": false
+  }{{ if .project_eurosport }},
+  "enabledPlugins": {
+    "eurosport@eurosport": true,
+    "js-to-ts-converter@eurosport": true
+  }{{ end }}
 }
