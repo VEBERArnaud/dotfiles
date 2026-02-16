@@ -5,27 +5,112 @@ set -euo pipefail
 # Include common functions
 {{ template "common.tmpl" . }}
 
+# Check if directory exists
+check_dir() {
+    local dir="$1"
+    if [[ -d "${dir}" ]]; then
+        log_success "${dir} exists"
+        return 0
+    else
+        log_error "${dir} missing"
+        return 1
+    fi
+}
+
 log_info "Verifying dotfiles installation..."
 
 errors=0
 
+# Critical files
 echo ""
 log_info "Checking critical files..."
 check_file "${HOME}/.zshrc" || errors=$((errors + 1))
+check_file "${HOME}/.zshenv" || errors=$((errors + 1))
+check_file "${HOME}/.zprofile" || errors=$((errors + 1))
+check_file "${HOME}/.zpreztorc" || errors=$((errors + 1))
 check_file "${HOME}/.vimrc" || errors=$((errors + 1))
 check_file "${HOME}/.gitconfig" || errors=$((errors + 1))
+check_file "${HOME}/.gitignore_global" || errors=$((errors + 1))
 check_file "${HOME}/.tmux.conf" || errors=$((errors + 1))
+check_file "${HOME}/.aliases" || errors=$((errors + 1))
 check_file "${HOME}/.config/starship.toml" || errors=$((errors + 1))
+check_file "${HOME}/.config/ghostty/config" || errors=$((errors + 1))
 
+# Config directories
+echo ""
+log_info "Checking config directories..."
+check_dir "${HOME}/.config/gh" || errors=$((errors + 1))
+check_dir "${HOME}/.config/sesh" || errors=$((errors + 1))
+check_dir "${HOME}/.local/bin" || errors=$((errors + 1))
+
+# Essential commands
 echo ""
 log_info "Checking essential commands..."
+check_command_available brew || errors=$((errors + 1))
 check_command_available zsh || errors=$((errors + 1))
 check_command_available vim || errors=$((errors + 1))
 check_command_available tmux || errors=$((errors + 1))
 check_command_available git || errors=$((errors + 1))
 check_command_available starship || errors=$((errors + 1))
+check_command_available bat || errors=$((errors + 1))
+check_command_available rg || errors=$((errors + 1))
+check_command_available fzf || errors=$((errors + 1))
+check_command_available jq || errors=$((errors + 1))
+check_command_available gh || errors=$((errors + 1))
+check_command_available delta || errors=$((errors + 1))
+check_command_available direnv || errors=$((errors + 1))
+check_command_available zoxide || errors=$((errors + 1))
+check_command_available sesh || errors=$((errors + 1))
+check_command_available shellcheck || errors=$((errors + 1))
+check_command_available terminal-notifier || errors=$((errors + 1))
 
-# Validate shell config syntax
+# Conditional commands
+{{ if .with_aws -}}
+echo ""
+log_info "Checking AWS tools..."
+check_command_available aws || errors=$((errors + 1))
+{{ end -}}
+{{ if .with_docker -}}
+echo ""
+log_info "Checking Docker tools..."
+check_command_available docker || errors=$((errors + 1))
+{{ end -}}
+{{ if .with_golang -}}
+echo ""
+log_info "Checking Go tools..."
+check_command_available go || errors=$((errors + 1))
+{{ end -}}
+{{ if .with_javascript -}}
+echo ""
+log_info "Checking JavaScript tools..."
+check_command_available node || errors=$((errors + 1))
+check_command_available npm || errors=$((errors + 1))
+{{ end -}}
+{{ if .with_php -}}
+echo ""
+log_info "Checking PHP tools..."
+check_command_available php || errors=$((errors + 1))
+{{ end -}}
+{{ if .with_rust -}}
+echo ""
+log_info "Checking Rust tools..."
+check_command_available cargo || errors=$((errors + 1))
+check_command_available rustc || errors=$((errors + 1))
+{{ end -}}
+{{ if .with_terraform -}}
+echo ""
+log_info "Checking Terraform tools..."
+check_command_available terraform || errors=$((errors + 1))
+{{ end -}}
+
+# External dependencies
+echo ""
+log_info "Checking external dependencies..."
+check_dir "${HOME}/.zprezto" || errors=$((errors + 1))
+check_dir "${HOME}/.tmux/plugins/tpm" || errors=$((errors + 1))
+check_file "${HOME}/.vim/autoload/plug.vim" || errors=$((errors + 1))
+
+# Validate configuration syntax
 echo ""
 log_info "Validating configuration syntax..."
 
@@ -42,6 +127,45 @@ else
     log_error ".vimrc has syntax errors"
     errors=$((errors + 1))
 fi
+
+if tmux -f "${HOME}/.tmux.conf" -L _chezmoi_verify_ start-server \; kill-server 2>/dev/null; then
+    log_success ".tmux.conf syntax valid"
+else
+    log_error ".tmux.conf has syntax errors"
+    errors=$((errors + 1))
+fi
+
+# SSH/Security
+echo ""
+log_info "Checking SSH configuration..."
+check_file "${HOME}/.ssh/config" || errors=$((errors + 1))
+{{- $hostsWithSSHKey := list
+    "VEBERArnaud-MacBookPro2012"
+    "VEBERArnaud-MacBookPro2017"
+    "VEBERArnaud-MacMini2020"
+    "VEBERArnaud-MacMini2023s"
+    "VEBERArnaud-MacBookPro2023"
+}}
+{{ if has .chezmoi.hostname $hostsWithSSHKey -}}
+check_file "${HOME}/.ssh/id_ed25519.pub" || errors=$((errors + 1))
+check_file "${HOME}/.ssh/id_ed25519" || errors=$((errors + 1))
+
+if [[ "$(stat -f '%Lp' "${HOME}/.ssh/id_ed25519" 2>/dev/null)" != "600" ]]; then
+    log_error "${HOME}/.ssh/id_ed25519 has incorrect permissions (expected 600)"
+    errors=$((errors + 1))
+else
+    log_success "${HOME}/.ssh/id_ed25519 permissions correct (600)"
+fi
+{{ end -}}
+
+# Claude Code
+echo ""
+log_info "Checking Claude Code configuration..."
+check_file "${HOME}/.claude/CLAUDE.md" || errors=$((errors + 1))
+check_file "${HOME}/.claude/settings.json" || errors=$((errors + 1))
+check_dir "${HOME}/.claude/rules" || errors=$((errors + 1))
+check_dir "${HOME}/.claude/skills" || errors=$((errors + 1))
+check_file "${HOME}/.claude/scripts/hook.sh" || errors=$((errors + 1))
 
 # Summary
 echo ""
