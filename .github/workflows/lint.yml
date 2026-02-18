@@ -38,6 +38,7 @@ jobs:
             with_docker = true
             with_golang = true
             with_javascript = true
+            with_nomad = false
             with_php = false
             with_terraform = true
             with_rust = true
