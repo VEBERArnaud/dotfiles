@@ -1,0 +1,9 @@
+# Homebrew
+{{ if stat "/opt/homebrew/bin/brew" -}}
+eval "$(/opt/homebrew/bin/brew shellenv)"
+{{ else if stat "/usr/local/bin/brew" -}}
+eval "$(/usr/local/bin/brew shellenv)"
+{{ end -}}
+export HOMEBREW_CASK_OPTS="--appdir=${HOME}/Applications --fontdir=${HOME}/Library/Fonts"
+export HOMEBREW_NO_ANALYTICS=1
+export HOMEBREW_NO_INSECURE_REDIRECT=1

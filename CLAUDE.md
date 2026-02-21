@@ -4,14 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a personal dotfiles repository managed by [chezmoi](https://www.chezmoi.io/) (v2.24.0+), a dotfile manager that uses Go templating to handle multiple machines with different configurations. The repository configures a complete development environment for macOS, including shell (zsh with Prezto), editor (vim with vim-plug), terminal (Ghostty), terminal multiplexer (tmux), and various development tools.
+This is a personal dotfiles repository managed by [chezmoi](https://www.chezmoi.io/) (v2.68.0+), a dotfile manager that uses Go templating to handle multiple machines with different configurations. The repository configures a complete development environment for macOS, including shell (zsh with Prezto), editor (vim with vim-plug), terminal (Ghostty), terminal multiplexer (tmux), and various development tools.
 
 ## Repository Structure
 
 ```
 dotfiles/
 ├── .chezmoiroot              # Points to "home" as source directory
-├── .chezmoiversion           # Requires chezmoi 2.24.0+
+├── .chezmoiversion           # Requires chezmoi 2.68.0+
 ├── .github/workflows/        # CI validation (shellcheck, templates, linting)
 ├── .claude/                  # Project-scoped Claude Code config
 │   ├── rules/chezmoi.md      # Chezmoi conventions for this repo
@@ -22,12 +22,16 @@ dotfiles/
     ├── .chezmoi.toml.tmpl            # Main config with feature flags
     ├── .chezmoiexternal.toml         # External dependencies (zprezto, tpm, vim-plug)
     ├── .chezmoiscripts/              # Automation scripts
-    │   ├── packages/                 # Package installation
-    │   ├── mac/                      # macOS-specific scripts
-    │   └── tools/                    # Tool configuration (Claude MCP, etc.)
+    │   ├── editors/                  # Editor setup (vim, cursor)
+    │   ├── packages/                 # Package installation (brew, node, rust)
+    │   ├── security/                 # GPG key import
+    │   ├── system/darwin/            # macOS-specific scripts
+    │   ├── tools/                    # Tool configuration (Claude, ngrok, gws, whisper)
+    │   └── verify/                   # Post-apply validation
     ├── dot_claude/                   # Global Claude Code config (~/.claude/)
     │   ├── CLAUDE.md.tmpl            # User preferences (language, tools, stack)
-    │   ├── settings.json             # Permissions and hooks
+    │   ├── settings.json.tmpl        # Permissions and hooks
+    │   ├── scripts/executable_hook.sh # Hook script for notifications
     │   ├── rules/                    # Modular instructions
     │   │   ├── git.md                # Git conventions
     │   │   ├── shell.md              # Shell scripting conventions
@@ -39,6 +43,8 @@ dotfiles/
     ├── dot_config/                   # ~/.config/ files
     │   ├── ghostty/config            # Ghostty terminal configuration
     │   └── starship.toml             # Starship prompt configuration
+    ├── dot_zprofile.d/               # ~/.zprofile.d/ drop-in files (numbered)
+    ├── dot_zshenv.d/                 # ~/.zshenv.d/ drop-in files
     ├── dot_ssh/                      # SSH config with 1Password integration
     └── [dotfiles...]                 # Shell, vim, tmux, git configurations
 ```
@@ -66,6 +72,11 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 - `type_desktop` - Stationary machines (Mac mini, iMac, Mac Studio, Mac Pro)
 - `type_server` - Server machines (headless)
 
+### User Flags (hostname-based)
+
+- `user_veberarnaud` - Human user (GUI apps, personal tools)
+- `user_emmett` - AI agent (headless, no GUI)
+
 ### Project Flags (hostname-based)
 
 - `project_personal` - Personal machines
@@ -73,12 +84,19 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 - `project_mega_lap` - Mega Lap project machines
 - `project_vbr_tech` - VBR Tech project machines
 
+### Peripheral Flags (hostname-based)
+
+- `has_elgato` - Elgato Stream Deck and Wave Link
+- `has_insta360` - Insta360 Link webcam
+- `has_scanner` - Fujitsu ScanSnap scanner
+
 ### Feature Flags (conditional installation)
 
 - `with_aws` - AWS CLI and tools
 - `with_docker` - Docker and related tools
 - `with_golang` - Go development environment
 - `with_javascript` - Node.js via nvm
+- `with_nomad` - HashiCorp Nomad
 - `with_php` - PHP development tools
 - `with_rust` - Rust development environment
 - `with_terraform` - Terraform infrastructure tools
@@ -112,11 +130,11 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 Global user config deployed to `~/.claude/`:
 
 - **CLAUDE.md.tmpl** - User preferences (French responses, English code, preferred tools)
-- **settings.json** - Hardened permissions (minimal allow list) and Stop hook for notifications
+- **settings.json.tmpl** - Hardened permissions (minimal allow list) and Stop hook for notifications
 - **rules/** - Modular instructions for git, shell, and security conventions
 - **skills/** - Custom slash commands (`/changelog`, `/commit-conventional`, `/review`)
 
-MCP servers configured via `run_onchange_after_claude_mcp.sh.tmpl`:
+MCP servers configured via `run_after_claude_mcp.sh.tmpl`:
 - **chrome-devtools** - Browser automation
 - **context7** - Up-to-date library documentation (API key from 1Password)
 
@@ -127,18 +145,26 @@ MCP servers configured via `run_onchange_after_claude_mcp.sh.tmpl`:
 - **`packages/run_before_darwin_homebrew.sh.tmpl`** - Installs Homebrew packages
   - Packages defined inline as Go template lists (no separate Brewfile)
   - Conditional packages based on feature flags
-  - Node.js LTS versions via nvm
 
 ### Post-apply (`run_after_`)
 
-- **`run_after_install_vim_plugins.sh.tmpl`** - Installs vim-plug plugins, generates tmuxline
-- **`run_after_import-gpg-key.sh.tmpl`** - Imports GPG key from 1Password
-- **`run_after_verify.sh.tmpl`** - Validates deployment (files exist, commands work, syntax valid)
+- **`packages/run_after_node.sh.tmpl`** - Installs Node.js LTS versions via nvm
+- **`packages/run_after_rust.sh.tmpl`** - Installs Rust toolchains and components
+- **`security/run_after_gpg_import.sh.tmpl`** - Imports GPG key from 1Password
+- **`tools/run_after_claude_mcp.sh.tmpl`** - Claude Code MCP servers
+- **`tools/run_after_claude_plugins.sh.tmpl`** - Claude Code plugins
+- **`tools/run_after_gws_auth.sh.tmpl`** - Google Workspace CLI auth
+- **`tools/run_after_ngrok_authtoken.sh.tmpl`** - Ngrok auth token from 1Password
+- **`verify/run_after_verify.sh.tmpl`** - Validates deployment (files exist, commands work, syntax valid)
 
 ### On-change (`run_onchange_`)
 
-- **`mac/run_onchange_after_configure_macos.sh.tmpl`** - macOS system preferences
-- **`tools/run_onchange_after_claude_mcp.sh.tmpl`** - Claude Code MCP servers
+- **`editors/run_onchange_after_cursor_extensions.sh.tmpl`** - Cursor editor extensions
+- **`editors/run_onchange_after_vim_plugins.sh.tmpl`** - Installs vim-plug plugins, generates tmuxline
+- **`system/darwin/run_onchange_after_apps.sh.tmpl`** - macOS app-level preferences
+- **`system/darwin/run_onchange_after_system_ui.sh.tmpl`** - macOS system & UI preferences
+- **`system/darwin/run_onchange_after_restart.sh.tmpl`** - Restart affected macOS services
+- **`tools/run_onchange_after_whisper_model.sh.tmpl`** - Download Whisper speech model
 
 ## Common Commands
 
@@ -183,7 +209,7 @@ Machine-specific configurations that are not tracked in git:
 
 ## External Dependencies
 
-Managed via `.chezmoiexternal.toml` with 168h (7 day) refresh:
+Managed via `.chezmoiexternal.toml` with 720h (30 day) refresh for non-pinned:
 
 - **zprezto** - Zsh framework
 - **tpm** - Tmux Plugin Manager
@@ -239,7 +265,7 @@ chsh -s $(which zsh)
 ## Important Notes
 
 - Source directory is `home/` (not repo root) as specified in `.chezmoiroot`
-- Requires chezmoi 2.24.0+ (specified in `.chezmoiversion`)
+- Requires chezmoi 2.68.0+ (specified in `.chezmoiversion`)
 - 1Password CLI is required for SSH keys, GPG key import, and Claude MCP API keys
 - Scripts with `run_onchange_` prefix only re-run when their content changes
 - Post-apply verification script checks critical files and commands
