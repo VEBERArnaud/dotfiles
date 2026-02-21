@@ -26,9 +26,18 @@ Available in `.tmpl` files via `{{ .variable }}`:
 
 - `.type_laptop`, `.type_desktop`, `.type_server`
 
+### Users (hostname-based)
+
+- `.user_veberarnaud` (human user, GUI apps)
+- `.user_openclaw` (AI agent, headless)
+
 ### Projects (hostname-based)
 
 - `.project_personal`, `.project_eurosport`, `.project_mega_lap`, `.project_vbr_tech`
+
+### Peripherals (hostname-based)
+
+- `.has_elgato`, `.has_insta360`, `.has_scanner`
 
 ### Feature flags
 
