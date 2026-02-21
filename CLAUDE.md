@@ -66,12 +66,23 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 - `type_desktop` - Stationary machines (Mac mini, iMac, Mac Studio, Mac Pro)
 - `type_server` - Server machines (headless)
 
+### User Flags (hostname-based)
+
+- `user_veberarnaud` - Human user (GUI apps, personal tools)
+- `user_openclaw` - AI agent (headless, no GUI)
+
 ### Project Flags (hostname-based)
 
 - `project_personal` - Personal machines
 - `project_eurosport` - Eurosport work machines
 - `project_mega_lap` - Mega Lap project machines
 - `project_vbr_tech` - VBR Tech project machines
+
+### Peripheral Flags (hostname-based)
+
+- `has_elgato` - Elgato Stream Deck and Wave Link
+- `has_insta360` - Insta360 Link webcam
+- `has_scanner` - Fujitsu ScanSnap scanner
 
 ### Feature Flags (conditional installation)
 
