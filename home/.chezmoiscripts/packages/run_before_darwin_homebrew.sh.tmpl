@@ -132,6 +132,10 @@
 {{-   $casks = concat $casks (list "fujitsu-scansnap-home") -}}
 {{- end -}}
 
+{{- if .user_openclaw -}}
+{{-   $brews = concat $brews (list "cmake" "openclaw-cli") -}}
+{{- end -}}
+
 #!/bin/bash
 
 set -euo pipefail

@@ -1,0 +1,34 @@
+{{- if and .is_mac .user_openclaw -}}
+#!/bin/bash
+
+set -euo pipefail
+
+# Include common functions
+{{ template "common.tmpl" . }}
+
+# Check openclaw CLI
+if ! check_command openclaw; then
+    log_warn "OpenClaw CLI not found. Skipping OpenClaw configuration."
+    exit 0
+fi
+
+log_info "Running OpenClaw diagnostics..."
+openclaw doctor || true
+
+log_info "Installing OpenClaw gateway daemon..."
+if openclaw gateway install --force 2>/dev/null; then
+    log_success "OpenClaw gateway daemon installed"
+    log_info "Restarting OpenClaw gateway daemon..."
+    if openclaw gateway restart 2>/dev/null; then
+        log_success "OpenClaw gateway daemon restarted"
+    else
+        log_warn "Failed to restart gateway daemon (onboarding may be required)"
+    fi
+else
+    log_warn "Failed to install gateway daemon (onboarding may be required)"
+fi
+
+log_info "If this is the first time, run: openclaw onboard --install-daemon"
+log_success "OpenClaw configuration complete"
+
+{{- end -}}
