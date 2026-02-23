@@ -1,0 +1,46 @@
+{{- if and .is_mac .user_openclaw -}}
+#!/bin/bash
+
+set -euo pipefail
+
+# Include common functions
+{{ template "common.tmpl" . }}
+
+# Check whisper-cpp is installed
+if ! check_command whisper-cpp; then
+    log_warn "whisper-cpp not found. Skipping model download."
+    exit 0
+fi
+
+MODEL_DIR="${HOME}/.local/share/whisper-cpp/models"
+MODEL_FILE="${MODEL_DIR}/ggml-medium.bin"
+MODEL_URL="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin"
+
+# Create model directory
+mkdir -p "${MODEL_DIR}"
+
+{{ if .is_apple_silicon -}}
+# Export Metal resources path for Apple Silicon
+GGML_METAL_PATH_RESOURCES="$(brew --prefix whisper-cpp)/share/whisper-cpp"
+export GGML_METAL_PATH_RESOURCES
+{{ end -}}
+
+# Download medium model if not present
+if [[ -f "${MODEL_FILE}" ]]; then
+    log_success "Whisper medium model already downloaded"
+else
+    log_info "Downloading whisper medium model (~1.5 GiB)..."
+    retry curl -L --progress-bar -o "${MODEL_FILE}" "${MODEL_URL}"
+
+    # Verify file size (should be > 1 GiB)
+    file_size=$(stat -f%z "${MODEL_FILE}" 2>/dev/null || stat -c%s "${MODEL_FILE}" 2>/dev/null)
+    if [[ "${file_size}" -lt 1073741824 ]]; then
+        log_error "Downloaded model is too small (${file_size} bytes). Expected > 1 GiB."
+        rm -f "${MODEL_FILE}"
+        exit 1
+    fi
+
+    log_success "Whisper medium model downloaded (${file_size} bytes)"
+fi
+
+{{- end -}}

@@ -133,7 +133,7 @@
 {{- end -}}
 
 {{- if .user_openclaw -}}
-{{-   $brews = concat $brews (list "cmake" "openclaw-cli") -}}
+{{-   $brews = concat $brews (list "cmake" "ffmpeg" "openclaw-cli" "whisper-cpp") -}}
 {{- end -}}
 
 #!/bin/bash
