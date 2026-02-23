@@ -14,18 +14,15 @@
     "findutils"
     "fzf"
     "gh"
-    "gimme-aws-creds"
     "git-delta"
     "git"
     "gnu-sed"
     "gnu-tar"
     "gum"
     "htop"
-    "jira-cli"
     "jq"
     "mas"
     "moreutils"
-    "ollama"
     "openssl@3"
     "reattach-to-user-namespace"
     "ripgrep"
@@ -45,37 +42,15 @@
 
 {{- $casks := list
     "1password-cli"
-    "adobe-creative-cloud"
-    "caffeine"
-    "chatgpt"
-    "claude"
     "claude-code"
-    "cursor"
-    "discord"
-    "elgato-stream-deck"
-    "elgato-wave-link"
     "font-hack"
-    "fujitsu-scansnap-home"
     "ghostty"
     "google-chrome"
     "gpg-suite"
-    "insomnia"
-    "insta360-link-controller"
-    "istat-menus"
     "karabiner-elements"
-    "lasso-app"
-    "nordvpn"
-    "obsidian"
-    "plaud"
-    "slack"
-    "studio-3t"
-    "whatsapp"
-    "zoom"
 -}}
 
-{{- $mas_apps := dict
-    "904280696" "Things 3"
--}}
+{{- $mas_apps := dict -}}
 
 {{- if .with_aws -}}
 {{-   $brews = concat $brews (list "awscli") -}}
@@ -108,6 +83,56 @@
 
 {{- if .with_terraform -}}
 {{-   $brews = concat $brews (list "hashicorp/tap/terraform") -}}
+{{- end -}}
+
+{{- if .project_eurosport -}}
+{{-   $brews = concat $brews (list
+        "gimme-aws-creds"
+        "jira-cli"
+    ) -}}
+{{- end -}}
+
+{{- if .user_veberarnaud -}}
+{{-   $casks = concat $casks (list
+        "adobe-creative-cloud"
+        "caffeine"
+        "chatgpt"
+        "claude"
+        "cursor"
+        "discord"
+        "insomnia"
+        "istat-menus"
+        "lasso-app"
+        "nordvpn"
+        "obsidian"
+        "plaud"
+        "slack"
+        "studio-3t"
+        "whatsapp"
+        "zoom"
+    ) -}}
+{{-   $mas_apps = merge $mas_apps (dict
+        "904280696" "Things 3"
+    ) -}}
+{{- end -}}
+
+{{- if .has_elgato -}}
+{{-   $casks = concat $casks (list
+        "elgato-stream-deck"
+        "elgato-wave-link"
+    ) -}}
+{{- end -}}
+
+{{- if .has_insta360 -}}
+{{-   $casks = concat $casks (list "insta360-link-controller") -}}
+{{- end -}}
+
+{{- if .has_scanner -}}
+{{-   $casks = concat $casks (list "fujitsu-scansnap-home") -}}
+{{- end -}}
+
+{{- if .user_openclaw -}}
+{{-   $brews = concat $brews (list "cmake" "ffmpeg" "openclaw-cli" "whisper-cpp") -}}
 {{- end -}}
 
 #!/bin/bash

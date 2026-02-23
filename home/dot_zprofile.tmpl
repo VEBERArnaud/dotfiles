@@ -84,6 +84,11 @@ export PATH=$PATH:./node_modules/.bin
 export PATH="$HOME/.cargo/bin:$PATH"
 {{ end }}
 
+{{ if and .is_apple_silicon .user_openclaw }}
+# whisper-cpp Metal acceleration
+export GGML_METAL_PATH_RESOURCES="$(brew --prefix whisper-cpp)/share/whisper-cpp"
+{{ end }}
+
 # MySQL prompt
 export MYSQL_PS1='(\D) \u@\h [\d] > '
 

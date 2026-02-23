@@ -10,11 +10,20 @@
 {{- $type_desktop := false -}}
 {{- $type_server := false -}}
 
+{{/* user */}}
+{{- $user_openclaw := false -}}
+{{- $user_veberarnaud := false -}}
+
 {{/* project */}}
 {{- $project_eurosport := false -}}
 {{- $project_mega_lap := false -}}
 {{- $project_personal := false -}}
 {{- $project_vbr_tech := false -}}
+
+{{/* peripherals */}}
+{{- $has_elgato := false -}}
+{{- $has_insta360 := false -}}
+{{- $has_scanner := false -}}
 
 {{/* features */}}
 {{- $with_aws := false -}}
@@ -48,21 +57,25 @@
 {{/* hosts */}}
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2012" -}}
 {{-   $type_laptop = true -}}
+{{-   $user_veberarnaud = true -}}
 {{-   $project_personal = true -}}
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2017" -}}
 {{-   $type_laptop = true -}}
+{{-   $user_veberarnaud = true -}}
 {{-   $project_personal = true -}}
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2020" -}}
 {{-   $type_desktop = true -}}
+{{-   $user_veberarnaud = true -}}
 {{-   $project_personal = true -}}
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2023" -}}
 {{-   $type_laptop = true -}}
+{{-   $user_veberarnaud = true -}}
 {{-   $project_eurosport = true -}}
 {{-   $project_mega_lap = true -}}
 {{-   $project_personal = true -}}
@@ -71,14 +84,16 @@
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2023" -}}
 {{-   $type_desktop = true -}}
-{{-   $project_eurosport = true -}}
-{{-   $project_mega_lap = true -}}
-{{-   $project_personal = true -}}
-{{-   $project_vbr_tech = true -}}
+{{-   $user_openclaw = true -}}
+{{-   $with_javascript = true -}}
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2023s" -}}
 {{-   $type_desktop = true -}}
+{{-   $user_veberarnaud = true -}}
+{{-   $has_elgato = true -}}
+{{-   $has_insta360 = true -}}
+{{-   $has_scanner = true -}}
 {{-   $project_eurosport = true -}}
 {{-   $project_mega_lap = true -}}
 {{-   $project_personal = true -}}
@@ -127,10 +142,15 @@
     type_laptop = {{ $type_laptop }}
     type_desktop = {{ $type_desktop }}
     type_server = {{ $type_server }}
+    user_openclaw = {{ $user_openclaw }}
+    user_veberarnaud = {{ $user_veberarnaud }}
     project_eurosport = {{ $project_eurosport }}
     project_mega_lap = {{ $project_mega_lap }}
     project_personal = {{ $project_personal }}
     project_vbr_tech = {{ $project_vbr_tech }}
+    has_elgato = {{ $has_elgato }}
+    has_insta360 = {{ $has_insta360 }}
+    has_scanner = {{ $has_scanner }}
     with_aws = {{ $with_aws }}
     with_docker = {{ $with_docker }}
     with_golang = {{ $with_golang }}

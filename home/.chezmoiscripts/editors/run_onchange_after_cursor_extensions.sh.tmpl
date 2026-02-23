@@ -1,4 +1,4 @@
-{{- if .is_mac -}}
+{{- if and .is_mac .user_veberarnaud -}}
 
 {{- $extensions := list
     "anthropic.claude-code"
