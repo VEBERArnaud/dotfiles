@@ -19,12 +19,6 @@ MODEL_URL="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium
 # Create model directory
 mkdir -p "${MODEL_DIR}"
 
-{{ if .is_apple_silicon -}}
-# Export Metal resources path for Apple Silicon
-GGML_METAL_PATH_RESOURCES="$(brew --prefix whisper-cpp)/share/whisper-cpp"
-export GGML_METAL_PATH_RESOURCES
-{{ end -}}
-
 # Download medium model if not present
 if [[ -f "${MODEL_FILE}" ]]; then
     log_success "Whisper medium model already downloaded"
