@@ -80,6 +80,28 @@ handle_notification() {
     esac
 }
 
+handle_worktree_create() {
+    local name cwd
+    name=$(echo "${input}" | jq -r '.name // empty')
+    cwd=$(echo "${input}" | jq -r '.cwd // empty')
+
+    [[ -z "${name}" ]] && { echo "Missing name" >&2; exit 1; }
+
+    # Delegate to standalone script
+    # stdout passthrough: wt-create prints the path, hook forwards it to Claude
+    wt-create --cwd "${cwd}" "${name}"
+}
+
+handle_worktree_remove() {
+    local worktree_path
+    worktree_path=$(echo "${input}" | jq -r '.worktree_path // empty')
+
+    [[ -z "${worktree_path}" ]] && return 0
+
+    # Delegate to standalone script (tolerant to failures)
+    wt-remove --force "${worktree_path}" 2>/dev/null || true
+}
+
 #######################################
 # Main routing
 #######################################
@@ -88,6 +110,8 @@ case "${hook_event}" in
     "Stop")              handle_stop ;;
     "PermissionRequest") handle_permission_request ;;
     "Notification")      handle_notification ;;
+    "WorktreeCreate")    handle_worktree_create ;;
+    "WorktreeRemove")    handle_worktree_remove ;;
     *)
         # Fallback for direct invocation
         [[ -n "${1:-}" ]] && notify "$1"

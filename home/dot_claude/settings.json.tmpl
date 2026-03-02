@@ -81,6 +81,28 @@
           }
         ]
       }
+    ],
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/scripts/hook.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "WorktreeRemove": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/scripts/hook.sh",
+            "timeout": 15
+          }
+        ]
+      }
     ]
   }{{ if .project_eurosport }},
   "enabledPlugins": {

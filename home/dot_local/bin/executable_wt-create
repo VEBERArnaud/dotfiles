@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+# wt-create - Create a git worktree following the <repo>.wt/<branch> convention
+#
+# Usage: wt-create [--no-create] [--no-envrc] [--cwd <dir>] <branch>
+#   --no-create   Error if branch doesn't exist (no auto-create)
+#   --no-envrc    Skip .envrc generation
+#   --cwd <dir>   Git repo directory (default: current dir)
+#   <branch>      Branch name (may contain slashes)
+#
+# stdout: absolute path of the worktree (only output on stdout)
+# stderr: informational/error messages
+# exit 0: success | exit 1: failure
+
+set -euo pipefail
+
+#######################################
+# Parse arguments
+#######################################
+
+no_create=false
+no_envrc=false
+cwd=""
+branch=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --no-create) no_create=true; shift ;;
+        --no-envrc)  no_envrc=true; shift ;;
+        --cwd)       cwd="$2"; shift 2 ;;
+        *)           branch="$1"; shift ;;
+    esac
+done
+
+if [[ -z "${branch}" ]]; then
+    echo "Usage: wt-create [--no-create] [--no-envrc] [--cwd <dir>] <branch>" >&2
+    exit 1
+fi
+
+#######################################
+# Resolve git root and worktree base
+#######################################
+
+if [[ -n "${cwd}" ]]; then
+    git_root=$(git -C "${cwd}" rev-parse --show-toplevel 2>/dev/null) || {
+        echo "Not a git repo: ${cwd}" >&2
+        exit 1
+    }
+else
+    git_root=$(git rev-parse --show-toplevel 2>/dev/null) || {
+        echo "Not in a git repo" >&2
+        exit 1
+    }
+fi
+
+# Handle case where we're already inside a .wt/ directory
+if [[ "${git_root}" == *".wt/"* ]]; then
+    wt_base="${git_root%.wt/*}.wt"
+else
+    wt_base="${git_root}.wt"
+fi
+
+#######################################
+# Compute worktree directory
+#######################################
+
+sanitized=$(echo "${branch}" | tr '/' '-')
+wt_dir="${wt_base}/${sanitized}"
+
+#######################################
+# Idempotent: return path if exists
+#######################################
+
+if [[ -d "${wt_dir}" ]]; then
+    echo "${wt_dir}"
+    exit 0
+fi
+
+#######################################
+# Create worktree
+#######################################
+
+mkdir -p "${wt_base}"
+
+if git -C "${git_root}" show-ref --verify --quiet "refs/heads/${branch}"; then
+    # Local branch exists
+    git -C "${git_root}" worktree add --quiet "${wt_dir}" "${branch}" >&2 || exit 1
+elif git -C "${git_root}" show-ref --verify --quiet "refs/remotes/origin/${branch}"; then
+    # Remote branch exists
+    git -C "${git_root}" worktree add --quiet --track -b "${branch}" "${wt_dir}" "origin/${branch}" >&2 || exit 1
+elif [[ "${no_create}" == false ]]; then
+    # Branch doesn't exist, create it
+    git -C "${git_root}" worktree add --quiet -b "${branch}" "${wt_dir}" >&2 || exit 1
+else
+    echo "Branch not found: ${branch}" >&2
+    exit 1
+fi
+
+#######################################
+# Create .envrc (unless --no-envrc)
+#######################################
+
+if [[ "${no_envrc}" == false ]]; then
+    main_wt=$(git -C "${git_root}" worktree list | head -1 | awk '{print $1}')
+    if [[ -f "${main_wt}/.envrc" ]]; then
+        cat > "${wt_dir}/.envrc" << 'ENVRC'
+# Auto-generated: source .envrc from main worktree
+source_env_if_exists "$(git worktree list | head -1 | awk '{print $1}')/.envrc"
+
+# Local overrides (create .envrc.override to customize this worktree)
+source_env_if_exists ".envrc.override"
+ENVRC
+        direnv allow "${wt_dir}/.envrc" 2>/dev/null >&2 || true
+    fi
+fi
+
+#######################################
+# Output path
+#######################################
+
+echo "${wt_dir}"

@@ -161,50 +161,18 @@ wt() {
   local wt_base wt_dir created=false
   wt_base=$(_wt_base_dir) || { echo "Not in a git repo"; return 1; }
   wt_dir="${wt_base}/$(_wt_sanitize_branch "$branch")"
+  [[ ! -d "$wt_dir" ]] && created=true
 
-  # Create worktree if it doesn't exist
-  if [[ ! -d "$wt_dir" ]]; then
-    mkdir -p "$wt_base"
-    created=true
+  # Core creation (delegated to standalone script)
+  local args=()
+  [[ "$no_create" == true ]] && args+=(--no-create)
+  [[ "$no_envrc" == true ]] && args+=(--no-envrc)
+  wt-create "${args[@]}" "$branch" > /dev/null || return 1
 
-    if git show-ref --verify --quiet "refs/heads/$branch"; then
-      # Local branch exists
-      git worktree add --quiet "$wt_dir" "$branch" || return 1
-    elif git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
-      # Remote branch exists
-      git worktree add --quiet --track -b "$branch" "$wt_dir" "origin/$branch" || return 1
-    elif [[ "$no_create" == false ]]; then
-      # Branch doesn't exist, create it
-      git worktree add --quiet -b "$branch" "$wt_dir" || return 1
-    else
-      echo "Branch not found: $branch"; return 1
-    fi
-
-    # Create marker for auto-install (unless --no-install)
-    if [[ "$no_install" == false ]]; then
-      touch "$wt_dir/.wt-new"
-    fi
-
-    # Create marker for auto-editor (unless --no-editor)
-    if [[ "$no_editor" == false ]]; then
-      touch "$wt_dir/.wt-open-editor"
-    fi
-
-    # Create .envrc that sources the main repo's .envrc (unless --no-envrc)
-    if [[ "$no_envrc" == false ]]; then
-      local main_wt
-      main_wt=$(git worktree list | head -1 | awk '{print $1}')
-      if [[ -f "$main_wt/.envrc" ]]; then
-        cat > "$wt_dir/.envrc" << 'ENVRC'
-# Auto-generated: source .envrc from main worktree
-source_env_if_exists "$(git worktree list | head -1 | awk '{print $1}')/.envrc"
-
-# Local overrides (create .envrc.override to customize this worktree)
-source_env_if_exists ".envrc.override"
-ENVRC
-        direnv allow "$wt_dir/.envrc" 2>/dev/null || true
-      fi
-    fi
+  # Extras (not in core script)
+  if [[ "$created" == true ]]; then
+    [[ "$no_install" == false ]] && touch "$wt_dir/.wt-new"
+    [[ "$no_editor" == false ]] && touch "$wt_dir/.wt-open-editor"
   fi
 
   # Add to zoxide
@@ -243,24 +211,11 @@ wtd() {
   local session_name="$(_wt_sanitize_branch "$branch")"
   tmux has-session -t "$session_name" 2>/dev/null && tmux kill-session -t "$session_name"
 
-  if [[ "$force" == true ]]; then
-    git worktree remove --force "$wt_dir"
-  else
-    git worktree remove "$wt_dir"
-  fi
-  git worktree prune
-
-  # Delete local branch (unless --keep-branch)
-  if [[ "$keep_branch" == false ]]; then
-    if [[ "$force" == true ]]; then
-      git branch -D "$branch" 2>/dev/null || true
-    else
-      git branch -d "$branch" 2>/dev/null || true
-    fi
-  fi
-
-  # Cleanup empty .wt dir
-  [[ -d "$wt_base" && -z "$(ls -A "$wt_base")" ]] && rmdir "$wt_base"
+  # Core removal (delegated to standalone script)
+  local args=()
+  [[ "$force" == true ]] && args+=(--force)
+  [[ "$keep_branch" == true ]] && args+=(--keep-branch)
+  wt-remove "${args[@]}" "$wt_dir"
 }
 
 # Zsh completions for worktree functions

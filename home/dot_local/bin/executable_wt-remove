@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# wt-remove - Remove a git worktree and optionally its branch
+#
+# Usage: wt-remove [--force] [--keep-branch] <worktree-path>
+#   --force        Force remove even with changes
+#   --keep-branch  Don't delete the local git branch
+#   <worktree-path>  Absolute path of the worktree to remove
+#
+# exit 0: success (always, tolerant to errors)
+
+set -euo pipefail
+
+#######################################
+# Parse arguments
+#######################################
+
+force=false
+keep_branch=false
+wt_path=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --force)       force=true; shift ;;
+        --keep-branch) keep_branch=true; shift ;;
+        *)             wt_path="$1"; shift ;;
+    esac
+done
+
+if [[ -z "${wt_path}" ]]; then
+    echo "Usage: wt-remove [--force] [--keep-branch] <worktree-path>" >&2
+    exit 1
+fi
+
+#######################################
+# Idempotent: exit if doesn't exist
+#######################################
+
+if [[ ! -d "${wt_path}" ]]; then
+    exit 0
+fi
+
+#######################################
+# Resolve branch and main repo
+#######################################
+
+branch=$(git -C "${wt_path}" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+
+# Resolve main repo from the worktree .git file
+main_repo=""
+if [[ -f "${wt_path}/.git" ]]; then
+    gitdir=$(cat "${wt_path}/.git" | sed 's/^gitdir: //')
+    # gitdir points to <main-repo>/.git/worktrees/<name>
+    main_repo=$(cd "${wt_path}" && cd "${gitdir}/../.." && pwd)
+fi
+
+#######################################
+# Remove worktree
+#######################################
+
+if [[ -n "${main_repo}" ]]; then
+    if [[ "${force}" == true ]]; then
+        git -C "${main_repo}" worktree remove --force "${wt_path}" 2>/dev/null || true
+    else
+        git -C "${main_repo}" worktree remove "${wt_path}" 2>/dev/null || {
+            # Fallback to force if normal remove fails
+            git -C "${main_repo}" worktree remove --force "${wt_path}" 2>/dev/null || true
+        }
+    fi
+    git -C "${main_repo}" worktree prune 2>/dev/null || true
+else
+    # No main repo found, try from worktree path directly
+    if [[ "${force}" == true ]]; then
+        git worktree remove --force "${wt_path}" 2>/dev/null || true
+    else
+        git worktree remove "${wt_path}" 2>/dev/null || {
+            git worktree remove --force "${wt_path}" 2>/dev/null || true
+        }
+    fi
+    git worktree prune 2>/dev/null || true
+fi
+
+#######################################
+# Delete local branch (unless --keep-branch)
+#######################################
+
+if [[ "${keep_branch}" == false && -n "${branch}" && -n "${main_repo}" ]]; then
+    git -C "${main_repo}" branch -d "${branch}" 2>/dev/null || true
+fi
+
+#######################################
+# Cleanup empty .wt directory
+#######################################
+
+wt_base=$(dirname "${wt_path}")
+if [[ -d "${wt_base}" && "${wt_base}" == *".wt" ]]; then
+    if [[ -z "$(ls -A "${wt_base}")" ]]; then
+        rmdir "${wt_base}" 2>/dev/null || true
+    fi
+fi
+
+exit 0
