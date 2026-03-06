@@ -3,7 +3,6 @@ depcheck
 json-server
 license-checker
 ndb
-ngrok
 npkill
 npm-check-updates
 pnpm
