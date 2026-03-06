@@ -1,0 +1,41 @@
+{{- if .is_mac -}}
+#!/bin/bash
+
+set -euo pipefail
+
+# Include common functions
+{{ template "common.tmpl" . }}
+
+if ! check_command ngrok; then
+    log_warn "ngrok not found. Skipping ngrok authentication."
+    exit 0
+fi
+
+if ! check_command op; then
+    log_warn "1Password CLI not found. Skipping ngrok authentication."
+    exit 0
+fi
+
+if ! op whoami &>/dev/null; then
+    log_warn "Not signed in to 1Password. Skipping ngrok authentication."
+    exit 0
+fi
+
+# Check if already authenticated
+ngrok_config_file=$(ngrok config check 2>&1 | awk '{print $NF}')
+if [ -n "${ngrok_config_file}" ] && grep -q "authtoken:" "${ngrok_config_file}" 2>/dev/null; then
+    log_info "ngrok already authenticated. Skipping."
+    exit 0
+fi
+
+log_info "Configuring ngrok authtoken..."
+
+NGROK_AUTHTOKEN=$(op read "op://Private/ngrok/authtoken")
+
+if ngrok config add-authtoken "${NGROK_AUTHTOKEN}" &>/dev/null; then
+    log_success "ngrok authtoken configured"
+else
+    log_error "Failed to configure ngrok authtoken"
+fi
+
+{{- end -}}
