@@ -3,6 +3,9 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
+# Remove zprezto git alias that conflicts with Google Workspace CLI
+unalias gws 2>/dev/null
+
 # Starship prompt
 eval "$(starship init zsh)"
 

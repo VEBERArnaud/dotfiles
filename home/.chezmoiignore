@@ -16,6 +16,7 @@
 
 {{- $opFiles := list
     ".chezmoiscripts/run_after_import-gpg-key.sh"
+    ".chezmoiscripts/tools/run_after_gws_auth.sh"
     ".config/.jira"
     ".npmrc"
     ".okta_aws_login_config"

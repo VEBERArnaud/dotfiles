@@ -1,0 +1,63 @@
+{{- if .is_mac -}}
+#!/bin/bash
+
+set -euo pipefail
+
+{{ template "common.tmpl" . }}
+
+if ! check_command gws; then
+    log_warn "gws CLI not found. Skipping gws configuration."
+    exit 0
+fi
+
+if ! check_command op; then
+    log_warn "1Password CLI not found. Skipping gws configuration."
+    exit 0
+fi
+
+if ! op whoami &>/dev/null; then
+    log_warn "Not signed in to 1Password. Skipping gws configuration."
+    exit 0
+fi
+
+GWS_CONFIG_DIR="${HOME}/.config/gws"
+GWS_CLIENT_SECRET="${GWS_CONFIG_DIR}/client_secret.json"
+
+if [[ -f "${GWS_CLIENT_SECRET}" ]]; then
+    log_info "gws client_secret.json already configured. Skipping."
+    exit 0
+fi
+
+log_info "Configuring gws OAuth client..."
+
+CLIENT_ID="$(op read "op://Private/Google/GWS/client_id" 2>/dev/null || true)"
+CLIENT_SECRET="$(op read "op://Private/Google/GWS/client_secret" 2>/dev/null || true)"
+PROJECT_ID="$(op read "op://Private/Google/GWS/project_id" 2>/dev/null || true)"
+
+if [[ -z "${CLIENT_ID}" || -z "${CLIENT_SECRET}" || -z "${PROJECT_ID}" ]]; then
+    log_warn "GWS OAuth credentials not found in 1Password. Skipping."
+    log_warn "Run scripts/setup-gcp-gws.sh to set up GCP project and OAuth client."
+    exit 0
+fi
+
+mkdir -p "${GWS_CONFIG_DIR}"
+chmod 700 "${GWS_CONFIG_DIR}"
+
+cat > "${GWS_CLIENT_SECRET}" <<EOF
+{
+    "installed": {
+        "client_id": "${CLIENT_ID}",
+        "client_secret": "${CLIENT_SECRET}",
+        "project_id": "${PROJECT_ID}",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "redirect_uris": ["http://localhost"]
+    }
+}
+EOF
+
+chmod 600 "${GWS_CLIENT_SECRET}"
+log_success "gws OAuth client configured"
+log_info "Run 'gws auth login' to authenticate (requires browser)."
+
+{{- end -}}
