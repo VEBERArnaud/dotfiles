@@ -22,6 +22,7 @@
     ".okta_aws_login_config"
     ".ssh/config.local"
     ".zshenv.d/eurosport-jira.sh"
+    ".zshenv.d/things3.sh"
 -}}
 
 # SSH keys (only on specific hosts)
