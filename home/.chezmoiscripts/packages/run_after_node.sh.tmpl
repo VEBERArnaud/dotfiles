@@ -51,5 +51,26 @@ fi
 log_info "Setting default Node.js version to {{ last $nodes }}..."
 nvm alias default {{ last $nodes }}
 
+# Sync global npm packages from default-packages
+nvm use default
+log_info "Updating global npm packages..."
+npm update -g
+
+default_packages="${NVM_DIR}/default-packages"
+if [ -f "${default_packages}" ]; then
+    log_info "Syncing packages from default-packages..."
+    while IFS= read -r pkg || [ -n "${pkg}" ]; do
+        # Skip empty lines and comments
+        [[ -z "${pkg}" || "${pkg}" =~ ^# ]] && continue
+        if npm list -g --depth=0 "${pkg}" &>/dev/null; then
+            log_success "${pkg} already installed"
+        else
+            log_info "Installing ${pkg}..."
+            npm install -g "${pkg}"
+            log_success "${pkg} installed"
+        fi
+    done < "${default_packages}"
+fi
+
 log_success "Node.js installations complete"
 {{- end -}}
