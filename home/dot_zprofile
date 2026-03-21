@@ -1,0 +1,6 @@
+# Source all files in .zprofile.d/ if directory exists
+if [[ -d "${ZDOTDIR:-$HOME}/.zprofile.d" ]]; then
+  for file in "${ZDOTDIR:-$HOME}/.zprofile.d"/*.sh(N); do
+    source "$file"
+  done
+fi

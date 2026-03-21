@@ -1,0 +1,4 @@
+{{- if and .is_apple_silicon .user_emmett }}
+# whisper-cpp Metal acceleration
+export GGML_METAL_PATH_RESOURCES="{{ output "brew" "--prefix" "whisper-cpp" | trim }}/share/whisper-cpp"
+{{- end }}
