@@ -19,19 +19,19 @@ Branch names with slashes are converted to dashes: `feature/auth` -> `feature-au
 
 ## Commands
 
-| Command                      | Description                                               |
-| ---------------------------- | --------------------------------------------------------- |
-| `wt <branch>`                | Create/open worktree in sesh (creates branch if needed)   |
-| `wt --no-create <branch>`    | Open worktree only if branch exists (error otherwise)     |
-| `wt --no-switch <branch>`    | Create worktree without switching session                 |
-| `wt --no-install <branch>`   | Create worktree without auto-installing deps              |
-| `wt --no-editor <branch>`    | Create worktree without auto-opening editor               |
-| `wt --no-envrc <branch>`     | Create worktree without auto-creating .envrc              |
-| `wtd <branch>`               | Delete worktree, tmux session, and local branch           |
-| `wtd -f <branch>`            | Force delete worktree and branch                          |
-| `wtd --keep-branch <branch>` | Delete worktree but keep local branch                     |
-| `git wl`                     | Native git worktree list                                  |
-| `Ctrl-a W`                   | Tmux worktree picker (fzf)                                |
+| Command                      | Description                                             |
+| ---------------------------- | ------------------------------------------------------- |
+| `wt <branch>`                | Create/open worktree in sesh (creates branch if needed) |
+| `wt --no-create <branch>`    | Open worktree only if branch exists (error otherwise)   |
+| `wt --no-switch <branch>`    | Create worktree without switching session               |
+| `wt --no-install <branch>`   | Create worktree without auto-installing deps            |
+| `wt --no-editor <branch>`    | Create worktree without auto-opening editor             |
+| `wt --no-envrc <branch>`     | Create worktree without auto-creating .envrc            |
+| `wtd <branch>`               | Delete worktree, tmux session, and local branch         |
+| `wtd -f <branch>`            | Force delete worktree and branch                        |
+| `wtd --keep-branch <branch>` | Delete worktree but keep local branch                   |
+| `git wl`                     | Native git worktree list                                |
+| `Ctrl-a W`                   | Tmux worktree picker (fzf)                              |
 
 ## Workflow Examples
 
@@ -123,6 +123,7 @@ Inside tmux, you have dedicated keybindings:
 | `Ctrl-a S` | Connect sesh to current directory  |
 
 The worktree picker (`Ctrl-a W`) shows a preview of recent commits for each worktree and displays status indicators:
+
 - `☠ orphan` — remote branch deleted (requires cleanup)
 - `✓ merged` — branch has been merged into main (cleanup candidate)
 - `⬡ PR #N (CI ✓)` — open PR with passing CI
@@ -136,14 +137,25 @@ Status hierarchy: orphan > merged > PR/CI > CI > behind (only highest priority s
 
 PR and CI status load asynchronously via `gh` CLI — the picker opens instantly and indicators appear after ~500ms.
 
+## Session Management with sesh
+
+Worktrees integrate with [sesh](https://github.com/joshmedeski/sesh), a tmux session manager. Sessions are discovered dynamically via [zoxide](https://github.com/ajeetdsouza/zoxide) — no manual session configuration is needed.
+
+When you run `wt <branch>`, a new tmux session is created via `sesh connect`, named after the worktree path. Sesh uses zoxide's frecency database to sort and discover sessions, so frequently accessed worktrees appear first in the picker (`Ctrl-a T`).
+
+Configuration is in `~/.config/sesh/sesh.toml` (minimal by design — zoxide handles discovery).
+
 ## Auto-installation of Dependencies
 
 When creating a new worktree, dependencies are automatically installed in the new sesh session:
 
 1. `wt` creates the worktree and a `.wt-new` marker file
 2. `sesh connect` opens a new tmux session
-3. The shell starts and `nvm use` runs automatically (if `.nvmrc` exists)
-4. Dependencies are installed based on the lockfile detected:
+3. The shell starts and the `chpwd` hook triggers `load-nvmrc` (defined in `~/.zprofile.d/21-javascript.sh`), which:
+   - Detects `.nvmrc` in the worktree directory
+   - Runs `nvm use` to activate the correct Node.js version
+   - Falls back to `nvm use default` if the specified version is not installed
+4. The `.wt-new` marker is detected, and dependencies are installed based on the lockfile:
    - `package-lock.json` → `npm install`
    - `yarn.lock` → `yarn install`
    - `pnpm-lock.yaml` → `pnpm install`
@@ -191,6 +203,37 @@ export DEBUG=true
 ```
 
 Variables in `.envrc.override` take precedence over those from the main `.envrc`.
+
+## Claude Code Integration
+
+Claude Code supports `claude --worktree <name>` to run in an isolated worktree. This reuses the same `wt-create`/`wt-remove` scripts via hooks configured in `~/.claude/settings.json`.
+
+### Creation (`WorktreeCreate` hook)
+
+When Claude Code creates a worktree, the hook calls:
+
+```bash
+wt-create --cwd "${cwd}" "${name}"
+```
+
+No restrictive flags are passed, so the default behavior applies:
+
+- Branch is auto-created if it doesn't exist (no `--no-create`)
+- `.envrc` is auto-generated from the main worktree (no `--no-envrc`)
+
+Unlike the shell `wt` function, Claude Code calls `wt-create` directly — there is no tmux session (`--no-switch`), no dependency installation (`--no-install`), and no editor opening (`--no-editor`), since Claude Code doesn't need any of these.
+
+The worktree path is returned via stdout for Claude Code to use as its working directory.
+
+### Removal (`WorktreeRemove` hook)
+
+When Claude Code is done, the hook calls:
+
+```bash
+wt-remove --force "${worktree_path}"
+```
+
+This force-deletes the worktree and the local branch. Errors are silently ignored to avoid blocking Claude Code cleanup.
 
 ## Tips
 

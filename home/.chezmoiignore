@@ -21,8 +21,8 @@
     ".npmrc"
     ".okta_aws_login_config"
     ".ssh/config.local"
-    ".zshenv.d/eurosport-jira.sh"
-    ".zshenv.d/things3.sh"
+    ".zshenv.d/40-eurosport-jira.sh"
+    ".zshenv.d/41-things3.sh"
 -}}
 
 # SSH keys (only on specific hosts)
@@ -43,7 +43,7 @@
 {{- if not .project_eurosport }}
 .config/.jira
 .okta_aws_login_config
-.zshenv.d/eurosport-jira.sh
+.zshenv.d/40-eurosport-jira.sh
 {{- end }}
 
 # Tool-scoped files

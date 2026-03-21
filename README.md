@@ -55,11 +55,36 @@ which zsh | sudo tee -a /etc/shells
 chsh -s $(which zsh)
 ```
 
-## Feature Flags
+## Identity Model
 
-The repository uses a two-level configuration system based on hostname.
+The repository uses a multi-dimensional identity model based on hostname. Each hostname maps to a combination of layers that determine what gets installed and configured.
 
-### Level 1: Projects (hostname-based)
+### Layer 1: Device Type
+
+| Hostname                   | laptop | desktop | server |
+| -------------------------- | :----: | :-----: | :----: |
+| VEBERArnaud-MacBookPro2012 |   ✓    |         |        |
+| VEBERArnaud-MacBookPro2017 |   ✓    |         |        |
+| VEBERArnaud-MacMini2020    |        |    ✓    |        |
+| VEBERArnaud-MacBookPro2023 |   ✓    |         |        |
+| VEBERArnaud-MacMini2023    |        |    ✓    |        |
+| VEBERArnaud-MacMini2023s   |        |    ✓    |        |
+
+### Layer 2: User
+
+| Hostname                   | veberarnaud | emmett |
+| -------------------------- | :---------: | :----: |
+| VEBERArnaud-MacBookPro2012 |      ✓      |        |
+| VEBERArnaud-MacBookPro2017 |      ✓      |        |
+| VEBERArnaud-MacMini2020    |      ✓      |        |
+| VEBERArnaud-MacBookPro2023 |      ✓      |        |
+| VEBERArnaud-MacMini2023    |             |   ✓    |
+| VEBERArnaud-MacMini2023s   |      ✓      |        |
+
+- `veberarnaud` — human user (GUI apps, personal tools)
+- `emmett` — AI agent (headless, no GUI)
+
+### Layer 3: Projects
 
 | Hostname                   | personal | vbr_tech | eurosport | mega_lap |
 | -------------------------- | :------: | :------: | :-------: | :------: |
@@ -67,17 +92,25 @@ The repository uses a two-level configuration system based on hostname.
 | VEBERArnaud-MacBookPro2017 |    ✓     |          |           |          |
 | VEBERArnaud-MacMini2020    |    ✓     |          |           |          |
 | VEBERArnaud-MacBookPro2023 |    ✓     |    ✓     |     ✓     |    ✓     |
-| VEBERArnaud-MacMini2023    |    ✓     |    ✓     |     ✓     |    ✓     |
+| VEBERArnaud-MacMini2023    |          |          |           |          |
 | VEBERArnaud-MacMini2023s   |    ✓     |    ✓     |     ✓     |    ✓     |
 
-### Level 2: Tools (project-based)
+### Layer 4: Peripherals
 
-| Project   | AWS | Docker | Go  | JS  | PHP | Terraform |
-| --------- | :-: | :----: | :-: | :-: | :-: | :-------: |
-| personal  |  ✓  |   ✓    |  ✓  |  ✓  |  ✓  |     ✓     |
-| vbr_tech  |  ✓  |   ✓    |     |  ✓  |     |     ✓     |
-| eurosport |  ✓  |   ✓    |     |  ✓  |     |     ✓     |
-| mega_lap  |  ✓  |   ✓    |     |  ✓  |     |     ✓     |
+| Hostname                   | elgato | insta360 | scanner |
+| -------------------------- | :----: | :------: | :-----: |
+| VEBERArnaud-MacMini2023s   |   ✓    |    ✓     |    ✓    |
+
+### Layer 5: Tools (derived from projects)
+
+Projects determine which development tools are installed. `VEBERArnaud-MacMini2023` is a special case — it has `with_javascript` set directly (no project).
+
+| Project   | AWS | Docker | Go  | JS  | Nomad | PHP | Rust | Terraform |
+| --------- | :-: | :----: | :-: | :-: | :---: | :-: | :--: | :-------: |
+| personal  |  ✓  |   ✓    |  ✓  |  ✓  |   ✓   |  ✓  |  ✓   |     ✓     |
+| vbr_tech  |  ✓  |   ✓    |     |  ✓  |       |     |      |     ✓     |
+| eurosport |  ✓  |   ✓    |     |  ✓  |       |     |      |     ✓     |
+| mega_lap  |  ✓  |   ✓    |     |  ✓  |       |     |      |     ✓     |
 
 Configuration is defined in [`home/.chezmoi.toml.tmpl`](home/.chezmoi.toml.tmpl).
 
@@ -90,7 +123,7 @@ Configuration is defined in [`home/.chezmoi.toml.tmpl`](home/.chezmoi.toml.tmpl)
 │   ├── .chezmoiexternal.toml      # External dependencies (zprezto, etc.)
 │   ├── .chezmoiignore             # Files to ignore per environment
 │   ├── .chezmoiscripts/           # Scripts run during apply
-│   │   ├── mac/                   # macOS-specific scripts
+│   │   ├── system/darwin/          # macOS-specific scripts
 │   │   └── run_after_*.sh.tmpl    # Post-apply scripts
 │   ├── dot_ssh/                   # SSH configuration
 │   ├── dot_config/                # ~/.config files
