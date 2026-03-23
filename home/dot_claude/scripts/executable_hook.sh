@@ -48,6 +48,14 @@ notify() {
     else
         osascript -e "display notification \"${message}\" with title \"${subtitle}\""
     fi
+
+    mark_tmux_notification
+}
+
+mark_tmux_notification() {
+    if [[ -n "${TMUX:-}" ]]; then
+        tmux set-option @claude-notif 1 2>/dev/null || true
+    fi
 }
 
 #######################################

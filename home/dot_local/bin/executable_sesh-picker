@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# Session picker for tmux with Claude Code notification markers
+#
+# Usage:
+#   sesh-picker              # Launch interactive picker
+#   sesh-picker --list       # List all sessions with markers (for fzf reload)
+#   sesh-picker --list -t    # List tmux sessions only
+#   sesh-picker --list -z    # List zoxide sessions only
+#
+# Output format (tab-separated): <name>\t<icon> [marker] <name>
+# fzf uses --delimiter='\t' --with-nth=2 to display only the formatted column
+# Bindings use {1} to get the clean session name
+
+set -o pipefail
+
+NOTIF_MARKER="🔵"
+
+# =============================================================================
+# Notification marker logic
+# =============================================================================
+
+# Get all tmux sessions that have a pending Claude Code notification
+get_notif_sessions() {
+    tmux list-sessions -F '#{session_name}:#{@claude-notif}' 2>/dev/null \
+        | grep ':1$' | cut -d: -f1
+}
+
+# List sesh sessions with notification markers
+# Format: <name>\t<icon> [marker] <name>
+sesh_list_with_markers() {
+    local notif_sessions
+    notif_sessions=$(get_notif_sessions)
+
+    sesh list --icons "$@" | while IFS= read -r line; do
+        # Extract session name (everything after icon + space)
+        local name
+        name=$(echo "$line" | sed 's/^[^ ]* *//')
+        # Extract icon (everything before first space + the space)
+        local icon
+        icon=$(echo "$line" | sed 's/^\([^ ]* \).*/\1/')
+
+        if [[ -n "$notif_sessions" ]] && echo "$notif_sessions" | grep -qxF "$name"; then
+            printf '%s\t%s%s %s\n' "$name" "$icon" "$NOTIF_MARKER" "$name"
+        else
+            printf '%s\t%s  %s\n' "$name" "$icon" "$name"
+        fi
+    done
+}
+
+# Self-invocation for fzf reload bindings
+if [[ "${1:-}" == "--list" ]]; then
+    shift
+    sesh_list_with_markers "$@"
+    exit 0
+fi
+
+# =============================================================================
+# Interactive picker
+# =============================================================================
+
+self="$0"
+
+selected=$(sesh_list_with_markers | fzf-tmux -p 80%,70% \
+    --no-sort --ansi --delimiter='\t' --with-nth=2 \
+    --border-label ' sesh ' --prompt '⚡  ' \
+    --header '  ^a all ^t tmux ^x zoxide ^f find ^d kill' \
+    --bind 'tab:down,btab:up' \
+    --bind "ctrl-a:change-prompt(⚡  )+reload($self --list)" \
+    --bind "ctrl-t:change-prompt(🪟  )+reload($self --list -t)" \
+    --bind "ctrl-x:change-prompt(📁  )+reload($self --list -z)" \
+    --bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .git -E node_modules . ~)' \
+    --bind "ctrl-d:execute(tmux kill-session -t {1})+change-prompt(⚡  )+reload($self --list)" \
+    --preview 'sesh preview {1}')
+
+[[ -z "$selected" ]] && exit 0
+
+# Extract clean session name (first tab-separated field)
+session_name=$(echo "$selected" | cut -f1)
+
+# Clear notification before connecting
+tmux set-option -t "$session_name" -u @claude-notif 2>/dev/null || true
+
+sesh connect "$session_name"
