@@ -33,6 +33,7 @@
 {{- $with_php := false -}}
 {{- $with_rust := false -}}
 {{- $with_nomad := false -}}
+{{- $with_packer := false -}}
 {{- $with_terraform := false -}}
 
 {{- if eq .chezmoi.os "linux" -}}
@@ -107,6 +108,7 @@
 {{-   $with_golang = true -}}
 {{-   $with_javascript = true -}}
 {{-   $with_nomad = true -}}
+{{-   $with_packer = true -}}
 {{-   $with_php = true -}}
 {{-   $with_rust = true -}}
 {{-   $with_terraform = true -}}
@@ -156,6 +158,7 @@
     with_golang = {{ $with_golang }}
     with_javascript = {{ $with_javascript }}
     with_nomad = {{ $with_nomad }}
+    with_packer = {{ $with_packer }}
     with_php = {{ $with_php }}
     with_rust = {{ $with_rust }}
     with_terraform = {{ $with_terraform }}

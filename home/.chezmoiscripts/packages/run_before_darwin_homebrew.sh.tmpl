@@ -75,6 +75,10 @@
 {{-   $brews = concat $brews (list "hashicorp/tap/nomad") -}}
 {{- end -}}
 
+{{- if .with_packer -}}
+{{-   $brews = concat $brews (list "hashicorp/tap/packer") -}}
+{{- end -}}
+
 {{- if .with_php -}}
 {{-   $brews = concat $brews (list "php") -}}
 {{- end -}}
