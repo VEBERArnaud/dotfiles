@@ -186,6 +186,7 @@ tap "{{ . }}"
 {{ range ($brews | sortAlpha | uniq) -}}
 brew "{{ . }}"
 {{ end -}}
+cask "1password", args: { appdir: "/Applications" }
 {{ range ($casks | sortAlpha | uniq) -}}
 cask "{{ . }}"
 {{ end -}}
@@ -193,9 +194,6 @@ cask "{{ . }}"
 mas "{{ index $mas_apps . }}", id: {{ . }}
 {{ end -}}
 EOF
-
-log_info "Installing 1password in /Applications (required for browser integration)..."
-brew install --cask 1password --appdir=/Applications 2>/dev/null || true
 
 log_info "Cleaning up..."
 brew cleanup
