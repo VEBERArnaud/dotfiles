@@ -1,0 +1,38 @@
+{{- /* Generate AWS config from 1Password items tagged 'aws-sso-session' and 'aws-sso-profile' */ -}}
+{{- $sessions := output "op" "item" "list" "--tags" "aws-sso-session" "--format" "json" | fromJson -}}
+{{- range $sessions }}
+{{- $item := onepassword .id }}
+{{- $start_url := "" }}
+{{- $region := "" }}
+{{- range $item.fields }}
+{{- if eq .label "start_url" }}{{ $start_url = .value }}{{ end }}
+{{- if eq .label "region" }}{{ $region = .value }}{{ end }}
+{{- end -}}
+[sso-session {{ $item.title }}]
+sso_start_url = {{ $start_url }}
+sso_region = {{ $region }}
+sso_registration_scopes = sso:account:access
+
+{{ end -}}
+
+{{- $profiles := output "op" "item" "list" "--tags" "aws-sso-profile" "--format" "json" | fromJson -}}
+{{- range $profiles }}
+{{- $item := onepassword .id }}
+{{- $sso_session := "" }}
+{{- $account_id := "" }}
+{{- $role_name := "" }}
+{{- $region := "" }}
+{{- range $item.fields }}
+{{- if eq .label "sso_session" }}{{ $sso_session = .value }}{{ end }}
+{{- if eq .label "account_id" }}{{ $account_id = .value }}{{ end }}
+{{- if eq .label "role_name" }}{{ $role_name = .value }}{{ end }}
+{{- if eq .label "region" }}{{ $region = .value }}{{ end }}
+{{- end -}}
+[profile {{ $item.title }}]
+sso_session = {{ $sso_session }}
+sso_account_id = {{ $account_id }}
+sso_role_name = {{ $role_name }}
+region = {{ $region }}
+output = json
+
+{{ end -}}

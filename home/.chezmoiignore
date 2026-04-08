@@ -16,6 +16,7 @@
 -}}
 
 {{- $opFiles := list
+    ".aws/config"
     ".chezmoiscripts/run_after_import-gpg-key.sh"
     ".chezmoiscripts/tools/run_after_gws_auth.sh"
     ".config/.jira"
@@ -45,6 +46,10 @@
 .config/.jira
 .okta_aws_login_config
 .zshenv.d/40-eurosport-jira.sh
+{{- end }}
+
+{{- if not .with_aws }}
+.aws/config
 {{- end }}
 
 # Tool-scoped files
