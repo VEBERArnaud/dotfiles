@@ -71,6 +71,10 @@
 {{-   $brews = concat $brews (list "nvm") -}}
 {{- end -}}
 
+{{- if .with_consul -}}
+{{-   $brews = concat $brews (list "hashicorp/tap/consul") -}}
+{{- end -}}
+
 {{- if .with_nomad -}}
 {{-   $brews = concat $brews (list "hashicorp/tap/nomad") -}}
 {{- end -}}
