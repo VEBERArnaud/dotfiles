@@ -43,10 +43,12 @@ jobs:
             has_insta360 = false
             has_scanner = false
             with_aws = true
+            with_consul = false
             with_docker = true
             with_golang = true
             with_javascript = true
             with_nomad = false
+            with_packer = false
             with_php = false
             with_terraform = true
             with_rust = true
