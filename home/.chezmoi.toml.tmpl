@@ -32,6 +32,7 @@
 {{- $with_javascript := false -}}
 {{- $with_php := false -}}
 {{- $with_rust := false -}}
+{{- $with_swift := false -}}
 {{- $with_consul := false -}}
 {{- $with_nomad := false -}}
 {{- $with_packer := false -}}
@@ -113,6 +114,7 @@
 {{-   $with_packer = true -}}
 {{-   $with_php = true -}}
 {{-   $with_rust = true -}}
+{{-   $with_swift = true -}}
 {{-   $with_terraform = true -}}
 {{- end -}}
 
@@ -134,6 +136,7 @@
 {{-   $with_aws = true -}}
 {{-   $with_docker = true -}}
 {{-   $with_javascript = true -}}
+{{-   $with_swift = true -}}
 {{-   $with_terraform = true -}}
 {{- end -}}
 
@@ -164,4 +167,5 @@
     with_packer = {{ $with_packer }}
     with_php = {{ $with_php }}
     with_rust = {{ $with_rust }}
+    with_swift = {{ $with_swift }}
     with_terraform = {{ $with_terraform }}
