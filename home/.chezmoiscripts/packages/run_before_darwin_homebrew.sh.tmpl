@@ -91,6 +91,18 @@
 {{-   $brews = concat $brews (list "rustup") -}}
 {{- end -}}
 
+{{- if .with_swift -}}
+{{-   $brews = concat $brews (list
+        "swiftformat"
+        "swiftlint"
+        "xcbeautify"
+        "xcodegen"
+        "xcodes"
+    ) -}}
+{{-   $casks = concat $casks (list "sf-symbols") -}}
+{{-   $mas_apps = merge $mas_apps (dict "497799835" "Xcode") -}}
+{{- end -}}
+
 {{- if .with_terraform -}}
 {{-   $brews = concat $brews (list "hashicorp/tap/terraform") -}}
 {{- end -}}
