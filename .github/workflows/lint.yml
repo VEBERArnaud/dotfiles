@@ -52,6 +52,7 @@ jobs:
             with_php = false
             with_terraform = true
             with_rust = true
+            with_swift = true
           EOF
 
       - name: Validate templates

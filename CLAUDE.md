@@ -99,6 +99,7 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 - `with_nomad` - HashiCorp Nomad
 - `with_php` - PHP development tools
 - `with_rust` - Rust development environment
+- `with_swift` - Swift development environment (enables Swift LSP plugin)
 - `with_terraform` - Terraform infrastructure tools
 
 ## Key Components

@@ -1,4 +1,4 @@
-{{- if and .is_mac .project_eurosport -}}
+{{- if and .is_mac (or .project_eurosport .with_rust .with_swift) -}}
 #!/bin/bash
 
 set -euo pipefail
@@ -47,22 +47,40 @@ plugin_enabled() {
     echo "${output}" | awk "/❯ ${name}/{found=1} found && /Status:/{print; exit}" | grep -q "✔ enabled"
 }
 
-# Add eurosport marketplace
-if marketplace_exists "eurosport"; then
-    log_info "  Marketplace eurosport already configured"
-else
-    log_info "  Adding marketplace: eurosport..."
-    if claude plugin marketplace add "vbr-tech/eurosport-cc" &>/dev/null; then
-        log_success "  Marketplace eurosport added"
+# Add a marketplace if not already configured
+add_marketplace() {
+    local name="$1"
+    local repo="$2"
+    if marketplace_exists "${name}"; then
+        log_info "  Marketplace ${name} already configured"
     else
-        log_error "  Failed to add marketplace eurosport"
+        log_info "  Adding marketplace: ${name}..."
+        if claude plugin marketplace add "${repo}" &>/dev/null; then
+            log_success "  Marketplace ${name} added"
+        else
+            log_error "  Failed to add marketplace ${name}"
+        fi
     fi
-fi
+}
 
+{{ if .project_eurosport -}}
+add_marketplace "eurosport" "vbr-tech/eurosport-cc"
+{{ end -}}
+{{ if or .with_rust .with_swift -}}
+add_marketplace "claude-plugins-official" "anthropics/claude-plugins-official"
+{{ end }}
 # Plugins to install and enable
 plugins=(
+{{- if .project_eurosport }}
     "eurosport@eurosport"
     "js-to-ts-converter@eurosport"
+{{- end }}
+{{- if .with_rust }}
+    "rust-analyzer-lsp@claude-plugins-official"
+{{- end }}
+{{- if .with_swift }}
+    "swift-lsp@claude-plugins-official"
+{{- end }}
 )
 
 for plugin in "${plugins[@]}"; do

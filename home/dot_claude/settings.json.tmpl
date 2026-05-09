@@ -105,11 +105,23 @@
         ]
       }
     ]
-  }{{ if .project_eurosport }},
+  }
+{{- $plugins := list -}}
+{{- if .project_eurosport -}}
+{{-   $plugins = append $plugins "    \"eurosport@eurosport\": true" -}}
+{{-   $plugins = append $plugins "    \"js-to-ts-converter@eurosport\": true" -}}
+{{- end -}}
+{{- if .with_rust -}}
+{{-   $plugins = append $plugins "    \"rust-analyzer-lsp@claude-plugins-official\": true" -}}
+{{- end -}}
+{{- if .with_swift -}}
+{{-   $plugins = append $plugins "    \"swift-lsp@claude-plugins-official\": true" -}}
+{{- end -}}
+{{- if gt (len $plugins) 0 }},
   "enabledPlugins": {
-    "eurosport@eurosport": true,
-    "js-to-ts-converter@eurosport": true
-  }{{ end }},
+{{ join ",\n" $plugins }}
+  }
+{{- end }},
   "skipDangerousModePermissionPrompt": true,
   "effortLevel": "xhigh",
   "autoUpdatesChannel": "latest"
