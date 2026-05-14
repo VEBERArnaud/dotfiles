@@ -111,6 +111,9 @@
 {{-   $plugins = append $plugins "    \"eurosport@eurosport\": true" -}}
 {{-   $plugins = append $plugins "    \"js-to-ts-converter@eurosport\": true" -}}
 {{- end -}}
+{{- if .with_javascript -}}
+{{-   $plugins = append $plugins "    \"frontend-design@claude-plugins-official\": true" -}}
+{{- end -}}
 {{- if .with_rust -}}
 {{-   $plugins = append $plugins "    \"rust-analyzer-lsp@claude-plugins-official\": true" -}}
 {{- end -}}

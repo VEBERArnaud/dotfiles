@@ -1,4 +1,4 @@
-{{- if and .is_mac (or .project_eurosport .with_rust .with_swift) -}}
+{{- if and .is_mac (or .project_eurosport .with_javascript .with_rust .with_swift) -}}
 #!/bin/bash
 
 set -euo pipefail
@@ -66,7 +66,7 @@ add_marketplace() {
 {{ if .project_eurosport -}}
 add_marketplace "eurosport" "vbr-tech/eurosport-cc"
 {{ end -}}
-{{ if or .with_rust .with_swift -}}
+{{ if or .with_javascript .with_rust .with_swift -}}
 add_marketplace "claude-plugins-official" "anthropics/claude-plugins-official"
 {{ end }}
 # Plugins to install and enable
@@ -74,6 +74,9 @@ plugins=(
 {{- if .project_eurosport }}
     "eurosport@eurosport"
     "js-to-ts-converter@eurosport"
+{{- end }}
+{{- if .with_javascript }}
+    "frontend-design@claude-plugins-official"
 {{- end }}
 {{- if .with_rust }}
     "rust-analyzer-lsp@claude-plugins-official"
