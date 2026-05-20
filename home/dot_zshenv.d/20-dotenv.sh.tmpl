@@ -1,0 +1,4 @@
+{{- if .with_javascript }}
+# Silence dotenv v17+ promotional tips ("injected env from .env // tip: ...")
+export DOTENV_CONFIG_QUIET="true"
+{{- end }}
