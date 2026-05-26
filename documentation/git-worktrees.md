@@ -25,7 +25,7 @@ Branch names with slashes are converted to dashes: `feature/auth` -> `feature-au
 | `wt --no-create <branch>`    | Open worktree only if branch exists (error otherwise)   |
 | `wt --no-switch <branch>`    | Create worktree without switching session               |
 | `wt --no-install <branch>`   | Create worktree without auto-installing deps            |
-| `wt --no-editor <branch>`    | Create worktree without auto-opening editor             |
+| `wt --editor <branch>`       | Create worktree and auto-open editor                    |
 | `wt --no-envrc <branch>`     | Create worktree without auto-creating .envrc            |
 | `wtd <branch>`               | Delete worktree, tmux session, and local branch         |
 | `wtd -f <branch>`            | Force delete worktree and branch                        |
@@ -42,10 +42,9 @@ You're working on `feature/dashboard` and need to review a colleague's PR on `fe
 ```bash
 # You're in ~/Developer/src/github.com/org/myapp working on feature/dashboard
 
-# Create worktree and open in new tmux session
+# Create worktree and open in new tmux session (add --editor to also open Cursor)
 wt feature/auth
 # Now in a tmux session for ~/Developer/src/github.com/org/myapp.wt/feature-auth
-# Cursor opens automatically with the worktree
 
 # Review the code, run tests
 npm test
@@ -165,16 +164,14 @@ To skip auto-installation, use `wt --no-install <branch>`.
 
 **Note**: Dependencies are only installed on worktree creation, not when reopening an existing worktree.
 
-## Auto-opening Editor
+## Opening the Editor
 
-When creating a new worktree, your editor (Cursor) is automatically opened in the new sesh session:
+By default, creating a worktree does **not** open an editor. To open your editor (Cursor) in the new sesh session, use `wt --editor <branch>`:
 
-1. `wt` creates the worktree and a `.wt-open-editor` marker file
+1. `wt --editor` creates the worktree and a `.wt-open-editor` marker file
 2. `sesh connect` opens a new tmux session
 3. The shell starts and detects the marker file
 4. `cursor .` is executed to open the editor in the worktree directory
-
-To skip auto-opening the editor, use `wt --no-editor <branch>`.
 
 **Note**: The editor only opens on worktree creation, not when reopening an existing worktree.
 
@@ -221,7 +218,7 @@ No restrictive flags are passed, so the default behavior applies:
 - Branch is auto-created if it doesn't exist (no `--no-create`)
 - `.envrc` is auto-generated from the main worktree (no `--no-envrc`)
 
-Unlike the shell `wt` function, Claude Code calls `wt-create` directly — there is no tmux session (`--no-switch`), no dependency installation (`--no-install`), and no editor opening (`--no-editor`), since Claude Code doesn't need any of these.
+Unlike the shell `wt` function, Claude Code calls `wt-create` directly — there is no tmux session, no dependency installation, and no editor opening, since Claude Code doesn't need any of these. (The editor is opt-in via `wt --editor` in the shell function anyway.)
 
 The worktree path is returned via stdout for Claude Code to use as its working directory.
 

@@ -137,26 +137,26 @@ _wt_sanitize_branch() {
 }
 
 # wt <branch> - Create/open worktree in sesh
-# Usage: wt feature/login        (opens worktree + editor, creates branch if needed)
+# Usage: wt feature/login        (opens worktree, creates branch if needed)
 #        wt --no-create branch   (error if branch doesn't exist)
 #        wt --no-switch branch   (create only, stay in current session)
 #        wt --no-install branch  (create without auto-installing deps)
-#        wt --no-editor branch   (create without opening editor)
+#        wt --editor branch      (create and open editor)
 #        wt --no-envrc branch    (create without .envrc)
 wt() {
-  local no_create=false no_switch=false no_install=false no_editor=false no_envrc=false branch=""
+  local no_create=false no_switch=false no_install=false open_editor=false no_envrc=false branch=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --no-create) no_create=true; shift ;;
       --no-switch) no_switch=true; shift ;;
       --no-install) no_install=true; shift ;;
-      --no-editor) no_editor=true; shift ;;
+      --editor) open_editor=true; shift ;;
       --no-envrc) no_envrc=true; shift ;;
       *) branch="$1"; shift ;;
     esac
   done
 
-  [[ -z "$branch" ]] && { echo "Usage: wt [--no-create] [--no-switch] [--no-install] [--no-editor] <branch>"; return 1; }
+  [[ -z "$branch" ]] && { echo "Usage: wt [--no-create] [--no-switch] [--no-install] [--editor] [--no-envrc] <branch>"; return 1; }
 
   local wt_base wt_dir created=false
   wt_base=$(_wt_base_dir) || { echo "Not in a git repo"; return 1; }
@@ -172,7 +172,7 @@ wt() {
   # Extras (not in core script)
   if [[ "$created" == true ]]; then
     [[ "$no_install" == false ]] && touch "$wt_dir/.wt-new"
-    [[ "$no_editor" == false ]] && touch "$wt_dir/.wt-open-editor"
+    [[ "$open_editor" == true ]] && touch "$wt_dir/.wt-open-editor"
   fi
 
   # Add to zoxide
@@ -228,7 +228,7 @@ if command -v compdef &>/dev/null; then
     local wts=(${(f)"$(git worktree list --porcelain 2>/dev/null | awk '/^branch / { gsub(/refs\/heads\//, ""); print substr($0, 8) }')"})
     _describe 'worktree' wts
   }
-  compdef '_arguments "--no-create[Error if branch does not exist]" "--no-switch[Create only]" "--no-install[Skip deps install]" "--no-editor[Skip opening editor]" "--no-envrc[Skip .envrc creation]" "1:branch:_wt_branches"' wt
+  compdef '_arguments "--no-create[Error if branch does not exist]" "--no-switch[Create only]" "--no-install[Skip deps install]" "--editor[Open editor]" "--no-envrc[Skip .envrc creation]" "1:branch:_wt_branches"' wt
   compdef '_arguments "-f[Force]" "--keep-branch[Keep local branch]" "1:worktree:_wt_existing"' wtd
 fi
 
