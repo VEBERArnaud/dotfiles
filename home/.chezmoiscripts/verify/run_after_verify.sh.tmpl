@@ -94,7 +94,8 @@ check_command_available php || errors=$((errors + 1))
 {{ if .with_rust -}}
 echo ""
 log_info "Checking Rust tools..."
-export PATH="${HOME}/.cargo/bin:${PATH}"
+rustup_prefix="$(brew --prefix rustup)"
+export PATH="${rustup_prefix}/bin:${PATH}"
 check_command_available cargo || errors=$((errors + 1))
 check_command_available rustc || errors=$((errors + 1))
 {{ end -}}

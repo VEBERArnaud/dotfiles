@@ -16,11 +16,8 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 eval "$(/usr/local/bin/brew shellenv)"
 {{ end -}}
 
-# Initialize rustup if not already done
-if [ ! -d "$HOME/.rustup" ]; then
-    log_info "Initializing rustup..."
-    rustup-init -y --no-modify-path
-fi
+# rustup is keg-only, expose its proxies on PATH
+export PATH="${HOMEBREW_PREFIX}/opt/rustup/bin:${PATH}"
 
 # Install stable toolchain
 log_info "Installing Rust stable toolchain..."
