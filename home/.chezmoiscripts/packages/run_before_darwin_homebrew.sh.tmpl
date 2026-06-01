@@ -201,6 +201,11 @@ log_info "Upgrading existing packages..."
 retry brew upgrade
 retry brew upgrade --cask
 
+log_info "Trusting non-official taps..."
+{{ range ($taps | sortAlpha | uniq) -}}
+brew trust --tap "{{ . }}"
+{{ end -}}
+
 log_info "Installing packages from Brewfile..."
 brew bundle --file=/dev/stdin <<EOF
 {{ range ($taps | sortAlpha | uniq) -}}
