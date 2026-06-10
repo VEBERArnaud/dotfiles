@@ -19,6 +19,7 @@
     "git"
     "gnu-sed"
     "gnu-tar"
+    "gnupg"
     "gum"
     "htop"
     "jq"
@@ -26,7 +27,7 @@
     "moreutils"
     "openssl@3"
     "ossianhempel/tap/things3-cli"
-    "reattach-to-user-namespace"
+    "pinentry-mac"
     "ripgrep"
     "sesh"
     "shellcheck"
@@ -49,7 +50,6 @@
     "font-hack"
     "ghostty"
     "google-chrome"
-    "gpg-suite"
     "karabiner-elements"
 -}}
 
@@ -60,7 +60,7 @@
 {{- end -}}
 
 {{- if .with_docker -}}
-{{-   $brews = concat $brews (list "ctop") -}}
+{{-   $brews = concat $brews (list "lazydocker") -}}
 {{-   $casks = concat $casks (list "docker-desktop") -}}
 {{- end -}}
 
