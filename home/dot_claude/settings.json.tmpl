@@ -107,6 +107,7 @@
     ]
   }
 {{- $plugins := list -}}
+{{- $plugins = append $plugins "    \"superpowers@claude-plugins-official\": true" -}}
 {{- if .project_eurosport -}}
 {{-   $plugins = append $plugins "    \"eurosport@eurosport\": true" -}}
 {{-   $plugins = append $plugins "    \"js-to-ts-converter@eurosport\": true" -}}
