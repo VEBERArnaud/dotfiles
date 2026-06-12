@@ -1,0 +1,60 @@
+# Preferences
+
+## Language
+- Respond in French
+- Code, comments, variable names, commits: in English
+
+## General conventions
+- Prefer simple and direct solutions, no over-engineering
+- Do not add features that were not requested
+- Do not create documentation files unless explicitly asked
+
+## Git
+- Conventional commits format: `type(scope): subject`
+- Types: feat, fix, docs, style, refactor, perf, test, chore
+- Subject: imperative, lowercase, no trailing period, max 72 characters
+- GPG signed commits
+- Never force push on main/master
+
+## Security
+- Never hardcode secrets, tokens, API keys
+
+## Preferred tools
+- Shell: zsh
+- Editor: vim
+- Terminal multiplexer: tmux
+- Search: ripgrep (`rg`), not grep
+- Display: bat, not cat
+- Navigation: zoxide (`z`), not cd
+- Fuzzy search: fzf
+- Git diff: delta
+- GitHub CLI: gh
+- Environment: direnv (per-directory env variables)
+{{- if .is_mac }}
+
+## Stack
+- OS: macOS
+- Package manager: Homebrew
+- Dotfiles: chezmoi
+{{- end }}
+{{- if .with_javascript }}
+- JavaScript/TypeScript, Node.js via nvm
+{{- end }}
+{{- if .with_golang }}
+- Go
+{{- end }}
+{{- if .with_php }}
+- PHP
+{{- end }}
+{{- if .with_rust }}
+- Rust (cargo, rustup)
+{{- end }}
+{{- if .with_aws }}
+- AWS CLI, gimme-aws-creds
+{{- end }}
+{{- if .with_terraform }}
+- Terraform (HashiCorp)
+{{- end }}
+{{- if .with_docker }}
+- Docker Desktop
+{{- end }}
