@@ -34,8 +34,8 @@
 
 {{- if .with_rust -}}
 {{-   $extensions = concat $extensions (list
+        "fill-labs.dependi"
         "rust-lang.rust-analyzer"
-        "serayuzgur.crates"
     ) -}}
 {{- end -}}
 
