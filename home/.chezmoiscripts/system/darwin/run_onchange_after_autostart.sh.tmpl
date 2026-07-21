@@ -1,0 +1,56 @@
+{{- if .is_mac -}}
+
+#!/usr/bin/env bash
+
+# Disable autostart for apps that slow down login (launch them on demand instead)
+
+set -euo pipefail
+
+{{ template "common.tmpl" . }}
+
+log_info "Disabling app autostart..."
+
+###############################################################################
+# Adobe Creative Cloud                                                        #
+###############################################################################
+
+# Disable the launch-at-login agents via the launchd override database
+# (persists across reboots and Adobe updates; CC still works when launched
+# manually)
+if [[ -f "/Library/LaunchAgents/com.adobe.AdobeCreativeCloud.plist" ]]; then
+    launchctl disable "gui/$(id -u)/com.adobe.AdobeCreativeCloud" 2>/dev/null || true
+    launchctl disable "gui/$(id -u)/com.adobe.ccxprocess" 2>/dev/null || true
+    log_success "Adobe Creative Cloud autostart disabled"
+fi
+
+###############################################################################
+# Docker Desktop                                                              #
+###############################################################################
+
+# Disable AutoStart in the settings store (skipped while Docker Desktop runs:
+# it would overwrite the file on quit)
+docker_settings="${HOME}/Library/Group Containers/group.com.docker/settings-store.json"
+if [[ -f "${docker_settings}" ]]; then
+    if pgrep -qf "Docker Desktop"; then
+        log_warn "Docker Desktop is running, skipping AutoStart change"
+    else
+        python3 - "${docker_settings}" <<'PYEOF'
+import json
+import sys
+
+path = sys.argv[1]
+with open(path) as f:
+    settings = json.load(f)
+
+if settings.get("AutoStart"):
+    settings["AutoStart"] = False
+    with open(path, "w") as f:
+        json.dump(settings, f, indent=2)
+PYEOF
+        log_success "Docker Desktop autostart disabled"
+    fi
+fi
+
+log_success "Autostart configuration complete"
+
+{{- end -}}

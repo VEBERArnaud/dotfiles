@@ -326,6 +326,30 @@ if [[ $OS == 'Darwin' ]]; then
   alias 'postgresql.start'="pg_ctl -D ${HOMEBREW_ROOT}/var/postgres start"
   alias 'postgresql.stop'="pg_ctl -D ${HOMEBREW_ROOT}/var/postgres stop -s -m fast"
   alias 'postgresql.restart'='postgresql.stop && sleep 1 && postgresql.start'
+
+  # GlobalProtect VPN on-demand (its launchd jobs are always-on by default;
+  # off also disables them across reboots, on re-enables them)
+  if [[ -d /Applications/GlobalProtect.app ]]; then
+    global-protect-on() {
+      sudo launchctl enable system/com.paloaltonetworks.gp.pangpsd
+      sudo launchctl bootstrap system /Library/LaunchDaemons/com.paloaltonetworks.gp.pangpsd.plist 2>/dev/null
+      launchctl enable "gui/$(id -u)/com.paloaltonetworks.gp.pangps"
+      launchctl enable "gui/$(id -u)/com.paloaltonetworks.gp.pangpa"
+      launchctl bootstrap gui/"$(id -u)" /Library/LaunchAgents/com.paloaltonetworks.gp.pangps.plist 2>/dev/null
+      launchctl bootstrap gui/"$(id -u)" /Library/LaunchAgents/com.paloaltonetworks.gp.pangpa.plist 2>/dev/null
+      echo 'GlobalProtect started'
+    }
+
+    global-protect-off() {
+      launchctl bootout gui/"$(id -u)"/com.paloaltonetworks.gp.pangpa 2>/dev/null
+      launchctl bootout gui/"$(id -u)"/com.paloaltonetworks.gp.pangps 2>/dev/null
+      sudo launchctl bootout system/com.paloaltonetworks.gp.pangpsd 2>/dev/null
+      launchctl disable "gui/$(id -u)/com.paloaltonetworks.gp.pangpa"
+      launchctl disable "gui/$(id -u)/com.paloaltonetworks.gp.pangps"
+      sudo launchctl disable system/com.paloaltonetworks.gp.pangpsd
+      echo "GlobalProtect stopped and won't start at boot"
+    }
+  fi
 fi
 
 # Aliases for Linux, Ops.
