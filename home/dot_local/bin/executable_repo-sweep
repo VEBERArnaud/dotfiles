@@ -1,0 +1,306 @@
+#!/usr/bin/env bash
+# repo-sweep - Clean and update all local git repos in one pass
+#
+# Pipeline:
+#   1. Discover repos under <base>/<owner>/<repo>
+#   2. Parallel git fetch --prune
+#   3. Detect cleanup candidates (worktrees + local branches) with status:
+#      GONE (upstream deleted), MERGED (in default branch), DIRTY, ACTIVE
+#   4. Global fzf multi-select (query prefilled with GONE | MERGED)
+#   5. Checkout default branch + fast-forward to origin (dirty repos skipped)
+#   6. Delete selected worktrees (via wt-remove) and branches
+#   7. Summary report
+#
+# Usage: repo-sweep
+# Env:   REPO_SWEEP_BASE  base directory (default: ~/Developer/src/github.com)
+#
+# exit 0: sweep completed | exit 1: fatal error (bad base dir, missing deps)
+
+set -euo pipefail
+
+base_dir="${REPO_SWEEP_BASE:-${HOME}/Developer/src/github.com}"
+readonly JOBS=8
+
+#######################################
+# Preflight
+#######################################
+
+for cmd in git fzf wt-remove; do
+    if ! command -v "${cmd}" >/dev/null 2>&1; then
+        echo "repo-sweep: required command not found: ${cmd}" >&2
+        exit 1
+    fi
+done
+
+if [[ ! -d "${base_dir}" ]]; then
+    echo "repo-sweep: base directory not found: ${base_dir}" >&2
+    exit 1
+fi
+
+tmp=$(mktemp -d)
+trap 'rm -rf "${tmp}"' EXIT
+
+#######################################
+# Helpers
+#######################################
+
+# Resolve the default branch of a repo (origin/HEAD, then common names)
+default_branch() {
+    local repo="$1" ref b
+    if ref=$(git -C "${repo}" symbolic-ref --quiet --short refs/remotes/origin/HEAD); then
+        echo "${ref#origin/}"
+        return 0
+    fi
+    if git -C "${repo}" remote get-url origin >/dev/null 2>&1; then
+        git -C "${repo}" remote set-head origin --auto >/dev/null 2>&1 || true
+        if ref=$(git -C "${repo}" symbolic-ref --quiet --short refs/remotes/origin/HEAD); then
+            echo "${ref#origin/}"
+            return 0
+        fi
+    fi
+    for b in main master develop; do
+        if git -C "${repo}" show-ref --verify --quiet "refs/heads/${b}"; then
+            echo "${b}"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Ref to compare against for MERGED detection (origin/<default> if it exists)
+merge_ref() {
+    local repo="$1" db="$2"
+    if git -C "${repo}" show-ref --verify --quiet "refs/remotes/origin/${db}"; then
+        echo "origin/${db}"
+    else
+        echo "${db}"
+    fi
+}
+
+#######################################
+# Phase 1: discover repos
+#######################################
+
+repos=()
+for dir in "${base_dir}"/*/*/; do
+    if [[ -d "${dir}/.git" ]]; then
+        repos+=("${dir%/}")
+    fi
+done
+
+if [[ ${#repos[@]} -eq 0 ]]; then
+    echo "repo-sweep: no git repos found under ${base_dir}" >&2
+    exit 1
+fi
+
+echo "==> Found ${#repos[@]} repos under ${base_dir}"
+
+#######################################
+# Phase 2: parallel fetch --prune
+#######################################
+
+: > "${tmp}/with_remote"
+: > "${tmp}/local_only"
+for repo in "${repos[@]}"; do
+    if git -C "${repo}" remote get-url origin >/dev/null 2>&1; then
+        echo "${repo}" >> "${tmp}/with_remote"
+    else
+        echo "${repo}" >> "${tmp}/local_only"
+    fi
+done
+
+echo "==> Fetching $(wc -l < "${tmp}/with_remote" | tr -d ' ') repos (parallel, --prune)..."
+: > "${tmp}/fetch_failed"
+# shellcheck disable=SC2016  # $1/$2 are expanded by the child bash, not here
+xargs -n1 -P "${JOBS}" -I{} bash -c \
+    'git -C "$1" fetch --prune --quiet 2>/dev/null || echo "$1" >> "$2"' \
+    _ {} "${tmp}/fetch_failed" < "${tmp}/with_remote"
+
+#######################################
+# Phase 3: detect cleanup candidates
+#######################################
+
+# Candidate line: <display>\t<type>\t<branch>\t<repo>\t<wt_path>
+: > "${tmp}/candidates"
+
+for repo in "${repos[@]}"; do
+    rel="${repo#"${base_dir}"/}"
+    db=$(default_branch "${repo}") || db=""
+    cmp_ref=""
+    if [[ -n "${db}" ]]; then
+        cmp_ref=$(merge_ref "${repo}" "${db}")
+    fi
+
+    # --- worktrees (skip first block: main worktree) ---
+    wt_path="" wt_branch="" block=0
+    while IFS= read -r line; do
+        case "${line}" in
+            worktree\ *)
+                block=$((block + 1))
+                wt_path="${line#worktree }"
+                wt_branch=""
+                ;;
+            branch\ *)
+                wt_branch="${line#branch refs/heads/}"
+                ;;
+            "")
+                if [[ ${block} -gt 1 && -n "${wt_path}" ]]; then
+                    name="${wt_branch:-(detached)}"
+                    status="ACTIVE"
+                    if [[ -n "$(git -C "${wt_path}" status --porcelain 2>/dev/null)" ]]; then
+                        status="DIRTY"
+                    elif [[ -n "${wt_branch}" ]]; then
+                        track=$(git -C "${repo}" for-each-ref --format='%(upstream:track)' "refs/heads/${wt_branch}")
+                        if [[ "${track}" == "[gone]" ]]; then
+                            status="GONE"
+                        elif [[ -n "${cmp_ref}" ]] && git -C "${repo}" merge-base --is-ancestor "${wt_branch}" "${cmp_ref}" 2>/dev/null; then
+                            status="MERGED"
+                        fi
+                    fi
+                    display=$(printf '%-42s %-9s %-36s %s' "${rel}" "worktree" "${name}" "${status}")
+                    printf '%s\t%s\t%s\t%s\t%s\n' "${display}" "worktree" "${name}" "${repo}" "${wt_path}" >> "${tmp}/candidates"
+                fi
+                wt_path=""
+                ;;
+        esac
+    done < <(git -C "${repo}" worktree list --porcelain; echo)
+
+    # --- local branches (skip default and branches living in a worktree) ---
+    # "_" sentinel keeps empty fields from collapsing under tab IFS
+    repo_root=$(git -C "${repo}" rev-parse --show-toplevel)
+    while IFS=$'\t' read -r name track wtpath; do
+        track="${track#_}"
+        wtpath="${wtpath#_}"
+        [[ -z "${name}" || "${name}" == "${db}" ]] && continue
+        [[ -n "${wtpath}" && "${wtpath}" != "${repo_root}" ]] && continue
+        status="ACTIVE"
+        if [[ "${track}" == "[gone]" ]]; then
+            status="GONE"
+        elif [[ -n "${cmp_ref}" ]] && git -C "${repo}" merge-base --is-ancestor "${name}" "${cmp_ref}" 2>/dev/null; then
+            status="MERGED"
+        fi
+        display=$(printf '%-42s %-9s %-36s %s' "${rel}" "branch" "${name}" "${status}")
+        printf '%s\t%s\t%s\t%s\t%s\n' "${display}" "branch" "${name}" "${repo}" "" >> "${tmp}/candidates"
+    done < <(git -C "${repo}" for-each-ref refs/heads \
+        --format='%(refname:short)%09_%(upstream:track)%09_%(worktreepath)')
+done
+
+#######################################
+# Phase 4: fzf selection
+#######################################
+
+: > "${tmp}/selected"
+if [[ -s "${tmp}/candidates" ]]; then
+    fzf --multi \
+        --delimiter '\t' \
+        --with-nth 1 \
+        --query 'GONE | MERGED' \
+        --bind 'ctrl-a:select-all,ctrl-d:deselect-all' \
+        --header 'TAB: toggle | ctrl-a: select all matched | Enter: confirm | Esc: skip cleanup' \
+        --height 90% --reverse \
+        < "${tmp}/candidates" > "${tmp}/selected" || true
+else
+    echo "==> No cleanup candidates found"
+fi
+
+#######################################
+# Phase 5: checkout default branch + fast-forward
+#######################################
+
+echo "==> Updating repos..."
+: > "${tmp}/updated"
+: > "${tmp}/uptodate"
+: > "${tmp}/skipped"
+: > "${tmp}/errors"
+
+for repo in "${repos[@]}"; do
+    rel="${repo#"${base_dir}"/}"
+
+    db=$(default_branch "${repo}") || {
+        echo "${rel}: cannot determine default branch" >> "${tmp}/errors"
+        continue
+    }
+
+    if [[ -n "$(git -C "${repo}" status --porcelain --untracked-files=no 2>/dev/null)" ]]; then
+        echo "${rel}: uncommitted changes" >> "${tmp}/skipped"
+        continue
+    fi
+
+    switched=""
+    current=$(git -C "${repo}" symbolic-ref --quiet --short HEAD || echo "")
+    if [[ "${current}" != "${db}" ]]; then
+        if git -C "${repo}" checkout --quiet "${db}" 2>/dev/null; then
+            switched=" (was on ${current:-detached HEAD})"
+        else
+            echo "${rel}: cannot checkout ${db}" >> "${tmp}/errors"
+            continue
+        fi
+    fi
+
+    if git -C "${repo}" show-ref --verify --quiet "refs/remotes/origin/${db}"; then
+        behind=$(git -C "${repo}" rev-list --count "HEAD..origin/${db}" 2>/dev/null || echo 0)
+        if git -C "${repo}" merge --ff-only --quiet "origin/${db}" 2>/dev/null; then
+            if [[ "${behind}" -gt 0 ]]; then
+                echo "${rel}: +${behind} commit(s)${switched}" >> "${tmp}/updated"
+            else
+                echo "${rel}${switched}" >> "${tmp}/uptodate"
+            fi
+        else
+            echo "${rel}: ${db} diverged from origin/${db}" >> "${tmp}/errors"
+        fi
+    else
+        echo "${rel}: local only${switched}" >> "${tmp}/uptodate"
+    fi
+done
+
+#######################################
+# Phase 6: delete selected worktrees and branches
+#######################################
+
+: > "${tmp}/deleted"
+if [[ -s "${tmp}/selected" ]]; then
+    echo "==> Cleaning $(wc -l < "${tmp}/selected" | tr -d ' ') selected item(s)..."
+    while IFS=$'\t' read -r _ type name repo wt_path; do
+        rel="${repo#"${base_dir}"/}"
+        case "${type}" in
+            worktree)
+                wt-remove "${wt_path}" >/dev/null 2>&1 || true
+                # wt-remove uses branch -d; force-delete leftovers (squash-merged)
+                if [[ "${name}" != "(detached)" ]]; then
+                    git -C "${repo}" branch -D "${name}" >/dev/null 2>&1 || true
+                fi
+                echo "${rel}: worktree ${name}" >> "${tmp}/deleted"
+                ;;
+            branch)
+                if git -C "${repo}" branch -D "${name}" >/dev/null 2>&1; then
+                    echo "${rel}: branch ${name}" >> "${tmp}/deleted"
+                else
+                    echo "${rel}: cannot delete branch ${name} (checked out?)" >> "${tmp}/errors"
+                fi
+                ;;
+        esac
+    done < "${tmp}/selected"
+fi
+
+#######################################
+# Phase 7: report
+#######################################
+
+report_section() {
+    local title="$1" file="$2"
+    if [[ -s "${file}" ]]; then
+        echo ""
+        echo "${title} ($(wc -l < "${file}" | tr -d ' ')):"
+        sed 's/^/  /' "${file}"
+    fi
+}
+
+echo ""
+echo "=== repo-sweep report ==="
+report_section "Deleted" "${tmp}/deleted"
+report_section "Updated" "${tmp}/updated"
+report_section "Skipped (dirty)" "${tmp}/skipped"
+report_section "Fetch failed" "${tmp}/fetch_failed"
+report_section "Errors" "${tmp}/errors"
+echo ""
+echo "Up to date: $(wc -l < "${tmp}/uptodate" | tr -d ' ') repo(s)"
