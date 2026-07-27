@@ -1,7 +1,7 @@
 @googleworkspace/cli
 cost-of-modules
-depcheck
 json-server
+knip
 license-checker
 npkill
 npm-check-updates
