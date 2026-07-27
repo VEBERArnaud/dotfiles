@@ -3,7 +3,6 @@ cost-of-modules
 depcheck
 json-server
 license-checker
-ndb
 npkill
 npm-check-updates
 pnpm
