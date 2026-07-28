@@ -13,6 +13,7 @@ import sys
 # {section: {key: raw TOML value}}; None = top-level keys
 MANAGED = {
     None: {
+        "model": '"gpt-5.6-sol"',
         "model_reasoning_effort": '"xhigh"',
         "approval_policy": '"on-request"',
         "sandbox_mode": '"workspace-write"',
