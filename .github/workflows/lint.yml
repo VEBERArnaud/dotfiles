@@ -82,7 +82,8 @@ jobs:
       - name: Validate TOML files
         run: |
           echo "Validating TOML syntax..."
-          find "${CHEZMOI_SOURCE}" -name "*.toml" ! -name "*.tmpl" 2>/dev/null | while read -r file; do
+          # modify_* are chezmoi modify scripts (not TOML content)
+          find "${CHEZMOI_SOURCE}" -name "*.toml" ! -name "*.tmpl" ! -name "modify_*" 2>/dev/null | while read -r file; do
             echo "Checking $file..."
             taplo lint "$file"
           done
