@@ -5,7 +5,8 @@
 #   1. Discover repos under <base>/<owner>/<repo>
 #   2. Parallel git fetch --prune
 #   3. Detect cleanup candidates (worktrees + local branches) with status:
-#      GONE (upstream deleted), MERGED (in default branch), DIRTY, ACTIVE
+#      GONE (upstream deleted), MERGED (in default branch), PUSHED (synced
+#      with upstream), UNPUSHED (local-only work), DIRTY (uncommitted files)
 #   4. Global fzf multi-select (query prefilled with GONE | MERGED)
 #   5. Checkout default branch + fast-forward to origin (dirty repos skipped)
 #   6. Delete selected worktrees (via wt-remove) and branches
@@ -74,6 +75,23 @@ merge_ref() {
         echo "origin/${db}"
     else
         echo "${db}"
+    fi
+}
+
+# Classify a branch: GONE, MERGED, PUSHED or UNPUSHED
+# (DIRTY is a worktree-level status handled by the caller)
+branch_status() {
+    local repo="$1" branch="$2" cmp_ref="$3" upstream track
+    upstream=$(git -C "${repo}" for-each-ref --format='%(upstream:short)' "refs/heads/${branch}")
+    track=$(git -C "${repo}" for-each-ref --format='%(upstream:track)' "refs/heads/${branch}")
+    if [[ "${track}" == "[gone]" ]]; then
+        echo "GONE"
+    elif [[ -n "${cmp_ref}" ]] && git -C "${repo}" merge-base --is-ancestor "${branch}" "${cmp_ref}" 2>/dev/null; then
+        echo "MERGED"
+    elif [[ -n "${upstream}" && "${track}" != *ahead* ]]; then
+        echo "PUSHED"
+    else
+        echo "UNPUSHED"
     fi
 }
 
@@ -146,19 +164,16 @@ for repo in "${repos[@]}"; do
             "")
                 if [[ ${block} -gt 1 && -n "${wt_path}" ]]; then
                     name="${wt_branch:-(detached)}"
-                    status="ACTIVE"
                     if [[ -n "$(git -C "${wt_path}" status --porcelain 2>/dev/null)" ]]; then
                         status="DIRTY"
                     elif [[ -n "${wt_branch}" ]]; then
-                        track=$(git -C "${repo}" for-each-ref --format='%(upstream:track)' "refs/heads/${wt_branch}")
-                        if [[ "${track}" == "[gone]" ]]; then
-                            status="GONE"
-                        elif [[ -n "${cmp_ref}" ]] && git -C "${repo}" merge-base --is-ancestor "${wt_branch}" "${cmp_ref}" 2>/dev/null; then
-                            status="MERGED"
-                        fi
+                        status=$(branch_status "${repo}" "${wt_branch}" "${cmp_ref}")
+                    else
+                        # detached HEAD: commit reachability unknown, treat as risky
+                        status="UNPUSHED"
                     fi
                     display=$(printf '%-42s %-9s %-36s %s' "${rel}" "worktree" "${name}" "${status}")
-                    printf '%s\t%s\t%s\t%s\t%s\n' "${display}" "worktree" "${name}" "${repo}" "${wt_path}" >> "${tmp}/candidates"
+                    printf '%s\t%s\t%s\t%s\t_%s\t%s\n' "${display}" "worktree" "${name}" "${repo}" "${wt_path}" "${status}" >> "${tmp}/candidates"
                 fi
                 wt_path=""
                 ;;
@@ -168,21 +183,15 @@ for repo in "${repos[@]}"; do
     # --- local branches (skip default and branches living in a worktree) ---
     # "_" sentinel keeps empty fields from collapsing under tab IFS
     repo_root=$(git -C "${repo}" rev-parse --show-toplevel)
-    while IFS=$'\t' read -r name track wtpath; do
-        track="${track#_}"
+    while IFS=$'\t' read -r name wtpath; do
         wtpath="${wtpath#_}"
         [[ -z "${name}" || "${name}" == "${db}" ]] && continue
         [[ -n "${wtpath}" && "${wtpath}" != "${repo_root}" ]] && continue
-        status="ACTIVE"
-        if [[ "${track}" == "[gone]" ]]; then
-            status="GONE"
-        elif [[ -n "${cmp_ref}" ]] && git -C "${repo}" merge-base --is-ancestor "${name}" "${cmp_ref}" 2>/dev/null; then
-            status="MERGED"
-        fi
+        status=$(branch_status "${repo}" "${name}" "${cmp_ref}")
         display=$(printf '%-42s %-9s %-36s %s' "${rel}" "branch" "${name}" "${status}")
-        printf '%s\t%s\t%s\t%s\t%s\n' "${display}" "branch" "${name}" "${repo}" "" >> "${tmp}/candidates"
+        printf '%s\t%s\t%s\t%s\t_%s\t%s\n' "${display}" "branch" "${name}" "${repo}" "" "${status}" >> "${tmp}/candidates"
     done < <(git -C "${repo}" for-each-ref refs/heads \
-        --format='%(refname:short)%09_%(upstream:track)%09_%(worktreepath)')
+        --format='%(refname:short)%09_%(worktreepath)')
 done
 
 #######################################
@@ -260,7 +269,8 @@ done
 : > "${tmp}/deleted"
 if [[ -s "${tmp}/selected" ]]; then
     echo "==> Cleaning $(wc -l < "${tmp}/selected" | tr -d ' ') selected item(s)..."
-    while IFS=$'\t' read -r _ type name repo wt_path; do
+    while IFS=$'\t' read -r _ type name repo wt_path _; do
+        wt_path="${wt_path#_}"
         rel="${repo#"${base_dir}"/}"
         case "${type}" in
             worktree)
