@@ -309,7 +309,7 @@ if [[ -s "${tmp}/selected" ]]; then
             rel="${repo#"${base_dir}"/}"
             loss=""
             if [[ "${status}" == "DIRTY" ]]; then
-                dirty_count=$(git -C "${wt_path}" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+                dirty_count=$(git -C "${wt_path}" status --porcelain 2>/dev/null | wc -l | tr -d ' ') || dirty_count="?"
                 loss="${dirty_count} uncommitted/untracked file(s)"
             fi
             commits=$(lost_commits "${repo}" "${name}")
