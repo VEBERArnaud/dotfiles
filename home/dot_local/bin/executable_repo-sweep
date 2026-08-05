@@ -159,7 +159,7 @@ xargs -n1 -P "${JOBS}" -I{} bash -c \
 # Phase 3: detect cleanup candidates
 #######################################
 
-# Candidate line: <display>\t<type>\t<branch>\t<repo>\t<wt_path>
+# Candidate line: <display>\t<type>\t<branch>\t<repo>\t_<wt_path>\t<status>  ("_" = sentinel)
 : > "${tmp}/candidates"
 
 for repo in "${repos[@]}"; do

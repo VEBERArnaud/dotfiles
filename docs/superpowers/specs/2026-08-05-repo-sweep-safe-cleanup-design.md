@@ -64,7 +64,7 @@ selection. New format (6 fields, was 5):
 
 ## fzf selection (phase 4)
 
-- Prefilled query becomes `GONE | MERGED | PUSHED`.
+- Prefilled query becomes `'GONE' | 'MERGED' | 'PUSHED'`.
 - `DIRTY` and `UNPUSHED` items remain in the list, visible by clearing the
   query.
 - Header updated to mention that clearing the query reveals risky items.
@@ -81,7 +81,7 @@ The selection is partitioned into safe (`GONE`, `MERGED`, `PUSHED`) and risky
     upstream exists, else `git rev-list --count <cmp_ref>..<branch>` when
     `cmp_ref` exists, else `?`
   - dirty file count: `git status --porcelain | wc -l` on the worktree
-- Prompt `Delete these too? [y/N]`, read from `/dev/tty`.
+- Prompt `Delete these too? [y/N]`, read from the script's stdin; EOF is treated as decline.
   - `y` → delete everything; confirmed dirty worktrees use an explicit
     `wt-remove --force`
   - anything else → delete only the safe items; risky items are reported under
