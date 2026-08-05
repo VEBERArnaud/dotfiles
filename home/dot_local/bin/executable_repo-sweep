@@ -7,7 +7,7 @@
 #   3. Detect cleanup candidates (worktrees + local branches) with status:
 #      GONE (upstream deleted), MERGED (in default branch), PUSHED (synced
 #      with upstream), UNPUSHED (local-only work), DIRTY (uncommitted files)
-#   4. Global fzf multi-select (query prefilled with GONE | MERGED)
+#   4. Global fzf multi-select (query prefilled with GONE | MERGED | PUSHED)
 #   5. Checkout default branch + fast-forward to origin (dirty repos skipped)
 #   6. Delete selected worktrees (via wt-remove) and branches
 #   7. Summary report
@@ -203,9 +203,9 @@ if [[ -s "${tmp}/candidates" ]]; then
     fzf --multi \
         --delimiter '\t' \
         --with-nth 1 \
-        --query 'GONE | MERGED' \
+        --query "'GONE' | 'MERGED' | 'PUSHED'" \
         --bind 'ctrl-a:select-all,ctrl-d:deselect-all' \
-        --header 'TAB: toggle | ctrl-a: select all matched | Enter: confirm | Esc: skip cleanup' \
+        --header 'TAB: toggle | ctrl-a: select all | Enter: confirm | Esc: skip | clear query to reveal DIRTY/UNPUSHED' \
         --height 90% --reverse \
         < "${tmp}/candidates" > "${tmp}/selected" || true
 else
