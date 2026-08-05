@@ -9,7 +9,8 @@
 #      with upstream), UNPUSHED (local-only work), DIRTY (uncommitted files)
 #   4. Global fzf multi-select (query prefilled with GONE | MERGED | PUSHED)
 #   5. Checkout default branch + fast-forward to origin (dirty repos skipped)
-#   6. Delete selected worktrees (via wt-remove) and branches
+#   6. Delete selected worktrees (via wt-remove) and branches; deleting
+#      DIRTY/UNPUSHED items requires an explicit y/N confirmation
 #   7. Summary report
 #
 # Usage: repo-sweep
@@ -93,6 +94,26 @@ branch_status() {
     else
         echo "UNPUSHED"
     fi
+}
+
+# Commits on <branch> not pushed anywhere ("?" when it cannot be determined)
+lost_commits() {
+    local repo="$1" branch="$2" upstream db cmp
+    if [[ -z "${branch}" || "${branch}" == "(detached)" ]]; then
+        echo "?"
+        return 0
+    fi
+    upstream=$(git -C "${repo}" for-each-ref --format='%(upstream:short)' "refs/heads/${branch}")
+    if [[ -n "${upstream}" ]] && git -C "${repo}" show-ref --verify --quiet "refs/remotes/${upstream}"; then
+        git -C "${repo}" rev-list --count "${upstream}..${branch}" 2>/dev/null || echo "?"
+        return 0
+    fi
+    if db=$(default_branch "${repo}"); then
+        cmp=$(merge_ref "${repo}" "${db}")
+        git -C "${repo}" rev-list --count "${cmp}..${branch}" 2>/dev/null || echo "?"
+        return 0
+    fi
+    echo "?"
 }
 
 #######################################
@@ -263,33 +284,81 @@ for repo in "${repos[@]}"; do
 done
 
 #######################################
-# Phase 6: delete selected worktrees and branches
+# Phase 6: delete selected worktrees and branches (confirm risky ones)
 #######################################
 
 : > "${tmp}/deleted"
+: > "${tmp}/declined"
 if [[ -s "${tmp}/selected" ]]; then
-    echo "==> Cleaning $(wc -l < "${tmp}/selected" | tr -d ' ') selected item(s)..."
-    while IFS=$'\t' read -r _ type name repo wt_path _; do
-        wt_path="${wt_path#_}"
-        rel="${repo#"${base_dir}"/}"
-        case "${type}" in
-            worktree)
-                wt-remove "${wt_path}" >/dev/null 2>&1 || true
-                # wt-remove uses branch -d; force-delete leftovers (squash-merged)
-                if [[ "${name}" != "(detached)" ]]; then
-                    git -C "${repo}" branch -D "${name}" >/dev/null 2>&1 || true
-                fi
-                echo "${rel}: worktree ${name}" >> "${tmp}/deleted"
-                ;;
-            branch)
-                if git -C "${repo}" branch -D "${name}" >/dev/null 2>&1; then
-                    echo "${rel}: branch ${name}" >> "${tmp}/deleted"
-                else
-                    echo "${rel}: cannot delete branch ${name} (checked out?)" >> "${tmp}/errors"
-                fi
-                ;;
+    # Partition selection: deleting DIRTY/UNPUSHED items loses local work
+    : > "${tmp}/safe"
+    : > "${tmp}/risky"
+    while IFS= read -r line; do
+        case "${line##*$'\t'}" in
+            DIRTY|UNPUSHED) printf '%s\n' "${line}" >> "${tmp}/risky" ;;
+            *)              printf '%s\n' "${line}" >> "${tmp}/safe" ;;
         esac
     done < "${tmp}/selected"
+
+    to_delete="${tmp}/safe"
+    if [[ -s "${tmp}/risky" ]]; then
+        echo ""
+        echo "!! These selected items contain local work that would be lost:"
+        while IFS=$'\t' read -r _ type name repo wt_path status; do
+            wt_path="${wt_path#_}"
+            rel="${repo#"${base_dir}"/}"
+            loss=""
+            if [[ "${status}" == "DIRTY" ]]; then
+                dirty_count=$(git -C "${wt_path}" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+                loss="${dirty_count} uncommitted/untracked file(s)"
+            fi
+            commits=$(lost_commits "${repo}" "${name}")
+            if [[ "${commits}" != "0" ]]; then
+                loss="${loss:+${loss}, }${commits} unpushed commit(s)"
+            fi
+            echo "  ${rel}: ${type} ${name} [${status}] - ${loss:-nothing detected}"
+        done < "${tmp}/risky"
+        reply=""
+        read -r -p "Delete these too? [y/N] " reply || reply=""
+        if [[ "${reply}" == "y" || "${reply}" == "Y" ]]; then
+            cat "${tmp}/safe" "${tmp}/risky" > "${tmp}/to_delete_all"
+            to_delete="${tmp}/to_delete_all"
+        else
+            while IFS=$'\t' read -r _ type name repo _ _; do
+                rel="${repo#"${base_dir}"/}"
+                echo "${rel}: ${type} ${name}" >> "${tmp}/declined"
+            done < "${tmp}/risky"
+        fi
+    fi
+
+    if [[ -s "${to_delete}" ]]; then
+        echo "==> Cleaning $(wc -l < "${to_delete}" | tr -d ' ') selected item(s)..."
+        while IFS=$'\t' read -r _ type name repo wt_path status; do
+            wt_path="${wt_path#_}"
+            rel="${repo#"${base_dir}"/}"
+            case "${type}" in
+                worktree)
+                    if [[ "${status}" == "DIRTY" ]]; then
+                        wt-remove --force "${wt_path}" >/dev/null 2>&1 || true
+                    else
+                        wt-remove "${wt_path}" >/dev/null 2>&1 || true
+                    fi
+                    # wt-remove uses branch -d; force-delete leftovers (squash-merged)
+                    if [[ "${name}" != "(detached)" ]]; then
+                        git -C "${repo}" branch -D "${name}" >/dev/null 2>&1 || true
+                    fi
+                    echo "${rel}: worktree ${name}" >> "${tmp}/deleted"
+                    ;;
+                branch)
+                    if git -C "${repo}" branch -D "${name}" >/dev/null 2>&1; then
+                        echo "${rel}: branch ${name}" >> "${tmp}/deleted"
+                    else
+                        echo "${rel}: cannot delete branch ${name} (checked out?)" >> "${tmp}/errors"
+                    fi
+                    ;;
+            esac
+        done < "${to_delete}"
+    fi
 fi
 
 #######################################
@@ -310,6 +379,7 @@ echo "=== repo-sweep report ==="
 report_section "Deleted" "${tmp}/deleted"
 report_section "Updated" "${tmp}/updated"
 report_section "Skipped (dirty)" "${tmp}/skipped"
+report_section "Skipped (declined)" "${tmp}/declined"
 report_section "Fetch failed" "${tmp}/fetch_failed"
 report_section "Errors" "${tmp}/errors"
 echo ""
