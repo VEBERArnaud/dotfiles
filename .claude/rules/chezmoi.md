@@ -59,7 +59,7 @@ Available in `.tmpl` files via `{{ .variable }}`:
 
 ### Feature flags
 
-- `.with_aws`, `.with_docker`, `.with_golang`, `.with_javascript`
+- `.with_android`, `.with_aws`, `.with_docker`, `.with_golang`, `.with_javascript`
 - `.with_nomad`, `.with_php`, `.with_rust`, `.with_swift`, `.with_terraform`
 
 ## Scripts

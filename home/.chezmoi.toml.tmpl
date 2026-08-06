@@ -26,6 +26,7 @@
 {{- $has_scanner := false -}}
 
 {{/* features */}}
+{{- $with_android := false -}}
 {{- $with_aws := false -}}
 {{- $with_docker := false -}}
 {{- $with_golang := false -}}
@@ -134,6 +135,7 @@
 {{- end -}}
 
 {{- if $project_mega_lap -}}
+{{-   $with_android = true -}}
 {{-   $with_aws = true -}}
 {{-   $with_docker = true -}}
 {{-   $with_javascript = true -}}
@@ -159,6 +161,7 @@
     has_elgato = {{ $has_elgato }}
     has_insta360 = {{ $has_insta360 }}
     has_scanner = {{ $has_scanner }}
+    with_android = {{ $with_android }}
     with_aws = {{ $with_aws }}
     with_docker = {{ $with_docker }}
     with_golang = {{ $with_golang }}

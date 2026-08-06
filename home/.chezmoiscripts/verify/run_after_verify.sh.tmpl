@@ -65,6 +65,16 @@ check_command_available shellcheck || errors=$((errors + 1))
 check_command_available terminal-notifier || errors=$((errors + 1))
 
 # Conditional commands
+{{ if .with_android -}}
+echo ""
+log_info "Checking Android tools..."
+if /usr/libexec/java_home -v 21 &>/dev/null; then
+    log_success "java 21 available"
+else
+    log_error "java 21 not found"
+    errors=$((errors + 1))
+fi
+{{ end -}}
 {{ if .with_aws -}}
 echo ""
 log_info "Checking AWS tools..."
