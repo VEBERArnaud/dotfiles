@@ -92,6 +92,7 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 
 ### Feature Flags (conditional installation)
 
+- `with_android` - Android development environment (Android Studio, Temurin JDK)
 - `with_aws` - AWS CLI and tools
 - `with_docker` - Docker and related tools
 - `with_golang` - Go development environment
