@@ -65,6 +65,11 @@ check_command_available shellcheck || errors=$((errors + 1))
 check_command_available terminal-notifier || errors=$((errors + 1))
 
 # Conditional commands
+{{ if .with_android -}}
+echo ""
+log_info "Checking Android tools..."
+check_command_available java || errors=$((errors + 1))
+{{ end -}}
 {{ if .with_aws -}}
 echo ""
 log_info "Checking AWS tools..."
