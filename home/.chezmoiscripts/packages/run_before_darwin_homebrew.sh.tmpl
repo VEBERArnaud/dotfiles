@@ -56,6 +56,13 @@
 
 {{- $mas_apps := dict -}}
 
+{{- if .with_android -}}
+{{-   $casks = concat $casks (list
+        "android-studio"
+        "temurin@21"
+    ) -}}
+{{- end -}}
+
 {{- if .with_aws -}}
 {{-   $brews = concat $brews (list "awscli") -}}
 {{- end -}}
