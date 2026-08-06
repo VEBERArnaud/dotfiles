@@ -1,0 +1,8 @@
+{{- if .with_android }}
+# Android
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export PATH="$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator"
+if JAVA_HOME="$(/usr/libexec/java_home -v 21 2>/dev/null)"; then
+    export JAVA_HOME
+fi
+{{- end }}
