@@ -81,9 +81,17 @@ New conditional block (alphabetical, before `with_aws`):
 {{ if .with_android -}}
 echo ""
 log_info "Checking Android tools..."
-check_command_available java || errors=$((errors + 1))
+if /usr/libexec/java_home -v 21 &>/dev/null; then
+    log_success "java 21 available"
+else
+    log_error "java 21 not found"
+    errors=$((errors + 1))
+fi
 {{ end -}}
 ```
+
+The check verifies JDK 21 via `/usr/libexec/java_home` because macOS's
+`/usr/bin/java` stub makes a bare `command -v java` check vacuous.
 
 Deliberately no `adb` check: the SDK only exists after the first Android
 Studio launch, so an `adb` check would fail on a fresh machine.
@@ -117,5 +125,6 @@ the SDK, platform-tools and emulator into `~/Library/Android/sdk`.
 - CI must pass: template rendering of all `.tmpl` files, ShellCheck.
 - `chezmoi execute-template` renders the new drop-in for a mega_lap host
   (block present) and a non-mega_lap host (empty file).
-- On a mega_lap machine after apply: `echo $ANDROID_HOME` set, `java -version`
-  works, and after the Studio wizard `adb --version` works.
+- On a mega_lap machine after apply: `echo $ANDROID_HOME` set,
+  `/usr/libexec/java_home -v 21` succeeds, and after the Studio wizard
+  `adb --version` works.

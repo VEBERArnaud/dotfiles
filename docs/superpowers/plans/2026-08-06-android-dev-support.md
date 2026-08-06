@@ -349,6 +349,8 @@ git commit -m "feat(android): add android shell environment drop-in"
 **Interfaces:**
 - Consumes: `.with_android` (Task 1); `check_command_available` and `log_info` from `common.tmpl` (already used throughout the file).
 
+Amended after final review: the check uses `/usr/libexec/java_home -v 21` because macOS's `/usr/bin/java` stub makes `command -v java` always succeed.
+
 - [ ] **Step 1: Add the conditional block**
 
 In `home/.chezmoiscripts/verify/run_after_verify.sh.tmpl`, in the `# Conditional commands` section, insert immediately before the `{{ if .with_aws -}}` block:
@@ -357,7 +359,12 @@ In `home/.chezmoiscripts/verify/run_after_verify.sh.tmpl`, in the `# Conditional
 {{ if .with_android -}}
 echo ""
 log_info "Checking Android tools..."
-check_command_available java || errors=$((errors + 1))
+if /usr/libexec/java_home -v 21 &>/dev/null; then
+    log_success "java 21 available"
+else
+    log_error "java 21 not found"
+    errors=$((errors + 1))
+fi
 {{ end -}}
 ```
 
