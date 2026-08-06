@@ -42,6 +42,7 @@ jobs:
             has_elgato = false
             has_insta360 = false
             has_scanner = false
+            with_android = true
             with_aws = true
             with_consul = false
             with_docker = true

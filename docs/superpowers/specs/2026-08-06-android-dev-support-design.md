@@ -93,6 +93,13 @@ Studio launch, so an `adb` check would fail on a fresh machine.
 - `CLAUDE.md`: add `with_android` to the feature flags list.
 - `.claude/rules/chezmoi.md`: add `.with_android` to the feature flags list.
 
+### `.github/workflows/lint.yml`
+
+Add `with_android = true` to the CI mock `[data]` block (before `with_aws`).
+Without it, templates referencing `.with_android` fail CI rendering with
+"map has no entry for key"; `true` makes CI render and shellcheck the new
+conditional blocks.
+
 ## Manual step (documented, not automated)
 
 After `chezmoi apply`, launch Android Studio once; its setup wizard installs
