@@ -181,8 +181,6 @@ function! NumberToggle()
   endif
 endfunc
 
-nnoremap <C-n> :call NumberToggle()<cr>
-
 augroup vimrcEx
   autocmd!
 
@@ -226,6 +224,10 @@ nnoremap <leader>a :Rg<Space>
 
 " Open fzf
 nnoremap <silent> <leader>f :FZF<CR>
+
+" Toggle relative line numbers
+" (<C-n> is claimed by vim-visual-multi's Find Under)
+nnoremap <leader>n :call NumberToggle()<CR>
 
 " toggle to paste mode
 nnoremap <silent> <leader>p :set paste!<CR>
