@@ -6,12 +6,16 @@
 {{- $user := "" }}
 {{- $aliases := list }}
 {{- $port := "22" }}
+{{- $proxyJump := "" }}
+{{- $localForwards := list }}
 {{- $identityFile := "~/.ssh/id_ed25519" }}
 {{- range $item.fields }}
 {{- if eq .label "HostName" }}{{ $hostname = .value }}{{ end }}
 {{- if eq .label "User" }}{{ $user = .value }}{{ end }}
 {{- if and (eq .label "aliases") .value }}{{ $aliases = append $aliases .value }}{{ end }}
 {{- if and (eq .label "Port") .value }}{{ $port = .value }}{{ end }}
+{{- if and (eq .label "ProxyJump") .value }}{{ $proxyJump = .value }}{{ end }}
+{{- if and (eq .label "LocalForward") .value }}{{ $localForwards = append $localForwards .value }}{{ end }}
 {{- if and (eq .label "IdentityFile") .value }}{{ $identityFile = .value }}{{ end }}
 {{- end }}
 # {{ $item.title }}
@@ -19,6 +23,12 @@ Host {{ $item.title }}{{ if $aliases }} {{ $aliases | join " " }}{{ end }}
     HostName {{ $hostname }}
     User {{ $user }}
     Port {{ $port }}
+{{- if $proxyJump }}
+    ProxyJump {{ $proxyJump }}
+{{- end }}
+{{- range $localForwards }}
+    LocalForward {{ . }}
+{{- end }}
     IdentityFile {{ $identityFile }}
     AddKeysToAgent yes
     UseKeychain yes
