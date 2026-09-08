@@ -27,7 +27,7 @@ if [[ -f "${MODEL_FILE}" ]]; then
 else
     # Fetch expected checksum from HuggingFace API
     log_info "Fetching expected checksum from HuggingFace..."
-    expected_sha256=$(curl -sL "${MODEL_SHA256_URL}" | jq -r ".[] | select(.rfilename == \"${MODEL_NAME}\") | .lfs.sha256" 2>/dev/null || true)
+    expected_sha256=$(curl -sL "${MODEL_SHA256_URL}" | jq -r ".[] | select(.path == \"${MODEL_NAME}\") | .lfs.oid // empty" 2>/dev/null || true)
 
     log_info "Downloading whisper medium model (~1.5 GiB)..."
     retry curl -L --progress-bar -o "${MODEL_FILE}" "${MODEL_URL}"
