@@ -9,7 +9,7 @@ Vim is configured via `home/dot_vimrc.tmpl` with [vim-plug](https://github.com/j
 | Plugin                           | Description                                   |
 | -------------------------------- | --------------------------------------------- |
 | `airblade/vim-gitgutter`         | Git diff signs in the gutter                  |
-| `bling/vim-airline`              | Status/tabline with powerline fonts           |
+| `vim-airline/vim-airline`        | Status/tabline with powerline fonts           |
 | `dense-analysis/ale`             | Asynchronous linting and fixing               |
 | `easymotion/vim-easymotion`      | Fast cursor motion                            |
 | `editorconfig/editorconfig-vim`  | EditorConfig support                          |
