@@ -53,7 +53,6 @@ The `(N)` glob qualifier ensures no error if the directory is empty. Files are s
 | `20-golang.sh.tmpl`     | Yes      | `.with_golang`                         | Sets `GOPATH=~/Developer`, adds `$GOPATH/bin` to PATH      |
 | `21-javascript.sh.tmpl` | Yes      | `.with_javascript`                     | Loads nvm, auto-switches Node via `chpwd` hook on `.nvmrc` |
 | `22-rust.sh.tmpl`       | Yes      | `.with_rust`                           | Adds `~/.cargo/bin` to PATH                                |
-| `23-whisper.sh.tmpl`    | Yes      | `.is_apple_silicon` AND `.user_emmett` | Sets Metal acceleration path for whisper-cpp               |
 | `24-android.sh.tmpl`    | Yes      | `.with_android`                        | Sets `ANDROID_HOME`, PATH; guarded `JAVA_HOME` (JDK 21)    |
 | `30-mysql.sh`           | No       | —                                      | Configures MySQL prompt format                             |
 | `40-direnv.sh`          | No       | —                                      | Hooks direnv into zsh                                      |
