@@ -177,6 +177,7 @@ log_info "Checking Claude Code configuration..."
 check_file "${HOME}/.claude/CLAUDE.md" || errors=$((errors + 1))
 check_file "${HOME}/.claude/settings.json" || errors=$((errors + 1))
 check_dir "${HOME}/.claude/rules" || errors=$((errors + 1))
+check_dir "${HOME}/.agents/skills" || errors=$((errors + 1))
 check_dir "${HOME}/.claude/skills" || errors=$((errors + 1))
 check_file "${HOME}/.claude/scripts/hook.sh" || errors=$((errors + 1))
 

@@ -13,11 +13,12 @@ dotfiles/
 ├── .chezmoiroot              # Points to "home" as source directory
 ├── .chezmoiversion           # Requires chezmoi 2.68.0+
 ├── .github/workflows/        # CI validation (shellcheck, templates, linting)
+├── .agents/skills/           # Project skills (source, shared by Claude Code and Codex)
+│   ├── dotfiles/             # /dotfiles skill
+│   └── brew-add/             # /brew-add skill
 ├── .claude/                  # Project-scoped Claude Code config
 │   ├── rules/chezmoi.md      # Chezmoi conventions for this repo
-│   └── skills/               # Project-specific skills
-│       ├── dotfiles/         # /dotfiles skill
-│       └── brew-add/         # /brew-add skill
+│   └── skills/               # Symlinks to ../.agents/skills/
 └── home/                     # Source directory for all dotfiles
     ├── .chezmoi.toml.tmpl            # Main config with feature flags
     ├── .chezmoiexternal.toml         # External dependencies (zprezto, tpm, vim-plug)
@@ -36,10 +37,12 @@ dotfiles/
     │   │   ├── git.md                # Git conventions
     │   │   ├── shell.md              # Shell scripting conventions
     │   │   └── security.md           # Security rules
-    │   └── skills/                   # Global custom skills
-    │       ├── changelog/            # /changelog skill
-    │       ├── commit-conventional/  # /commit-conventional skill
-    │       └── review/               # /review skill
+    │   └── skills/                   # Symlinks to ~/.agents/skills/
+    ├── dot_agents/skills/            # Global custom skills (source, shared by Claude Code and Codex)
+    │   ├── changelog/                # /changelog skill
+    │   ├── commit-conventional/      # /commit-conventional skill
+    │   └── review/                   # /review skill
+    ├── dot_codex/                    # Codex CLI config (~/.codex/): AGENTS.md, config.toml, skills
     ├── dot_config/                   # ~/.config/ files
     │   ├── ghostty/config            # Ghostty terminal configuration
     │   └── starship.toml             # Starship prompt configuration
@@ -134,11 +137,22 @@ Global user config deployed to `~/.claude/`:
 - **CLAUDE.md.tmpl** - User preferences (French responses, English code, preferred tools)
 - **settings.json.tmpl** - Hardened permissions (minimal allow list) and Stop hook for notifications
 - **rules/** - Modular instructions for git, shell, and security conventions
-- **skills/** - Custom slash commands (`/changelog`, `/commit-conventional`, `/review`)
+- **skills/** - Symlinks to the shared skills in `~/.agents/skills/` (`/changelog`, `/commit-conventional`, `/review`)
 
 MCP servers configured via `run_after_claude_mcp.sh.tmpl`:
 - **chrome-devtools** - Browser automation
 - **context7** - Up-to-date library documentation (API key from 1Password)
+
+### Codex CLI Configuration
+
+Global config deployed to `~/.codex/`, aligned with Claude Code:
+
+- **AGENTS.md.tmpl** - Same preferences as `~/.claude/CLAUDE.md` (shared `preferences.md.tmpl`)
+- **modify_private_config.toml** - Enforces model, reasoning effort, approval and sandbox keys in `config.toml`; app-owned sections pass through untouched
+- **skills/** - Symlinks to the shared skills in `~/.agents/skills/`
+- MCP servers and plugins via `run_after_codex_mcp.sh.tmpl` and `run_after_codex_plugins.sh.tmpl` (Codex reads Claude-format marketplaces; LSP plugins are Claude-only)
+
+Skills live in a tool-neutral location so removing either tool does not break the other: global skills in `home/dot_agents/skills/` (deployed to `~/.agents/skills/`), project skills in `.agents/skills/`. Both `.claude/skills/` and `~/.codex/skills/` are symlinks to them.
 
 ## Scripts
 
@@ -155,6 +169,8 @@ MCP servers configured via `run_after_claude_mcp.sh.tmpl`:
 - **`security/run_after_gpg_import.sh.tmpl`** - Imports GPG key from 1Password
 - **`tools/run_after_claude_mcp.sh.tmpl`** - Claude Code MCP servers
 - **`tools/run_after_claude_plugins.sh.tmpl`** - Claude Code plugins
+- **`tools/run_after_codex_mcp.sh.tmpl`** - Codex CLI MCP servers (same as Claude Code)
+- **`tools/run_after_codex_plugins.sh.tmpl`** - Codex CLI plugins (same marketplaces as Claude Code)
 - **`tools/run_after_gws_auth.sh.tmpl`** - Google Workspace CLI auth
 - **`tools/run_after_ngrok_authtoken.sh.tmpl`** - Ngrok auth token from 1Password
 - **`verify/run_after_verify.sh.tmpl`** - Validates deployment (files exist, commands work, syntax valid)
