@@ -87,6 +87,33 @@ set -euo pipefail
 - `is_mac`, `is_linux`
 - `check_file`, `check_command_available`
 
+## AI agents (Claude Code + Codex)
+
+Claude Code and Codex are kept in sync. Any change to one must ship with its counterpart in the same commit.
+
+### Skills
+
+Skills are tool-neutral: the source lives in a shared directory and each tool gets a symlink to it. Never put a skill source under `dot_claude/` or `dot_codex/`.
+
+| Scope   | Source                        | Claude Code symlink                      | Codex symlink                           |
+|---------|-------------------------------|------------------------------------------|-----------------------------------------|
+| Global  | `home/dot_agents/skills/<n>/` | `home/dot_claude/skills/symlink_<n>.tmpl` | `home/dot_codex/skills/symlink_<n>.tmpl` |
+| Project | `.agents/skills/<n>/`         | `.claude/skills/<n>` → `../../.agents/skills/<n>` | read natively            |
+
+Symlink template content (one line, no trailing newline):
+
+```
+{{ .chezmoi.homeDir }}/.agents/skills/<n>
+```
+
+### MCP servers
+
+Add to both `tools/run_after_claude_mcp.sh.tmpl` (`claude mcp add --scope user`) and `tools/run_after_codex_mcp.sh.tmpl` (`codex mcp add`), same command and arguments.
+
+### Plugins
+
+Add to `tools/run_after_claude_plugins.sh.tmpl` and `home/dot_claude/settings.json.tmpl` (`enabledPlugins`), then to `tools/run_after_codex_plugins.sh.tmpl` under the same feature flag. Codex reads Claude-format marketplaces (`.claude-plugin/marketplace.json`), so marketplace sources are shared. Exceptions: LSP plugins are Claude-only; private marketplaces use the SSH URL on the Codex side.
+
 ## External dependencies
 
 Defined in `home/.chezmoiexternal.toml`:

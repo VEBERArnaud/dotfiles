@@ -1,0 +1,87 @@
+{{- if .is_mac -}}
+#!/bin/bash
+
+set -euo pipefail
+
+# Include common functions
+{{ template "common.tmpl" . }}
+
+# Check Codex CLI
+if ! check_command codex; then
+    log_warn "Codex CLI not found. Skipping Codex plugins configuration."
+    exit 0
+fi
+
+# Check git (needed for Git marketplaces)
+if ! check_command git; then
+    log_warn "git not found. Skipping Codex plugins configuration."
+    exit 0
+fi
+
+log_info "Configuring Codex plugins..."
+
+# Check if a marketplace is already added
+marketplace_exists() {
+    local name="$1"
+    codex plugin marketplace list 2>/dev/null | grep -qE "^${name}[[:space:]]"
+}
+
+# Check if a plugin is installed
+plugin_installed() {
+    local name="$1"
+    codex plugin list 2>/dev/null | grep -qE "^${name}[[:space:]]+installed"
+}
+
+# Add a marketplace if not already configured
+# Codex reads Claude-format marketplaces (.claude-plugin/marketplace.json),
+# so the same sources as Claude Code can be reused.
+add_marketplace() {
+    local name="$1"
+    local source="$2"
+    if marketplace_exists "${name}"; then
+        log_info "  Marketplace ${name} already configured"
+    else
+        log_info "  Adding marketplace: ${name}..."
+        if codex plugin marketplace add "${source}" &>/dev/null; then
+            log_success "  Marketplace ${name} added"
+        else
+            log_error "  Failed to add marketplace ${name}"
+        fi
+    fi
+}
+
+{{ if .project_eurosport -}}
+# Private repo: HTTPS clone has no credential helper, use SSH (1Password agent)
+add_marketplace "eurosport" "git@github.com:vbr-tech/eurosport-cc.git"
+{{ end -}}
+add_marketplace "claude-plugins-official" "anthropics/claude-plugins-official"
+
+# Plugins to install (same set as Claude Code, minus LSP plugins which are
+# Claude-specific: rust-analyzer-lsp, swift-lsp)
+plugins=(
+    "mattpocock-skills@claude-plugins-official"
+{{- if .project_eurosport }}
+    "eurosport@eurosport"
+    "js-to-ts-converter@eurosport"
+{{- end }}
+{{- if .with_javascript }}
+    "frontend-design@claude-plugins-official"
+{{- end }}
+)
+
+for plugin in "${plugins[@]}"; do
+    if plugin_installed "${plugin}"; then
+        log_info "  Plugin ${plugin} already installed"
+    else
+        log_info "  Installing plugin: ${plugin}..."
+        if codex plugin add "${plugin}" &>/dev/null; then
+            log_success "  Plugin ${plugin} installed"
+        else
+            log_error "  Failed to install plugin ${plugin}"
+        fi
+    fi
+done
+
+log_success "Codex plugins configuration complete"
+
+{{- end -}}
