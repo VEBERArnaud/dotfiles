@@ -14,7 +14,7 @@ jobs:
       CHEZMOI_SOURCE: ${{ github.workspace }}/home
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install chezmoi
         run: sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
