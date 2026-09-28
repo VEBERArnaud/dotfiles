@@ -32,7 +32,7 @@ dotfiles/
     ├── dot_claude/                   # Global Claude Code config (~/.claude/)
     │   ├── CLAUDE.md.tmpl            # User preferences (language, tools, stack)
     │   ├── settings.json.tmpl        # Permissions and hooks
-    │   ├── scripts/executable_hook.sh # Hook script for notifications
+    │   ├── scripts/executable_hook.sh # Notifications and lefthook quality gates
     │   ├── rules/                    # Modular instructions
     │   │   ├── git.md                # Git conventions
     │   │   ├── shell.md              # Shell scripting conventions
@@ -135,7 +135,7 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 Global user config deployed to `~/.claude/`:
 
 - **CLAUDE.md.tmpl** - User preferences (French responses, English code, preferred tools)
-- **settings.json.tmpl** - Hardened permissions (minimal allow list) and Stop hook for notifications
+- **settings.json.tmpl** - Hardened permissions (minimal allow list) and hooks: notifications, plus lefthook gates run by `scripts/hook.sh` (`lefthook run pre-commit` before a `git commit`, `lefthook run pre-push` before Claude stops). A repository opts in by having a `lefthook.yml` or `lefthook-local.yml`; without one the gates are skipped.
 - **rules/** - Modular instructions for git, shell, and security conventions
 - **skills/** - Symlinks to the shared skills in `~/.agents/skills/` (`/changelog`, `/commit-conventional`, `/review`)
 
