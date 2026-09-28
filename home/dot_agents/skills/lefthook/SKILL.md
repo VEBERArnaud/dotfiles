@@ -55,7 +55,7 @@ Compose the file from the recipes:
 
 Update mode: add the missing jobs and leave the rest byte for byte; an existing job you would have written differently goes in the report, not in the file.
 
-Existing husky + lint-staged: each lint-staged entry becomes a pre-commit job with the same glob and `stage_fixed: true`; `.husky/` and the two devDependencies go, `lefthook` comes in as devDependency, and `"prepare": "husky"` becomes `"prepare": "lefthook install"`. The repository already forced its hooks on every clone, so the forcing level stays what it was.
+Existing husky + lint-staged: each lint-staged entry becomes a pre-commit job with the same glob and `stage_fixed: true`; `.husky/` and the two devDependencies go, `lefthook` comes in as devDependency, and `"prepare": "husky"` becomes `"prepare": "lefthook install --reset-hooks-path"`. The repository already forced its hooks on every clone, so the forcing level stays what it was. Two traps: husky's own `prepare` (run by the first `pnpm install`) leaves `core.hooksPath=.husky/_` in the shared git config, which makes a plain `lefthook install` refuse, hence the flag; and `pnpm add`/`pnpm remove` run from inside the repository with `--ignore-scripts`, otherwise the `prepare` failure makes pnpm drop the package.json change and the lockfile ends up out of date.
 
 Done when `lefthook dump` parses the file and every mapped command appears exactly once.
 
