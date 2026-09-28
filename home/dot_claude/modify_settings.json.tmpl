@@ -1,4 +1,20 @@
-{
+#!/usr/bin/env bash
+# chezmoi modify script for ~/.claude/settings.json.
+#
+# Claude Code rewrites this file with its own state (agentPushNotifEnabled and
+# the other preferences toggled from /config or the mobile app) and reorders
+# the keys when it does. Only the top-level keys in MANAGED are enforced by
+# chezmoi, each replaced as a whole; every other key is passed through
+# untouched, in the order Claude Code wrote it, so the app-owned settings
+# never show up in `chezmoi diff`.
+set -euo pipefail
+
+if ! command -v jq >/dev/null 2>&1; then
+    echo "jq is required to manage ~/.claude/settings.json" >&2
+    exit 1
+fi
+
+MANAGED='{
   "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
@@ -145,4 +161,12 @@
 {{- end }},
   "effortLevel": "xhigh",
   "autoUpdatesChannel": "latest"
-}
+}'
+
+# Empty stdin: the target does not exist yet (first apply, CI).
+current="$(cat)"
+if [[ -z "${current//[[:space:]]/}" ]]; then
+    current='{}'
+fi
+
+printf '%s\n' "${current}" | jq --argjson managed "${MANAGED}" '. + $managed'

@@ -114,7 +114,7 @@ Remote HTTP servers: `claude mcp add --transport http <name> <url>` on the Claud
 
 ### Plugins
 
-Add to `tools/run_after_claude_plugins.sh.tmpl` and `home/dot_claude/settings.json.tmpl` (`enabledPlugins`), then to `tools/run_after_codex_plugins.sh.tmpl` under the same feature flag. Codex reads Claude-format marketplaces (`.claude-plugin/marketplace.json`), so marketplace sources are shared. Exceptions: LSP plugins are Claude-only; private marketplaces use the SSH URL on the Codex side.
+Add to `tools/run_after_claude_plugins.sh.tmpl` and `home/dot_claude/modify_settings.json.tmpl` (`enabledPlugins`), then to `tools/run_after_codex_plugins.sh.tmpl` under the same feature flag. Codex reads Claude-format marketplaces (`.claude-plugin/marketplace.json`), so marketplace sources are shared. Exceptions: LSP plugins are Claude-only; private marketplaces use the SSH URL on the Codex side.
 
 ## External dependencies
 
