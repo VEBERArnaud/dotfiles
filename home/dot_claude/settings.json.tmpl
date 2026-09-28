@@ -46,7 +46,7 @@
       "Bash(rm -rf ~/*)",
       "Bash(sudo rm -rf *)"
     ],
-    "defaultMode": "plan"
+    "defaultMode": "auto"
   },
   "model": "fable[1m]",
   "hooks": {
@@ -138,7 +138,6 @@
 {{ join ",\n" $plugins }}
   }
 {{- end }},
-  "skipDangerousModePermissionPrompt": true,
   "effortLevel": "xhigh",
   "autoUpdatesChannel": "latest"
 }
