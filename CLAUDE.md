@@ -41,6 +41,7 @@ dotfiles/
     │   └── skills/                   # Symlinks to ~/.agents/skills/
     ├── dot_agents/skills/            # Global custom skills (source, shared by Claude Code and Codex)
     │   ├── changelog/                # /changelog skill
+    │   ├── claude-md/                # /claude-md skill (CLAUDE.md diet)
     │   ├── commit-conventional/      # /commit-conventional skill
     │   ├── lefthook/                 # /lefthook skill (recipes.md holds the per-ecosystem jobs)
     │   └── review/                   # /review skill
@@ -140,7 +141,7 @@ Global user config deployed to `~/.claude/`:
 - **settings.json.tmpl** - Sessions connect to Remote Control at startup (`remoteControlAtStartup`; a `false` in a repository's `.claude/settings.json` opts that repository out), start in `auto` permission mode (a classifier reviews actions, deny rules still absolute; plan mode is asked for explicitly with `claude --permission-mode plan`), hardened permissions (minimal allow list) and hooks: notifications, plus lefthook gates run by `scripts/hook.sh` (`lefthook run pre-commit` before a `git commit`, `lefthook run pre-push` before Claude stops). A repository opts in by having a `lefthook.yml` or `lefthook-local.yml`; without one the gates are skipped.
 - **scripts/statusline.sh** - Status line (`statusLine` in settings): model, repo or worktree and branch, context used, session cost, 5-hour and 7-day rate limits, colour-coded
 - **rules/** - Modular instructions for git, shell, and security conventions
-- **skills/** - Symlinks to the shared skills in `~/.agents/skills/` (`/changelog`, `/commit-conventional`, `/lefthook`, `/review`)
+- **skills/** - Symlinks to the shared skills in `~/.agents/skills/` (`/changelog`, `/claude-md`, `/commit-conventional`, `/lefthook`, `/review`)
 
 MCP servers configured via `run_after_claude_mcp.sh.tmpl`:
 - **chrome-devtools** - Browser automation
