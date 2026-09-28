@@ -1,0 +1,50 @@
+# Quality gates for this repository, mirroring .github/workflows/lint.yml
+# (shellcheck, taplo, yamllint and chezmoi; vint is pip-only and left to CI).
+#
+# pre-commit runs on staged files only, pre-push validates the whole source.
+# Git runs them once `lefthook install` has been run in a clone. The Claude
+# Code hook (home/dot_claude/scripts/executable_hook.sh) invokes the same two
+# stages with `lefthook run <stage>`, which needs no install.
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: shellcheck scripts
+      glob: "home/{dot_claude/scripts,dot_install.d,dot_local/bin}/executable_*"
+      run: shellcheck -s bash -e SC1091 {staged_files}
+
+    - name: shellcheck script templates
+      glob: "home/.chezmoiscripts/**/*.sh.tmpl"
+      run: |
+        rc=0
+        for file in {staged_files}; do
+          chezmoi execute-template < "$file" | shellcheck -s bash -e SC1091 - || rc=1
+        done
+        exit $rc
+
+    - name: taplo
+      glob: "*.toml"
+      exclude:
+        - "**/modify_*" # chezmoi modify scripts, not TOML content
+      run: taplo lint {staged_files}
+
+    - name: yamllint
+      glob: "*.{yml,yaml}"
+      run: yamllint -d relaxed {staged_files}
+
+pre-push:
+  parallel: true
+  jobs:
+    - name: shellcheck rendered script templates
+      run: |
+        rc=0
+        for file in $(find home/.chezmoiscripts -name "*.sh.tmpl"); do
+          chezmoi execute-template < "$file" | shellcheck -s bash -e SC1091 - || rc=1
+        done
+        exit $rc
+
+    - name: taplo
+      run: find home -name "*.toml" ! -name "modify_*" -exec taplo lint {} +
+
+    - name: yamllint
+      run: yamllint -d relaxed .

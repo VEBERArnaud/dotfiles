@@ -50,6 +50,18 @@
   },
   "model": "fable[1m]",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/scripts/hook.sh",
+            "timeout": 300
+          }
+        ]
+      }
+    ],
     "PermissionRequest": [
       {
         "matcher": "*",
