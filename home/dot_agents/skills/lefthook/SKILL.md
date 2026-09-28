@@ -19,7 +19,7 @@ Write the lefthook config that the Claude Code hook (`~/.claude/scripts/hook.sh`
 - Repository root: `git rev-parse --show-toplevel`.
 - Existing config: any of `{,.}lefthook{,-local}.{yml,yaml,toml,json}` at the root. Found: update mode, read it whole and keep every existing job under its name. Not found: create mode.
 - Target: `lefthook-local.yml` when `$ARGUMENTS` is `local` or when the only existing config is a `-local` file, else `lefthook.yml`.
-- Create mode without `local`, and `git shortlog -sn --no-merges` lists other human authors: ask which file to write before going further.
+- Create mode without `local`, and `git shortlog -sn --no-merges HEAD` lists other human authors (bots excluded): ask which file to write before going further.
 
 Done when the mode and the target path are stated.
 
@@ -29,15 +29,16 @@ Read, in this order, and note every check with its exact command:
 
 1. CI: `.github/workflows/*.yml` and any other pipeline file. Each format, lint, typecheck, validate or test step is a candidate job.
 2. Units: every directory holding a marker (`package.json`, `Cargo.toml`, `go.mod`, `composer.json`, `Package.swift`, a directory of `*.tf`), the root included. Per unit, the scripts and config files that [recipes.md](recipes.md) names: package manager, formatter, linter, typecheck, tests.
-3. Local tools: `command -v` on every binary a job would call.
+3. Local tools: `command -v` on every binary a job would call. A JavaScript unit without `node_modules` (fresh clone or worktree) gets its package manager's install first, otherwise every exec-form tool reads as missing.
+4. Duration: run each candidate once and note the time.
 
-Done when a table unit x stage gives the command of each cell, and every CI check is either mapped to a job or marked "left out" with its reason: tool not installed locally, needs credentials or network, pip-only.
+Done when a table unit x stage gives the command and duration of each cell, and every CI check is either mapped to a job or marked "left out" with its reason: tool not installed locally, needs credentials or network, pip-only, too slow for a hook (build, e2e).
 
 ### 3. Write
 
 Compose the file from the recipes:
 
-- `pre-commit`: fast checks on `{staged_files}`. Formatters first, with `stage_fixed: true`, then lint and typecheck. `glob` scoped to the unit, `exclude` for generated or vendored paths, `root:` with a trailing slash for a unit in a subdirectory.
+- `pre-commit`: fast checks on `{staged_files}`. Formatters first, with `stage_fixed: true`, then lint and typecheck. `glob` scoped to the unit, `exclude` for generated or vendored paths, `root:` with a trailing slash for a unit in a subdirectory. A check over 30 seconds belongs to pre-push only.
 - `pre-push`: whole-suite checks written as plain commands: tests, full validation. No file template in this stage: the Claude hook runs it with `--force` and no push files, so `{push_files}` would expand to nothing.
 - `parallel: true` on both stages, one job per tool, the job named after the tool.
 - The repo script when one exists (`pnpm run lint`), the tool through the package manager's exec form when none does. A missing script is a gap for the report, never a reason to run a tool on a guessed config.
