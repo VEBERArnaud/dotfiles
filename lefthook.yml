@@ -1,5 +1,5 @@
-# Quality gates for this repository, mirroring .github/workflows/lint.yml for
-# the checks whose tools are installed locally (shellcheck, chezmoi).
+# Quality gates for this repository, mirroring .github/workflows/lint.yml
+# (shellcheck, taplo, yamllint and chezmoi; vint is pip-only and left to CI).
 #
 # pre-commit runs on staged files only, pre-push validates the whole source.
 # Git runs them once `lefthook install` has been run in a clone. The Claude
@@ -22,7 +22,18 @@ pre-commit:
         done
         exit $rc
 
+    - name: taplo
+      glob: "*.toml"
+      exclude:
+        - "**/modify_*" # chezmoi modify scripts, not TOML content
+      run: taplo lint {staged_files}
+
+    - name: yamllint
+      glob: "*.{yml,yaml}"
+      run: yamllint -d relaxed {staged_files}
+
 pre-push:
+  parallel: true
   jobs:
     - name: shellcheck rendered script templates
       run: |
@@ -31,3 +42,9 @@ pre-push:
           chezmoi execute-template < "$file" | shellcheck -s bash -e SC1091 - || rc=1
         done
         exit $rc
+
+    - name: taplo
+      run: find home -name "*.toml" ! -name "modify_*" -exec taplo lint {} +
+
+    - name: yamllint
+      run: yamllint -d relaxed .
