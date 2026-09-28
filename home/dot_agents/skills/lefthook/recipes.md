@@ -15,6 +15,7 @@ Job snippets per ecosystem, composed into a `lefthook.yml` by the [lefthook skil
 | shell scripts (bash shebang or `.sh`) | | shfmt when installed | shellcheck | |
 | `*.yml`, `*.yaml` | | | yamllint | |
 | `*.toml` | | | taplo | |
+| `*.md` | | | lychee `--offline` when the CI checks links (pre-push, whole repository, same `--exclude-path` list as the CI) | |
 
 Exec forms: bun → `bun run <script>` and `bunx <tool>`; pnpm → `pnpm run` and `pnpm exec`; yarn → `yarn run` and `yarn exec`; npm → `npm run` and `npx`.
 
