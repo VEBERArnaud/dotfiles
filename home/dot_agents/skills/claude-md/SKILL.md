@@ -35,7 +35,7 @@ One of four destinations, the section named in full:
 | Doc (`docs/<topic>.md`) | reference read on demand: full endpoint or query lists, migration journals, detailed architecture, deployment considerations |
 | Drop | a cache of the environment (scripts already listed in `package.json`, options readable from `--help`), a no-op the model does by default, a duplicate of README or CONTRIBUTING (link instead) |
 
-A repository used with Codex reads `AGENTS.md` and not `.claude/rules`: conventions Codex must also see go to `docs/` with a pointer, not to a rule.
+A repository used with Codex, or one following the agent convention, keeps the brief in `AGENTS.md` and a one-line `CLAUDE.md` holding `@AGENTS.md` (Claude Code reads an `AGENTS.md` on its own when no `CLAUDE.md` sits in the working directory or above it, and only `CLAUDE.md` when both exist, so the import keeps the two tools on the same file). Codex does not load `.claude/rules`: the brief names each rule and when to read it (`When editing apps/api/src, read .claude/rules/api.md first`), so Codex reaches them on demand while Claude loads them by path.
 
 Done when every section of the current file has a destination and a reason.
 
@@ -76,6 +76,7 @@ EOF
 ```
 
 - The repository's own validators (`docs:validate`, a link check) need its dependencies: a fresh worktree gets the package manager's install first.
+- `/doctor prompt-audit` (Claude Code 2.1.283 or later), run by the user in a session, reads the brief, the rules and the skills and reports stale references and contradictions: the report names it as the follow-up check.
 - Rules load: `paths` globs match real files (`git ls-files | grep`), a frontmatter typo silently turns a rule into an always-loaded file.
 
 Done when the lost-lines check prints nothing and every link resolves.
