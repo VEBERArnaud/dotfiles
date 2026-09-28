@@ -136,7 +136,7 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 Global user config deployed to `~/.claude/`:
 
 - **CLAUDE.md.tmpl** - User preferences (French responses, English code, preferred tools)
-- **settings.json.tmpl** - Hardened permissions (minimal allow list) and hooks: notifications, plus lefthook gates run by `scripts/hook.sh` (`lefthook run pre-commit` before a `git commit`, `lefthook run pre-push` before Claude stops). A repository opts in by having a `lefthook.yml` or `lefthook-local.yml`; without one the gates are skipped.
+- **settings.json.tmpl** - Sessions start in `auto` permission mode (a classifier reviews actions, deny rules still absolute; plan mode is asked for explicitly with `claude --permission-mode plan`), hardened permissions (minimal allow list) and hooks: notifications, plus lefthook gates run by `scripts/hook.sh` (`lefthook run pre-commit` before a `git commit`, `lefthook run pre-push` before Claude stops). A repository opts in by having a `lefthook.yml` or `lefthook-local.yml`; without one the gates are skipped.
 - **rules/** - Modular instructions for git, shell, and security conventions
 - **skills/** - Symlinks to the shared skills in `~/.agents/skills/` (`/changelog`, `/commit-conventional`, `/lefthook`, `/review`)
 
