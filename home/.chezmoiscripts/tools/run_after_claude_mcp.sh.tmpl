@@ -63,6 +63,58 @@ else
     fi
 fi
 
+{{ if .user_veberarnaud -}}
+# Add qonto MCP server (remote, OAuth login via /mcp)
+if mcp_exists "qonto"; then
+    log_info "  MCP server qonto already configured"
+else
+    log_info "  Adding MCP server: qonto..."
+    if claude mcp add "qonto" --scope user --transport http https://mcp.qonto.com/mcp &>/dev/null; then
+        log_success "  qonto added"
+    else
+        log_error "  Failed to add qonto"
+    fi
+fi
+
+# Add plaud MCP server (OAuth login in the browser on first use)
+if mcp_exists "plaud"; then
+    log_info "  MCP server plaud already configured"
+else
+    log_info "  Adding MCP server: plaud..."
+    if claude mcp add "plaud" --scope user -- npx -y @plaud-ai/mcp@latest &>/dev/null; then
+        log_success "  plaud added"
+    else
+        log_error "  Failed to add plaud"
+    fi
+fi
+
+# Add finary MCP server (remote, read-only, OAuth login via /mcp)
+if mcp_exists "finary"; then
+    log_info "  MCP server finary already configured"
+else
+    log_info "  Adding MCP server: finary..."
+    if claude mcp add "finary" --scope user --transport http https://public-api.finary.com/mcp &>/dev/null; then
+        log_success "  finary added"
+    else
+        log_error "  Failed to add finary"
+    fi
+fi
+
+{{ end -}}
+{{ if .project_eurosport -}}
+# Add datadog MCP server (remote, EU site, OAuth login via /mcp)
+if mcp_exists "datadog"; then
+    log_info "  MCP server datadog already configured"
+else
+    log_info "  Adding MCP server: datadog..."
+    if claude mcp add "datadog" --scope user --transport http "https://mcp.datadoghq.eu/api/unstable/mcp-server/mcp?toolsets=all" &>/dev/null; then
+        log_success "  datadog added"
+    else
+        log_error "  Failed to add datadog"
+    fi
+fi
+
+{{ end -}}
 log_success "Claude MCP servers configuration complete"
 
 {{- end -}}

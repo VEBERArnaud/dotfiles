@@ -142,6 +142,10 @@ Global user config deployed to `~/.claude/`:
 MCP servers configured via `run_after_claude_mcp.sh.tmpl`:
 - **chrome-devtools** - Browser automation
 - **context7** - Up-to-date library documentation (API key from 1Password)
+- **qonto** - Qonto banking, remote server with OAuth (`user_veberarnaud` only)
+- **plaud** - Plaud recordings and meeting notes, OAuth on first use (`user_veberarnaud` only)
+- **finary** - Finary wealth data, remote read-only server with OAuth (`user_veberarnaud` only)
+- **datadog** - Datadog EU observability with all toolsets, remote server with OAuth (`project_eurosport` only)
 
 ### Codex CLI Configuration
 
