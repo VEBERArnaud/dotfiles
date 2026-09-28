@@ -1,6 +1,6 @@
 # Lefthook recipes
 
-Job snippets per ecosystem, composed into a `lefthook.yml` by the [lefthook skill](SKILL.md). Every snippet uses the `jobs:` syntax. `root:` keeps a trailing slash: the command runs from that directory and `{staged_files}` is filtered to the files under it, passed relative to it; the job is skipped when no staged file is under it. Globs always match from the git root, whatever `root` says. A `glob` without a slash matches the file name in any directory; `**` matches one or more directories, so `tf/**/*.tf` misses `tf/main.tf` (use `root: "tf/"` with `glob: "*.tf"` instead).
+Job snippets per ecosystem, composed into a `lefthook.yml` by the [lefthook skill](SKILL.md). Every snippet uses the `jobs:` syntax and assumes `glob_matcher: doublestar` at the top of the file, so globs read like Bash: `*.ts` is the root only, `**/*.ts` any depth including the root, `packages/*/src/**/*.ts` any depth under each `src`. `root:` keeps a trailing slash: the command runs from that directory and `{staged_files}` is filtered to the files under it, passed relative to it; the job is skipped when no staged file is under it. Globs always match from the git root, whatever `root` says.
 
 ## Where to look, per unit
 

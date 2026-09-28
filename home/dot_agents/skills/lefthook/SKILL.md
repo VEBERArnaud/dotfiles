@@ -1,7 +1,6 @@
 ---
 name: lefthook
-description: Create or update a repository's lefthook.yml from its CI and toolchain
-disable-model-invocation: true
+description: Create or update a repository's lefthook config (lefthook.yml, or lefthook-local.yml with the `local` argument) from its CI workflow and toolchain. Use when the user asks for lefthook, git hooks or quality gates on a repository.
 allowed-tools: Bash, Read, Glob, Grep, Write, Edit, AskUserQuestion
 argument-hint: [local]
 ---
@@ -41,6 +40,7 @@ Compose the file from the recipes:
 - `pre-commit`: fast checks on `{staged_files}`. Formatters first, with `stage_fixed: true`, then lint and typecheck. `glob` scoped to the unit, `exclude` for generated or vendored paths, `root:` with a trailing slash for a unit in a subdirectory. A check over 30 seconds belongs to pre-push only.
 - `pre-push`: whole-suite checks written as plain commands: tests, full validation. No file template in this stage: the Claude hook runs it with `--force` and no push files, so `{push_files}` would expand to nothing.
 - `parallel: true` on both stages, one job per tool, the job named after the tool.
+- `glob_matcher: doublestar` at the top of the file: globs then read like Bash, `*.ts` is the root only and `packages/*/src/**/*.ts` any depth under src, so a CI scope such as `./*.{ts,js}` can be mirrored exactly. With the default matcher a bare `*.ts` matches every directory.
 - The repo script when one exists (`pnpm run lint`), the tool through the package manager's exec form when none does. A missing script is a gap for the report, never a reason to run a tool on a guessed config.
 - Header comment, this text with the CI path filled in:
 
@@ -55,6 +55,8 @@ Compose the file from the recipes:
 
 Update mode: add the missing jobs and leave the rest byte for byte; an existing job you would have written differently goes in the report, not in the file.
 
+Existing husky + lint-staged: each lint-staged entry becomes a pre-commit job with the same glob and `stage_fixed: true`; `.husky/` and the two devDependencies go, `lefthook` comes in as devDependency, and `"prepare": "husky"` becomes `"prepare": "lefthook install"`. The repository already forced its hooks on every clone, so the forcing level stays what it was.
+
 Done when `lefthook dump` parses the file and every mapped command appears exactly once.
 
 ### 4. Verify
@@ -67,6 +69,8 @@ lefthook run pre-push --force --no-tty --no-auto-install
 ```
 
 A failure is one of two kinds. A config error (wrong path, wrong flag, tool not found): fix it and rerun. A pre-existing defect in the repository (a lint warning that was already there): report it with file and rule, and leave the code alone unless asked.
+
+`--all-files` feeds every file to the formatters, and `stage_fixed` stages what they rewrite: read `git status` right after the run. A rewritten file outside the CI scope means the glob is too wide; restore the file (`git reset`, `git checkout -- <path>`) and narrow the glob before rerunning. Tests that import sibling packages from their build output need the build job first: a `group` with `piped: true` in pre-push, bundle then tests.
 
 `lefthook install` is never run here: installing git hooks is the developer's decision.
 
