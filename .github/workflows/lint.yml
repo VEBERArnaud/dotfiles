@@ -78,6 +78,8 @@ jobs:
             # SC1091: Don't follow external sources (nvm.sh etc)
             chezmoi execute-template < "$tmpl" | shellcheck -s bash -e SC1091 -
           done
+          echo "Checking dot_claude/modify_settings.json.tmpl..."
+          chezmoi execute-template < "${CHEZMOI_SOURCE}/dot_claude/modify_settings.json.tmpl" | shellcheck -s bash -
           echo "✓ All scripts pass shellcheck"
 
       - name: Validate TOML files

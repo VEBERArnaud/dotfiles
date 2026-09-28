@@ -31,7 +31,7 @@ dotfiles/
     │   └── verify/                   # Post-apply validation
     ├── dot_claude/                   # Global Claude Code config (~/.claude/)
     │   ├── CLAUDE.md.tmpl            # User preferences (language, tools, stack)
-    │   ├── settings.json.tmpl        # Permissions and hooks
+    │   ├── modify_settings.json.tmpl # Permissions and hooks (modify script)
     │   ├── scripts/executable_hook.sh # Notifications and lefthook quality gates
     │   ├── scripts/executable_statusline.sh # Status line: model, location, context, cost, limits
     │   ├── rules/                    # Modular instructions
@@ -138,7 +138,7 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 Global user config deployed to `~/.claude/`:
 
 - **CLAUDE.md.tmpl** - User preferences (French responses, English code, preferred tools)
-- **settings.json.tmpl** - Sessions connect to Remote Control at startup (`remoteControlAtStartup`; a `false` in a repository's `.claude/settings.json` opts that repository out), start in `auto` permission mode (a classifier reviews actions, deny rules still absolute; plan mode is asked for explicitly with `claude --permission-mode plan`), hardened permissions (minimal allow list) and hooks: notifications, plus lefthook gates run by `scripts/hook.sh` (`lefthook run pre-commit` before a `git commit`, `lefthook run pre-push` before Claude stops). A repository opts in by having a `lefthook.yml` or `lefthook-local.yml`; without one the gates are skipped.
+- **modify_settings.json.tmpl** - Modify script: the keys it lists are enforced, every other key Claude Code writes (push notifications, `/config` toggles) passes through untouched. Sessions connect to Remote Control at startup (`remoteControlAtStartup`; a `false` in a repository's `.claude/settings.json` opts that repository out), start in `auto` permission mode (a classifier reviews actions, deny rules still absolute; plan mode is asked for explicitly with `claude --permission-mode plan`), hardened permissions (minimal allow list) and hooks: notifications, plus lefthook gates run by `scripts/hook.sh` (`lefthook run pre-commit` before a `git commit`, `lefthook run pre-push` before Claude stops). A repository opts in by having a `lefthook.yml` or `lefthook-local.yml`; without one the gates are skipped.
 - **scripts/statusline.sh** - Status line (`statusLine` in settings): model, repo or worktree and branch, context used, session cost, 5-hour and 7-day rate limits, colour-coded
 - **rules/** - Modular instructions for git, shell, and security conventions
 - **skills/** - Symlinks to the shared skills in `~/.agents/skills/` (`/changelog`, `/claude-md`, `/commit-conventional`, `/lefthook`, `/review`)
