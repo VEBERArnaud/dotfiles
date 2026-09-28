@@ -110,6 +110,8 @@ Symlink template content (one line, no trailing newline):
 
 Add to both `tools/run_after_claude_mcp.sh.tmpl` (`claude mcp add --scope user`) and `tools/run_after_codex_mcp.sh.tmpl` (`codex mcp add`), same command and arguments.
 
+Remote HTTP servers: `claude mcp add --transport http <name> <url>` on the Claude side, the `mcp_add_http` helper on the Codex side (`codex mcp add --url` blocks on an interactive OAuth login). OAuth login is done afterwards by the user: `/mcp` in Claude Code, `codex mcp login <name>` for Codex.
+
 ### Plugins
 
 Add to `tools/run_after_claude_plugins.sh.tmpl` and `home/dot_claude/settings.json.tmpl` (`enabledPlugins`), then to `tools/run_after_codex_plugins.sh.tmpl` under the same feature flag. Codex reads Claude-format marketplaces (`.claude-plugin/marketplace.json`), so marketplace sources are shared. Exceptions: LSP plugins are Claude-only; private marketplaces use the SSH URL on the Codex side.

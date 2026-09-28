@@ -38,6 +38,27 @@ mcp_exists() {
     codex mcp get "${name}" &>/dev/null
 }
 
+# Add a streamable HTTP MCP server.
+# `codex mcp add --url` writes the config, then blocks in an interactive OAuth
+# flow waiting for a browser callback. Run it in the background, wait for the
+# config entry, then stop it. Login is done later with `codex mcp login <name>`.
+mcp_add_http() {
+    local name="$1"
+    local url="$2"
+    local pid
+    codex mcp add "${name}" --url "${url}" &>/dev/null &
+    pid=$!
+    for _ in {1..20}; do
+        if mcp_exists "${name}"; then
+            break
+        fi
+        sleep 0.5
+    done
+    kill "${pid}" &>/dev/null || true
+    wait "${pid}" &>/dev/null || true
+    mcp_exists "${name}"
+}
+
 # Add chrome-devtools MCP server
 if mcp_exists "chrome-devtools"; then
     log_info "  MCP server chrome-devtools already configured"
@@ -63,6 +84,58 @@ else
     fi
 fi
 
+{{ if .user_veberarnaud -}}
+# Add qonto MCP server (remote, OAuth login via `codex mcp login qonto`)
+if mcp_exists "qonto"; then
+    log_info "  MCP server qonto already configured"
+else
+    log_info "  Adding MCP server: qonto..."
+    if mcp_add_http "qonto" "https://mcp.qonto.com/mcp"; then
+        log_success "  qonto added"
+    else
+        log_error "  Failed to add qonto"
+    fi
+fi
+
+# Add plaud MCP server (OAuth login in the browser on first use)
+if mcp_exists "plaud"; then
+    log_info "  MCP server plaud already configured"
+else
+    log_info "  Adding MCP server: plaud..."
+    if codex mcp add "plaud" -- npx -y @plaud-ai/mcp@latest &>/dev/null; then
+        log_success "  plaud added"
+    else
+        log_error "  Failed to add plaud"
+    fi
+fi
+
+# Add finary MCP server (remote, read-only, OAuth login via `codex mcp login finary`)
+if mcp_exists "finary"; then
+    log_info "  MCP server finary already configured"
+else
+    log_info "  Adding MCP server: finary..."
+    if mcp_add_http "finary" "https://public-api.finary.com/mcp"; then
+        log_success "  finary added"
+    else
+        log_error "  Failed to add finary"
+    fi
+fi
+
+{{ end -}}
+{{ if .project_eurosport -}}
+# Add datadog MCP server (remote, EU site, OAuth login via `codex mcp login datadog`)
+if mcp_exists "datadog"; then
+    log_info "  MCP server datadog already configured"
+else
+    log_info "  Adding MCP server: datadog..."
+    if mcp_add_http "datadog" "https://mcp.datadoghq.eu/api/unstable/mcp-server/mcp?toolsets=all"; then
+        log_success "  datadog added"
+    else
+        log_error "  Failed to add datadog"
+    fi
+fi
+
+{{ end -}}
 log_success "Codex MCP servers configuration complete"
 
 {{- end -}}
