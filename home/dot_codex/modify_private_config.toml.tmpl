@@ -32,7 +32,7 @@ MANAGED = {
 {{- /* The instance URL lives in 1Password, not in this repository; CI has
        no session, so the section is simply absent there. */ -}}
 {{- $dmcUrl := "" }}
-{{- if and .user_veberarnaud (not (env "CI")) }}
+{{- if not (env "CI") }}
 {{-   $dmcUrl = onepasswordRead "op://Personal/DMC/website" | trimSuffix "/" }}
 {{- end }}
 {{- if $dmcUrl }}

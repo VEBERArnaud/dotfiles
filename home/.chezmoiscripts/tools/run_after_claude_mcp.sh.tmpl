@@ -100,6 +100,7 @@ else
     fi
 fi
 
+{{ end -}}
 # Add dmc MCP server (the DMC instance, x-api-key auth). The instance URL
 # lives in 1Password, not in this repository. The key is not in the entry
 # either: `headersHelper` runs ~/.local/bin/dmc-mcp-headers on every
@@ -121,7 +122,6 @@ else
     fi
 fi
 
-{{ end -}}
 {{ if .project_eurosport -}}
 # Add datadog MCP server (remote, EU site, OAuth login via /mcp)
 if mcp_exists "datadog"; then

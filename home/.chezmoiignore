@@ -42,12 +42,6 @@
 {{- end }}
 {{- end }}
 
-# Human-user files (the DMC MCP key must never reach an agent host)
-{{- if not .user_veberarnaud }}
-.config/dmc
-.local/bin/dmc-mcp-headers
-{{- end }}
-
 # Project-scoped files
 {{- if not .project_eurosport }}
 .config/.jira
