@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Prints the DMC MCP authentication header as a JSON object, for the helper
+# hooks of Claude Code (`headersHelper` in ~/.claude.json) and Codex
+# (`http_headers_helper` in ~/.codex/config.toml). Both run it afresh on every
+# connection to the server and merge its output into the request headers.
+#
+# The key itself lives in ~/.config/dmc/api-key (mode 600), rendered from
+# 1Password by chezmoi: it is never part of a tool configuration, a command
+# line or this script. Rotating it is a 1Password edit plus `chezmoi apply`.
+#
+# Usage:
+#   dmc-mcp-headers          # {"x-api-key":"..."} on stdout, exit 1 if unset
+set -euo pipefail
+
+# Codex starts helpers with a minimal environment and a GUI launch may not
+# carry the Homebrew prefix, where jq lives.
+export PATH="${PATH:-/usr/bin:/bin}:/opt/homebrew/bin:/usr/local/bin"
+
+readonly KEY_FILE="${HOME}/.config/dmc/api-key"
+
+if ! command -v jq >/dev/null 2>&1; then
+    echo "dmc-mcp-headers: jq is required" >&2
+    exit 1
+fi
+
+if [[ ! -r "${KEY_FILE}" ]]; then
+    echo "dmc-mcp-headers: ${KEY_FILE} is missing — run \`chezmoi apply\`" >&2
+    exit 1
+fi
+
+# $(<file) drops the trailing newline the template leaves.
+key="$(<"${KEY_FILE}")"
+if [[ -z "${key}" ]]; then
+    echo "dmc-mcp-headers: ${KEY_FILE} is empty" >&2
+    exit 1
+fi
+
+jq -cn --arg key "${key}" '{"x-api-key": $key}'
