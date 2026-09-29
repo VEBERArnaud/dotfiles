@@ -5,6 +5,14 @@ The Codex/ChatGPT app rewrites this file with its own state (plugins,
 marketplaces, mcp_servers, desktop settings, ...). Only the keys listed
 in MANAGED are enforced by chezmoi; every other line is passed through
 untouched so the app-owned sections never show up in `chezmoi diff`.
+
+The MCP servers themselves are added by run_after_codex_mcp.sh.tmpl with
+`codex mcp add`, except `dmc`: that command cannot declare a headers
+helper, so its section is enforced here. Its URL is read from 1Password
+when chezmoi renders this script, and the API key is not in it —
+`http_headers_helper` runs ~/.local/bin/dmc-mcp-headers on every
+connection, which reads ~/.config/dmc/api-key, rendered from 1Password by
+chezmoi.
 """
 
 import re
@@ -21,6 +29,18 @@ MANAGED = {
     "sandbox_workspace_write": {
         "network_access": "true",
     },
+{{- /* The instance URL lives in 1Password, not in this repository; CI has
+       no session, so the section is simply absent there. */ -}}
+{{- $dmcUrl := "" }}
+{{- if and .user_veberarnaud (not (env "CI")) }}
+{{-   $dmcUrl = onepasswordRead "op://Personal/DMC/website" | trimSuffix "/" }}
+{{- end }}
+{{- if $dmcUrl }}
+    "mcp_servers.dmc": {
+        "url": '"{{ $dmcUrl }}/api/mcp"',
+        "http_headers_helper": '"{{ .chezmoi.homeDir }}/.local/bin/dmc-mcp-headers"',
+    },
+{{- end }}
 }
 
 SECTION_RE = re.compile(r"^\s*\[([^\]]+)\]")

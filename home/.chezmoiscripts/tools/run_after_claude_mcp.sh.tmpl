@@ -100,6 +100,27 @@ else
     fi
 fi
 
+# Add dmc MCP server (the DMC instance, x-api-key auth). The instance URL
+# lives in 1Password, not in this repository. The key is not in the entry
+# either: `headersHelper` runs ~/.local/bin/dmc-mcp-headers on every
+# connection, which reads ~/.config/dmc/api-key, rendered from 1Password by
+# chezmoi — so a rotated key needs no re-add here, only `chezmoi apply`.
+if mcp_exists "dmc"; then
+    log_info "  MCP server dmc already configured"
+else
+    DMC_URL="$(op read "op://Personal/DMC/website" 2>/dev/null || true)"
+    if [[ -z "${DMC_URL}" ]]; then
+        log_warn "  DMC URL not found in 1Password (op://Personal/DMC/website). Skipping dmc."
+    else
+        log_info "  Adding MCP server: dmc..."
+        if claude mcp add-json "dmc" --scope user "{\"type\":\"http\",\"url\":\"${DMC_URL%/}/api/mcp\",\"headersHelper\":\"{{ .chezmoi.homeDir }}/.local/bin/dmc-mcp-headers\"}" &>/dev/null; then
+            log_success "  dmc added"
+        else
+            log_error "  Failed to add dmc"
+        fi
+    fi
+fi
+
 {{ end -}}
 {{ if .project_eurosport -}}
 # Add datadog MCP server (remote, EU site, OAuth login via /mcp)

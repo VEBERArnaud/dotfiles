@@ -47,8 +47,10 @@ dotfiles/
     │   └── review/                   # /review skill
     ├── dot_codex/                    # Codex CLI config (~/.codex/): AGENTS.md, config.toml, skills
     ├── dot_config/                   # ~/.config/ files
+    │   ├── dmc/private_api-key.tmpl  # DMC MCP API key, rendered from 1Password (600, user_veberarnaud only)
     │   ├── ghostty/config            # Ghostty terminal configuration
     │   └── starship.toml             # Starship prompt configuration
+    ├── dot_local/bin/                # ~/.local/bin/ scripts (sesh-picker, dmc-mcp-headers)
     ├── dot_zprofile.d/               # ~/.zprofile.d/ drop-in files (numbered)
     ├── dot_zshenv.d/                 # ~/.zshenv.d/ drop-in files
     ├── dot_ssh/                      # SSH config with 1Password integration
@@ -149,6 +151,7 @@ MCP servers configured via `run_after_claude_mcp.sh.tmpl`:
 - **qonto** - Qonto banking, remote server with OAuth (`user_veberarnaud` only)
 - **plaud** - Plaud recordings and meeting notes, OAuth on first use (`user_veberarnaud` only)
 - **finary** - Finary wealth data, remote read-only server with OAuth (`user_veberarnaud` only)
+- **dmc** - The DMC instance's MCP endpoint (`<instance>/api/mcp`, the URL read from 1Password at apply time): runs, sessions, triggers and config of the orchestrator, `x-api-key` auth (`user_veberarnaud` only — never an agent host). The key is not in the server entry: `headersHelper` runs `~/.local/bin/dmc-mcp-headers` on every connection, which reads `~/.config/dmc/api-key`, rendered from 1Password by chezmoi, so a rotation is a 1Password edit plus `chezmoi apply`
 - **datadog** - Datadog EU observability with all toolsets, remote server with OAuth (`project_eurosport` only)
 
 ### Codex CLI Configuration
@@ -156,9 +159,9 @@ MCP servers configured via `run_after_claude_mcp.sh.tmpl`:
 Global config deployed to `~/.codex/`, aligned with Claude Code:
 
 - **AGENTS.md.tmpl** - Same preferences as `~/.claude/CLAUDE.md` (shared `preferences.md.tmpl`)
-- **modify_private_config.toml** - Enforces model, reasoning effort, approval and sandbox keys in `config.toml`; app-owned sections pass through untouched
+- **modify_private_config.toml.tmpl** - Enforces model, reasoning effort, approval and sandbox keys in `config.toml`, plus the `dmc` MCP server section (`url` from 1Password, `http_headers_helper` pointing at `~/.local/bin/dmc-mcp-headers`, `user_veberarnaud` only, absent in CI) since `codex mcp add` cannot declare a headers helper; app-owned sections pass through untouched
 - **skills/** - Symlinks to the shared skills in `~/.agents/skills/`
-- MCP servers and plugins via `run_after_codex_mcp.sh.tmpl` and `run_after_codex_plugins.sh.tmpl` (Codex reads Claude-format marketplaces; LSP plugins are Claude-only)
+- The other MCP servers and the plugins via `run_after_codex_mcp.sh.tmpl` and `run_after_codex_plugins.sh.tmpl` (Codex reads Claude-format marketplaces; LSP plugins are Claude-only)
 
 Skills live in a tool-neutral location so removing either tool does not break the other: global skills in `home/dot_agents/skills/` (deployed to `~/.agents/skills/`), project skills in `.agents/skills/`. Both `.claude/skills/` and `~/.codex/skills/` are symlinks to them.
 

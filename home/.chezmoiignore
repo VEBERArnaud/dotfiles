@@ -20,6 +20,7 @@
     ".chezmoiscripts/run_after_import-gpg-key.sh"
     ".chezmoiscripts/tools/run_after_gws_auth.sh"
     ".config/.jira"
+    ".config/dmc/api-key"
     ".npmrc"
     ".okta_aws_login_config"
     ".ssh/config.local"
@@ -39,6 +40,12 @@
 {{- range $opFiles }}
 {{ . }}
 {{- end }}
+{{- end }}
+
+# Human-user files (the DMC MCP key must never reach an agent host)
+{{- if not .user_veberarnaud }}
+.config/dmc
+.local/bin/dmc-mcp-headers
 {{- end }}
 
 # Project-scoped files
