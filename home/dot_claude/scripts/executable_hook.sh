@@ -140,6 +140,13 @@ block_stop() {
     jq -n --arg reason "${1}" '{decision: "block", reason: $reason}'
 }
 
+# A DMC run worktree (<repo>.wt/dmc-<workflow>-<run>): the workflow gates on
+# its own (validate, create-pr), and a blocked stop would replace the agent's
+# final reply, whose STATUS line the orchestrator routes on
+is_dmc_worktree() {
+    [[ "$(basename "${1}")" == dmc-* && "$(dirname "${1}")" == *.wt ]]
+}
+
 #######################################
 # Hook handlers
 #######################################
@@ -148,10 +155,13 @@ handle_stop() {
     local root output stop_hook_active
 
     root=$(repo_root)
-    if [[ -n "${root}" ]] && has_lefthook_config "${root}" && has_unverified_changes "${root}"; then
+    if [[ -n "${root}" ]] && ! is_dmc_worktree "${root}" \
+        && has_lefthook_config "${root}" && has_unverified_changes "${root}"; then
         # --force: run even when nothing is pending for push
         if ! output=$(run_lefthook_stage "${root}" pre-push --force); then
-            block_stop "pre-push checks failed, fix them before finishing:
+            # Only the last reply reaches an orchestrator: it must carry the
+            # original conclusion, not just the fix
+            block_stop "pre-push checks failed, fix them before finishing, then restate your complete final reply:
 $(tail_output "${output}")"
             return 0
         fi
