@@ -8,6 +8,7 @@ Vim is configured via `home/dot_vimrc.tmpl` with [vim-plug](https://github.com/j
 
 | Plugin                           | Description                                   |
 | -------------------------------- | --------------------------------------------- |
+| `aliou/bats.vim`                 | Bats test syntax highlighting                 |
 | `airblade/vim-gitgutter`         | Git diff signs in the gutter                  |
 | `vim-airline/vim-airline`        | Status/tabline with powerline fonts           |
 | `dense-analysis/ale`             | Asynchronous linting and fixing               |
@@ -23,11 +24,10 @@ Vim is configured via `home/dot_vimrc.tmpl` with [vim-plug](https://github.com/j
 | `junegunn/fzf`                   | Fuzzy finder (`:FZF`)                         |
 | `junegunn/limelight.vim`         | Focused editing (dims surrounding paragraphs) |
 | `MarcWeber/vim-addon-mw-utils`   | Utility library (dependency)                  |
-| `markcornick/vim-bats`           | Bats test syntax highlighting                 |
+| `mg979/vim-visual-multi`         | Multiple cursor editing                       |
 | `ntpeters/vim-better-whitespace` | Highlight trailing whitespace                 |
 | `othree/html5.vim`               | HTML5 syntax and completion                   |
 | `SirVer/ultisnips`               | Snippet engine                                |
-| `terryma/vim-multiple-cursors`   | Multiple cursor editing                       |
 | `tomtom/tlib_vim`                | Utility library (dependency)                  |
 | `tpope/vim-fugitive`             | Git wrapper (`:Git`, `:Gblame`, etc.)         |
 | `tpope/vim-git`                  | Git file types                                |
@@ -68,8 +68,9 @@ Vim is configured via `home/dot_vimrc.tmpl` with [vim-plug](https://github.com/j
 | `<leader><space>` | Normal | Clear search highlight         |
 | `<leader>a`       | Normal | Open ripgrep search (`:Rg`)    |
 | `<leader>f`       | Normal | Open fzf (`:FZF`)              |
+| `<leader>n`       | Normal | Toggle relative/absolute lines |
 | `<leader>p`       | Normal | Toggle paste mode              |
-| `Ctrl-N`          | Normal | Toggle relative/absolute lines |
+| `Ctrl-N`          | Normal | Select next occurrence (vim-visual-multi) |
 | `Ctrl-J/K/L/H`    | Normal | Navigate splits                |
 | Arrow keys        | All    | Disabled (use hjkl)            |
 
