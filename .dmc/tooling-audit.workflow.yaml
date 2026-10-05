@@ -1,4 +1,3 @@
----
 workflows:
   tooling-audit:
     description: Weekly tooling audit, bounded to one hour, stops once the PR is open
