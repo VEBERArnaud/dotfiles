@@ -128,7 +128,7 @@ if mcp_exists "datadog"; then
     log_info "  MCP server datadog already configured"
 else
     log_info "  Adding MCP server: datadog..."
-    if mcp_add_http "datadog" "https://mcp.datadoghq.eu/api/unstable/mcp-server/mcp?toolsets=all"; then
+    if mcp_add_http "datadog" "https://mcp.datadoghq.eu/v1/mcp?toolsets=all"; then
         log_success "  datadog added"
     else
         log_error "  Failed to add datadog"
