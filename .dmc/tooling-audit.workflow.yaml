@@ -1,0 +1,25 @@
+---
+workflows:
+  tooling-audit:
+    description: Weekly tooling audit, bounded to one hour, stops once the PR is open
+    timeout: 3600
+    initial: audit
+    states:
+      audit:
+        prompt: |
+          {{input}}
+
+          ## Contraintes d'exécution
+
+          - Budget : 60 minutes au total. Garde au moins 10 minutes pour committer, pousser et ouvrir la PR.
+          - Ne lance pas `brew update` : les métadonnées Homebrew de la machine sont déjà à jour,
+            `brew info --json=v2` suffit pour détecter un paquet deprecated, disabled ou renommé.
+          - Reste dans le périmètre de l'audit. Un constat hors périmètre (notice CI, image runner,
+            dette annexe) va dans une section « Hors périmètre » de la PR ou du rapport, sans investigation.
+          - Une fois la PR ouverte et sa CI verte, ou le rapport rendu s'il n'y a rien à changer,
+            arrête-toi : pas de vérification supplémentaire.
+        model: claude-code/claude-opus-5
+        timeout: 3600
+        then: done
+      done:
+        type: final
