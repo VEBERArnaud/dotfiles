@@ -17,7 +17,7 @@ workflows:
             dette annexe) va dans une section « Hors périmètre » de la PR ou du rapport, sans investigation.
           - Une fois la PR ouverte et sa CI verte, ou le rapport rendu s'il n'y a rien à changer,
             arrête-toi : pas de vérification supplémentaire.
-        model: claude-code/claude-opus-5
+        model: claude-thinking
         timeout: 3600
         then: done
       done:
