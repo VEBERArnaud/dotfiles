@@ -1,0 +1,541 @@
+workflows:
+  feature:
+    description: Feature development with quality gates
+    timeout: 14400
+    initial: plan
+    states:
+      plan:
+        model: claude-thinking
+        timeout: 1200
+        maxIterations: 2
+        onTimeout: retry
+        prompt: >
+          Feature request:
+
+          <input>
+
+          {{input}}
+
+          </input>
+
+
+          If the input references an issue or a ticket (e.g. `#123`, a
+          GitHub
+
+          URL, a Jira key), fetch it in full first, comments included
+
+          (`gh issue view <n> --comments`, or the Jira tooling available).
+
+          That content is the source of truth for the scope.
+
+
+          Explore the codebase to understand the architecture, existing
+
+          patterns, and conventions relevant to this feature.
+
+          Do NOT write any code yet.
+
+
+          Produce, in this order:
+
+
+          ## Acceptance criteria
+
+          A numbered checklist (AC1, AC2, ...) covering EVERYTHING the
+
+          request asks for. Tag each item:
+
+          - [repo] when it is done by changing files in this repository;
+            it must be verifiable by reading the diff or running a command.
+          - [human] when it cannot be done from the repository: deploying,
+            applying infrastructure, acting on a live environment, creating
+            secrets or accounts, merging PRs, gathering real-world data,
+            documents kept outside the repository, communicating with people.
+          An item with a code part and a human part is split in two.
+
+
+          ## Steps
+
+          A numbered list of implementation steps (Step 1, Step 2, ...)
+
+          covering every [repo] criterion, each small enough to be
+
+          implemented in about 15 minutes, with the files it touches and
+
+          the acceptance criteria it satisfies.
+
+          Tests and documentation are steps too.
+
+
+          ## Manual actions
+
+          Every [human] criterion, written as a concrete instruction for a
+
+          human, in the order it should happen relative to the merge.
+
+          Reviewing and merging the PR, and closing the issue, are never
+
+          manual actions: they always happen.
+
+
+          ## Edge cases and risks
+
+
+          Scope rules:
+
+          - The plan covers the FULL [repo] scope of the request in a single
+            PR. [human] items are not dropped: they become manual actions.
+          - Never defer part of the scope to a follow-up, a separate PR or
+            "later", unless the request explicitly says so.
+          - When the request leaves a choice open, pick the simplest option
+            consistent with the codebase and state it in the plan.
+            Decisions given in the input take precedence.
+          - Only when a choice cannot reasonably be made without the
+            requester (incompatible options with real consequences, missing
+            information), stop and ask instead of guessing.
+
+          End your response with exactly one of:
+
+          - STATUS: DONE
+
+          - STATUS: NEEDS_DECISION   (followed by the numbered questions,
+            each with the options and your recommendation; the run stops
+            and is relaunched with the answers in its input)
+        on:
+          'result.contains("STATUS: DONE")': implement
+      implement:
+        model: claude-doing
+        session: implement
+        sessionMode: reset
+        timeout: 1500
+        maxIterations: 15
+        onTimeout: retry
+        onMaxIterations: check-quality
+        prompt: |
+          You are implementing this feature request:
+          <input>
+          {{input}}
+          </input>
+
+          Here is the approved plan:
+          <plan>
+          {{states.plan.text}}
+          </plan>
+
+          1. Find out which steps are already done: inspect `git status`,
+             `git diff` and `git log main..HEAD`. Previous iterations may
+             have done part of the work; do not redo it.
+          2. Implement the next not-yet-done step(s), one or two at most,
+             following existing code patterns and conventions, and the
+             repository's own instructions (AGENTS.md, CLAUDE.md,
+             .claude/rules). Do not commit.
+          3. Report which steps are done and which remain.
+
+          Do not skip, shrink or defer any step. If a step is impossible,
+          explain why precisely.
+
+          Hard rules for all implementation, fixing and testing work
+          (only the final PR step pushes and opens the PR). Never:
+          - deploy, or apply infrastructure (terraform apply, kubectl,
+            nomad run, helm, ...); plan/validate/format commands are fine;
+          - send requests to, or log into, a staging or production
+            environment or any live service;
+          - create or change secrets, credentials, accounts, cloud
+            resources or DNS;
+          - merge, close or approve PRs or issues, or comment on them;
+          - push, force push, or bypass git hooks (`--no-verify`).
+          Anything that would require one of these is a manual action.
+
+          Other runs may be working on the same machine at the same time,
+          in other worktrees. Never reuse a local server or port you did
+          not start: before starting any local server (dev server, e2e web
+          server, database, ...), pick a free port and pass it through the
+          project's own mechanism (an env var such as E2E_PORT or PORT, a
+          CLI flag); stop every server you started before you finish.
+
+          End your response with exactly one of:
+          - STATUS: MORE_STEPS   (at least one step of the plan remains)
+          - STATUS: ALL_STEPS_DONE   (every step of the plan is implemented)
+        on:
+          'result.contains("STATUS: ALL_STEPS_DONE")': check-quality
+          result.length >= 0: implement
+      check-quality:
+        model: claude-doing
+        timeout: 600
+        maxIterations: 8
+        onTimeout: retry
+        onMaxIterations: write-tests
+        prompt: |
+          Run the project's linting, formatting, and type-checking, as
+          defined by the repository (AGENTS.md, CLAUDE.md, lefthook.yml,
+          package scripts, Makefile, CI workflows).
+          Do NOT fix anything yet, just report the results.
+          If some changed code is not covered by any of these checks, say
+          so explicitly.
+
+          The changes are not committed yet: a later step commits, pushes
+          and opens the PR, and CI runs on it. Only run checks that work on
+          uncommitted changes. Skip anything that needs a commit, a push or
+          a remote branch (pre-push hooks, `changeset status --since=...`,
+          comparisons with `origin/...`), and never report those as a FAIL.
+          FAIL only for a problem that `fix-quality` can fix in the code.
+
+          End your response with exactly one of:
+          - STATUS: PASS
+          - STATUS: FAIL
+        on:
+          'result.contains("STATUS: PASS")': write-tests
+          'result.contains("STATUS: FAIL")': fix-quality
+      fix-quality:
+        model: claude-doing
+        timeout: 900
+        onTimeout: check-quality
+        prompt: |
+          Fix all linting, formatting, and type-checking errors.
+
+          End your response with exactly one of:
+          - STATUS: DONE
+        then: check-quality
+      write-tests:
+        model: claude-doing
+        timeout: 1200
+        onTimeout: run-tests
+        prompt: |
+          Write or update tests for the implemented feature, so that every
+          acceptance criterion of the plan is covered by at least one test
+          where it is testable:
+          <plan>
+          {{states.plan.text}}
+          </plan>
+
+          Cover the main scenarios and edge cases. Do not duplicate tests
+          that already exist.
+
+          End your response with exactly one of:
+          - STATUS: DONE
+        then: run-tests
+      run-tests:
+        model: claude-doing
+        timeout: 1200
+        maxIterations: 8
+        onTimeout: retry
+        prompt: |
+          Run the project's full test suite, as defined by the repository.
+          If some changed code has no test runner at all, say so
+          explicitly.
+
+          Other runs may be testing on the same machine at the same time,
+          in other worktrees. Never let a test suite reuse a server it did
+          not start: give every local server a free port through the
+          project's own mechanism (an env var such as E2E_PORT or PORT, a
+          CLI flag), and stop every server you started before you finish.
+          If a failure looks caused by another process (port in use,
+          unexpected content served), rerun on another free port before
+          reporting it.
+
+          End your response with exactly one of:
+          - STATUS: ALL_PASS
+          - STATUS: TESTS_FAIL
+        on:
+          'result.contains("STATUS: ALL_PASS")': update-docs
+          'result.contains("STATUS: TESTS_FAIL")': fix-code
+      fix-code:
+        model: claude-doing
+        timeout: 1200
+        onTimeout: run-tests
+        prompt: |
+          Fix the failing tests. Adjust the implementation or the
+          tests as needed, but keep the intended behavior.
+
+          End your response with exactly one of:
+          - STATUS: DONE
+        then: run-tests
+      update-docs:
+        model: claude-doing
+        timeout: 900
+        onTimeout: review
+        prompt: |
+          Check if the changes require documentation updates.
+          Look at: README files, CLAUDE.md, docs/ folder, inline
+          documentation, JSDoc comments on public APIs, and
+          configuration file examples.
+
+          Update any documentation that is now outdated or incomplete
+          due to the implemented changes.
+
+          End your response with exactly one of:
+          - STATUS: DONE
+        then: review
+      review:
+        model: claude-thinking
+        session: reviewer
+        sessionMode: reset
+        timeout: 1200
+        maxIterations: 3
+        onTimeout: retry
+        onMaxIterations: create-pr
+        prompt: |
+          You are reviewing the implementation of this feature request:
+          <input>
+          {{input}}
+          </input>
+
+          The plan it was supposed to follow:
+          <plan>
+          {{states.plan.text}}
+          </plan>
+
+          Read the full change: `git diff main...HEAD` plus uncommitted work
+          (`git status`, `git diff`). If the input references an issue or a
+          ticket, re-read it.
+
+          ## 1. Scope (blocking)
+          For EACH [repo] acceptance criterion and EACH plan step, state
+          whether it is implemented, with the file(s) proving it:
+          - [x] AC1 ... (path/to/file.ts)
+          - [ ] AC2 ... MISSING: what is absent
+          Any unchecked item, or any part of the request deferred to a
+          follow-up that the request did not allow, means
+          CHANGES_REQUESTED.
+          [human] items are not blocking, but check that each one is a
+          genuine manual action and not code that was avoided; a
+          misclassified item is a missing item.
+
+          ## 2. Safety (blocking)
+          Nothing in the change or in the work done should have deployed,
+          applied infrastructure, touched a live environment, created
+          secrets or merged anything. Report any sign of it.
+
+          ## 3. Quality
+          - Correctness
+          - Code quality and readability
+          - Test coverage
+          - Security concerns
+          - Performance implications
+          - Documentation accuracy
+
+          If you request changes, list them as a numbered, actionable list.
+
+          End your response with exactly one of:
+          - STATUS: APPROVED
+          - STATUS: CHANGES_REQUESTED
+        on:
+          'result.contains("STATUS: APPROVED")': create-pr
+          result.length >= 0: address-review
+      address-review:
+        model: claude-doing
+        session: implement
+        sessionMode: reset
+        timeout: 1500
+        maxIterations: 10
+        onTimeout: retry
+        onMaxIterations: check-quality
+        prompt: |
+          You are implementing this feature request:
+          <input>
+          {{input}}
+          </input>
+
+          The plan:
+          <plan>
+          {{states.plan.text}}
+          </plan>
+
+          The reviewer requested changes:
+          <review>
+          {{states.review.text}}
+          </review>
+
+          Inspect `git status`, `git diff` and `git log main..HEAD` to see
+          what is already done (a previous iteration may have addressed some
+          points), then address the remaining points, one or two at a time.
+          Missing scope items come first. Do not commit.
+
+          Hard rules: never deploy or apply infrastructure, never touch a
+          live environment, never create secrets, credentials or accounts,
+          never merge, push or bypass git hooks. Anything requiring one of
+          these is a manual action. Other runs may share this machine:
+          start local servers on a free port only (e.g. E2E_PORT, PORT),
+          never reuse one you did not start, and stop them when done.
+
+          End your response with exactly one of:
+          - STATUS: MORE_WORK   (at least one requested change remains)
+          - STATUS: ALL_ADDRESSED   (every requested change is addressed)
+        on:
+          'result.contains("STATUS: ALL_ADDRESSED")': check-quality
+          result.length >= 0: address-review
+      create-pr:
+        model: claude-doing
+        session: shipper
+        sessionMode: reset
+        timeout: 1200
+        prompt: |
+          Commit all changes, push the branch, and create a Pull Request
+          for this request:
+          <input>
+          {{input}}
+          </input>
+
+          - Write a clear PR title and a description summarizing the
+            changes, mapped to the acceptance criteria of the plan.
+          - Add a "Manual actions" section listing the [human] items of the
+            plan as a checklist, or stating that there are none.
+          - If the input references an issue, link it with `Closes #123`.
+            Use `Refs #123` instead only when the "Manual actions" section
+            lists at least one required [human] item that remains after the
+            merge. Reviewing and merging this PR, closing the issue and
+            optional steps are not manual actions: never list them, and
+            they never justify `Refs`. Before ending, re-read the posted
+            body: with "Manual actions: None." it must say `Closes`.
+          - If the project uses changesets and none exists yet, run
+            `pnpm changeset` to create one.
+          - Never bypass git hooks (`--no-verify`) and never force push.
+          - Never merge the PR, never enable auto-merge.
+          - Write the PR body to a new file created with `mktemp`, never
+            to a fixed path such as `/tmp/pr-body.md` (other runs share
+            this machine), and pass it with `--body-file`. Fill that file
+            with your file-writing tool, not a shell redirection (the
+            shell may refuse to overwrite an existing file). After
+            creating the PR, check with `gh pr view <n> --json body` that
+            the body is the one you wrote; fix it with `gh pr edit` if not.
+
+          Earlier states already ran the full checks and test suites on
+          these changes: do not rerun them; the git hooks and CI run on
+          the commit. Run every command in the foreground and wait for
+          it to finish. Never start a command in the background and never
+          end your turn while something is still running: the session
+          only ends when nothing is left running.
+
+          The last review verdict:
+          <review>
+          {{states.review.text}}
+          </review>
+          If it does not end with `STATUS: APPROVED`, open the PR as a
+          draft (`gh pr create --draft`) and list the unresolved points in
+          the description.
+
+          The plan, for the description:
+          <plan>
+          {{states.plan.text}}
+          </plan>
+
+          End your response with exactly one of:
+          - STATUS: PR_CREATED
+          - STATUS: FAILED   (explain what blocked the push or the PR)
+        on:
+          'result.contains("STATUS: PR_CREATED")': gh-review
+      gh-review:
+        model: claude-thinking
+        session: gh-reviewer
+        sessionMode: reset
+        timeout: 600
+        prompt: >
+          Review the Pull Request that was just created for this request:
+
+          <input>
+
+          {{input}}
+
+          </input>
+
+
+          Use `gh pr view` to get the PR number and `gh pr diff` to
+
+          read the full diff. If the input references an issue or a
+
+          ticket, read it too.
+
+
+          Earlier states already ran the full test suites and CI runs them
+
+          on the PR: do not rerun the whole suite. You may run a targeted
+
+          check (one test file, the typecheck) to confirm a doubt, always in
+
+          the foreground, waiting for it to finish. Never start a command in
+
+          the background and never end your turn while something is still
+
+          running: there is no later turn in which to finish the review. If
+
+          you start a local server, give it a free port (E2E_PORT, PORT) and
+
+          stop it before you finish.
+
+
+          Analyze the PR thoroughly and post a review comment on the
+
+          PR using `gh pr comment` with this structure:
+
+
+          ## Code Review
+
+
+          ### Scope
+
+          Check every requirement of the issue against the diff.
+
+          List each one as covered, missing, or listed in the PR's
+
+          "Manual actions" (and say whether that classification holds).
+
+
+          ### Correctness
+
+          Verify the code implements the feature correctly.
+
+          List what works with checkmarks.
+
+
+          ### Security
+
+          Check for vulnerabilities (injection, XSS, secrets, etc).
+
+
+          ### Performance
+
+          Identify any performance concerns or optimizations needed.
+
+
+          ### Tests
+
+          Evaluate test coverage and quality.
+
+
+          ### Style and Consistency
+
+          Check adherence to project conventions.
+
+
+          ### Conclusion
+
+          Give a final verdict: APPROVED or CHANGES_REQUESTED.
+
+          List strengths and areas for improvement.
+
+
+          Posting the comment is the deliverable of this step. Write it to a
+          new
+
+          file created with `mktemp`, filled with your file-writing tool
+          (not
+
+          a shell redirection), post it with
+
+          `gh pr comment <n> --body-file <file>`, then
+
+          check it appears in `gh pr view <n> --comments`. Do this before
+          you
+
+          end your response, even if your analysis is incomplete: say what
+          you
+
+          could not check in the comment instead of postponing it.
+
+
+          End your response with exactly one of:
+
+          - STATUS: DONE   (the review comment is posted on the PR)
+        then: success
+      success:
+        type: final

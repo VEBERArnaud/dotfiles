@@ -1,0 +1,87 @@
+triggers:
+  weekly-dotfiles-audit:
+    type: cron
+    schedule: 0 4 * * 1
+    workflow: tooling-audit
+    input: >-
+      Réalise l'audit hebdomadaire de l'outillage installé par ce repo
+      dotfiles (chezmoi).
+
+
+      ## Périmètre
+
+
+      Inventorie tous les outils gérés par le repo :
+
+      - Formules et casks Homebrew
+      (`home/.chezmoiscripts/packages/run_before_darwin_homebrew.sh.tmpl`),
+      y compris les blocs conditionnels par feature flag
+
+      - Dépendances externes (`home/.chezmoiexternal.toml`) : zprezto, tpm,
+      vim-plug
+
+      - Plugins vim et tmux référencés dans les configs
+
+      - Outils installés par les scripts `run_after` (node, rust, whisper,
+      serveurs MCP, plugins Claude)
+
+
+      ## Analyse
+
+
+      Pour chaque outil, vérifie le statut de maintenance :
+
+      - Date de la dernière release et du dernier commit (`gh api`, `brew
+      info`, recherche web)
+
+      - Repo archivé, deprecated, ou annonce d'abandon upstream
+
+      - Formule Homebrew deprecated/disabled
+
+      - Incompatibilité avec la version courante de macOS
+
+      - Existence d'une alternative devenue le consensus communautaire
+
+
+      Classe chaque outil : ✅ sain / ⚠️ non maintenu mais conservé
+      (justifier) / ❌ obsolète ou abandonné (remplacer ou supprimer).
+
+
+      Consulte les PRs d'audit précédentes (`gh pr list --search "tooling
+      audit" --state merged`)
+
+      pour ne pas re-questionner les décisions déjà actées (outils
+      volontairement conservés).
+
+
+      ## Critères de décision
+
+
+      - Ne remplace que s'il y a un vrai enjeu : abandon upstream,
+      incompatibilité macOS,
+        faille de sécurité, fonctionnalité cassée. Pas de churn pour du churn.
+      - Un outil non maintenu mais fonctionnel, purement local et sans enjeu
+      de sécurité
+        peut être conservé — le documenter dans la PR.
+      - Tout remplaçant doit être activement maintenu, disponible via
+      Homebrew,
+        et s'intégrer dans les feature flags existants.
+
+      ## Livrable
+
+
+      - Si aucun changement n'est nécessaire : pas de PR, juste le rapport
+      d'audit.
+
+      - Sinon : un commit conventionnel par changement (`fix`/`chore` selon
+      le cas),
+        corps du commit justifiant la décision (dates, raison du remplaçant choisi).
+      - Vérifie le rendu des templates (`chezmoi diff`) avant de committer.
+
+      - Branche `chore/tooling-audit-YYYY-Www` (semaine ISO), PR titrée
+      `chore: tooling audit semaine <WW> <année>` contenant :
+        - Contexte et liste des changements justifiés
+        - Note sur les outils volontairement conservés
+        - Section « ⚠️ Actions manuelles après merge » : `brew uninstall` des paquets retirés
+          (retirer de la liste ne désinstalle pas), rechargement des services impactés,
+          commandes de vérification — à refaire sur chaque machine gérée par chezmoi.

@@ -1,0 +1,177 @@
+workflows:
+  bug-deep-dive:
+    initial: reproduce
+    states:
+      reproduce:
+        prompt: |
+          Bug report:
+          <input>
+          {{input}}
+          </input>
+
+          Step 1 — Reproduce the bug.
+          - Locate the relevant code paths and tests.
+          - Write the smallest possible reproducer (a failing test, or a CLI
+            snippet, or a documented sequence of steps).
+          - Confirm the bug actually occurs on the current branch.
+          - If the bug cannot be reproduced, document precisely what you
+            tried and which assumptions of the report turned out wrong.
+          Do NOT fix anything yet.
+
+          End your response with exactly one of:
+          - STATUS: REPRODUCED
+          - STATUS: NOT_REPRODUCIBLE
+        session: investigator
+        model: claude-code/claude-opus-5
+        timeout: 900
+        on:
+          'result.contains("STATUS: REPRODUCED")': analyze-root-cause
+          'result.contains("STATUS: NOT_REPRODUCIBLE")': failure
+      analyze-root-cause:
+        prompt: >
+          Step 2 — Root cause analysis.
+
+          Trace the bug back to its real cause, not just the symptom.
+
+          - What invariant is being broken?
+
+          - When was the offending code introduced (git blame)?
+
+          - Are there other code paths affected by the same root cause?
+
+          - Document at least one alternative hypothesis you ruled out and
+          why.
+
+          Do NOT write any production code yet.
+
+
+          End your response with exactly one of:
+
+          - STATUS: DONE
+        session: investigator
+        model: claude-code/claude-opus-5
+        timeout: 900
+        then: propose-fix
+      propose-fix:
+        prompt: |
+          Step 3 — Propose a fix strategy.
+          Choose between: targeted patch, refactor of the broken module, or
+          wider design change. Justify the choice in one paragraph.
+          List every file that will be touched and every test that will be
+          added or updated. Do NOT write code yet.
+
+          End your response with exactly one of:
+          - STATUS: DONE
+        session: investigator
+        model: claude-code/claude-opus-5
+        timeout: 600
+        then: implement-fix
+      implement-fix:
+        prompt: |
+          Implement the fix exactly as planned. Add or update the regression
+          tests written during the reproduce step. Run the linter and
+          type-checker before declaring done.
+
+          End your response with exactly one of:
+          - STATUS: DONE
+        session: investigator
+        model: claude-code/claude-sonnet-5
+        timeout: 1500
+        maxIterations: 4
+        onMaxIterations: failure
+        then: run-tests
+      run-tests:
+        prompt: >
+          Run the full test suite, including the regression test for this
+          bug.
+
+
+          End your response with exactly one of:
+
+          - STATUS: ALL_PASS
+
+          - STATUS: TESTS_FAIL
+        session: investigator
+        model: claude-code/claude-sonnet-5
+        timeout: 900
+        maxIterations: 3
+        onMaxIterations: failure
+        on:
+          'result.contains("STATUS: ALL_PASS")': review
+          'result.contains("STATUS: TESTS_FAIL")': implement-fix
+      review:
+        prompt: >
+          Independent review of the fix.
+
+          - Does the fix address the root cause and not just the symptom?
+
+          - Are there other code paths still vulnerable?
+
+          - Is the regression test strong enough to catch the bug if it
+          reappears?
+
+          - Is the fix the minimum viable change?
+
+
+          End your response with exactly one of:
+
+          - STATUS: APPROVED
+
+          - STATUS: CHANGES_REQUESTED
+        session: reviewer
+        sessionMode: reset
+        model: claude-code/claude-opus-5
+        timeout: 600
+        maxIterations: 2
+        onMaxIterations: create-pr
+        on:
+          'result.contains("STATUS: APPROVED")': create-pr
+          'result.contains("STATUS: CHANGES_REQUESTED")': implement-fix
+      create-pr:
+        prompt: |
+          Commit, push, and open a Pull Request.
+          Title format: fix(<scope>): <subject>
+          Body must include: bug description, root cause, fix summary, and a
+          reference to the regression test. If the project uses changesets,
+          run `pnpm changeset`.
+
+          End your response with exactly one of:
+          - STATUS: DONE
+        session: investigator
+        model: claude-code/claude-sonnet-5
+        timeout: 300
+        then: success
+      success:
+        type: final
+      failure:
+        type: final
+    _editorLayout:
+      reproduce:
+        x: 0
+        y: 0
+      analyze-root-cause:
+        x: 260
+        y: 0
+      propose-fix:
+        x: 520
+        y: 0
+      implement-fix:
+        x: 780
+        y: 0
+      run-tests:
+        x: 0
+        y: 120
+      review:
+        x: 260
+        y: 120
+      create-pr:
+        x: 520
+        y: 120
+      success:
+        x: 780
+        y: 120
+      failure:
+        x: 0
+        y: 240
+    description: Reproduce bug, find root cause, fix, regression test, and PR
+    timeout: 9000

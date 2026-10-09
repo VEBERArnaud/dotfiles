@@ -1,0 +1,21 @@
+workflows:
+  ad-hoc:
+    initial: ad-hoc
+    states:
+      ad-hoc:
+        prompt: |
+          {{input}}
+        model: claude-code/claude-opus-5
+        timeout: 1800
+        then: done
+      done:
+        type: final
+    _editorLayout:
+      ad-hoc:
+        x: 0
+        y: 0
+      done:
+        x: 260
+        y: 0
+    description: Ad-hoc
+    timeout: 1800
