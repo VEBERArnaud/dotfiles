@@ -1,5 +1,10 @@
 # Shell scripting conventions
 
+## Interactive aliases
+
+- In the user's interactive zsh, `rm`, `cp`, `mv` and `ln` are aliased to their `-i` form and ask for confirmation. In an agent shell nobody answers: the command hangs until the tool timeout, then keeps running in the background and can block the end of the session.
+- These aliases are skipped when `CLAUDECODE` is set, but never rely on it: in a shell command, use `rm -f`, `cp -f`, `mv -f`, `ln -f`, or `command rm` (`command cp`...) to bypass any alias.
+
 ## Bash scripts
 
 - Always start with `set -euo pipefail`
