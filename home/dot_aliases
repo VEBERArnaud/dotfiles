@@ -19,11 +19,14 @@ alias glglm='git log --before=$(date "+%Y-%m-01") --after=$(date -d"1 month ago"
 alias glgcm='git log --before=$(date -d"+ 1 month" "+%Y-%m-01") --after=$(date "+%Y-%m-01") --author="$(git config user.name)" --reverse --pretty=format:"%cd - %h - %s" --date=short'
 alias glgt='git log --since="yesterday" --author="$(git config user.name)" --pretty=format:"%cd - %h - %s" --date=short --no-merges'
 
-# Some aliases to avoid making mistakes
-alias rm='rm -i'
-alias cp='cp -i'
-alias mv='mv -i'
-alias ln='ln -i'
+# Some aliases to avoid making mistakes. Not in agent shells (Claude Code
+# exports CLAUDECODE=1): nobody answers the prompt there, and the command hangs.
+if [[ -z $CLAUDECODE ]]; then
+  alias rm='rm -i'
+  alias cp='cp -i'
+  alias mv='mv -i'
+  alias ln='ln -i'
+fi
 
 # shortcuts
 alias c='clear'
@@ -355,7 +358,11 @@ fi
 # Aliases for Linux, Ops.
 if [[ $OS == 'Linux' ]]; then
   # safety, override
-  alias rm='rm -i --preserve-root'
+  if [[ -z $CLAUDECODE ]]; then
+    alias rm='rm -i --preserve-root'
+  else
+    alias rm='rm --preserve-root'
+  fi
   alias chown='chown --preserve-root'
   alias chmod='chmod --preserve-root'
   alias chgrp='chgrp --preserve-root'
