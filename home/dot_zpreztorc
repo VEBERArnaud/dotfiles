@@ -126,3 +126,14 @@ zstyle ':prezto:module:tmux:auto-start' remote 'no'
 
 # Integrate with iTerm2.
 zstyle ':prezto:module:tmux:iterm' integrate 'no'
+
+#
+# Utility
+#
+
+# Safe ops alias cp, ln, mv and rm to their -i form. Not in agent shells
+# (Claude Code exports CLAUDECODE=1): nobody answers the prompt there, and the
+# command hangs.
+if [[ -n $CLAUDECODE ]]; then
+  zstyle ':prezto:module:utility' safe-ops 'no'
+fi
