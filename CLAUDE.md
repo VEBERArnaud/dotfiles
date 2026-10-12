@@ -54,6 +54,7 @@ dotfiles/
     ├── dot_zprofile.d/               # ~/.zprofile.d/ drop-in files (numbered)
     ├── dot_zshenv.d/                 # ~/.zshenv.d/ drop-in files
     ├── dot_ssh/                      # SSH config with 1Password integration
+    ├── private_Library/LaunchAgents/ # DMC server launch agent (user_emmett only, bootstrapped by hand)
     └── [dotfiles...]                 # Shell, vim, tmux, git configurations
 ```
 
