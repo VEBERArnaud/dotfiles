@@ -1,0 +1,34 @@
+{{- if .user_emmett -}}
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>ai.dmc.server</string>
+
+    <!-- Login shell: loads ~/.zprofile.d (Homebrew, nvm + .nvmrc), the environment agents expect -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/zsh</string>
+        <string>-lc</string>
+        <string>exec dmcli start</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>{{ .chezmoi.homeDir }}/Developer/src/github.com/dmc-ai/my-dmc-instance</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+
+    <!-- A file, not a TTY: a stalled reader can no longer block the server's event loop -->
+    <key>StandardOutPath</key>
+    <string>{{ .chezmoi.homeDir }}/Library/Logs/dmc.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{ .chezmoi.homeDir }}/Library/Logs/dmc.log</string>
+</dict>
+</plist>
+{{ end -}}
