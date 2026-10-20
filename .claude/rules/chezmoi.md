@@ -47,7 +47,7 @@ Available in `.tmpl` files via `{{ .variable }}`:
 
 ### Projects (hostname-based)
 
-- `.project_personal`, `.project_eurosport`, `.project_mega_lap`, `.project_vbr_tech`
+- `.project_personal`, `.project_dmc`, `.project_emmett`, `.project_eurosport`, `.project_mega_lap`, `.project_vbr_tech`
 
 ### Peripherals (hostname-based)
 

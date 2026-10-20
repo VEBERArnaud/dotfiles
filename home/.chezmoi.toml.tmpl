@@ -10,6 +10,8 @@
 {{- $user_veberarnaud := false -}}
 
 {{/* project */}}
+{{- $project_dmc := false -}}
+{{- $project_emmett := false -}}
 {{- $project_eurosport := false -}}
 {{- $project_mega_lap := false -}}
 {{- $project_personal := false -}}
@@ -56,6 +58,8 @@
 {{/* hosts */}}
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2023" -}}
 {{-   $user_veberarnaud = true -}}
+{{-   $project_dmc = true -}}
+{{-   $project_emmett = true -}}
 {{-   $project_eurosport = true -}}
 {{-   $project_mega_lap = true -}}
 {{-   $project_personal = true -}}
@@ -64,6 +68,8 @@
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2023" -}}
 {{-   $user_emmett = true -}}
+{{-   $project_dmc = true -}}
+{{-   $project_emmett = true -}}
 {{-   $project_eurosport = true -}}
 {{-   $project_mega_lap = true -}}
 {{- end -}}
@@ -73,6 +79,8 @@
 {{-   $has_elgato = true -}}
 {{-   $has_insta360 = true -}}
 {{-   $has_scanner = true -}}
+{{-   $project_dmc = true -}}
+{{-   $project_emmett = true -}}
 {{-   $project_eurosport = true -}}
 {{-   $project_mega_lap = true -}}
 {{-   $project_personal = true -}}
@@ -108,6 +116,15 @@
 {{-   $with_terraform = true -}}
 {{- end -}}
 
+{{- if $project_dmc -}}
+{{-   $with_javascript = true -}}
+{{-   $with_swift = true -}}
+{{- end -}}
+
+{{- if $project_emmett -}}
+{{-   $with_javascript = true -}}
+{{- end -}}
+
 {{- if $project_mega_lap -}}
 {{-   $with_android = true -}}
 {{-   $with_aws = true -}}
@@ -125,6 +142,8 @@
     is_windows = {{ $is_windows }}
     user_emmett = {{ $user_emmett }}
     user_veberarnaud = {{ $user_veberarnaud }}
+    project_dmc = {{ $project_dmc }}
+    project_emmett = {{ $project_emmett }}
     project_eurosport = {{ $project_eurosport }}
     project_mega_lap = {{ $project_mega_lap }}
     project_personal = {{ $project_personal }}

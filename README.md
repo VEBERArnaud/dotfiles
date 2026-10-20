@@ -72,11 +72,11 @@ The repository uses a multi-dimensional identity model based on hostname. Each h
 
 ### Layer 2: Projects
 
-| Hostname                   | personal | vbr_tech | eurosport | mega_lap |
-| -------------------------- | :------: | :------: | :-------: | :------: |
-| VEBERArnaud-MacBookPro2023 |    ✓     |    ✓     |     ✓     |    ✓     |
-| VEBERArnaud-MacMini2023    |          |          |     ✓     |    ✓     |
-| VEBERArnaud-MacMini2023s   |    ✓     |    ✓     |     ✓     |    ✓     |
+| Hostname                   | personal | dmc | emmett | vbr_tech | eurosport | mega_lap |
+| -------------------------- | :------: | :-: | :----: | :------: | :-------: | :------: |
+| VEBERArnaud-MacBookPro2023 |    ✓     |  ✓  |   ✓    |    ✓     |     ✓     |    ✓     |
+| VEBERArnaud-MacMini2023    |          |  ✓  |   ✓    |          |     ✓     |    ✓     |
+| VEBERArnaud-MacMini2023s   |    ✓     |  ✓  |   ✓    |    ✓     |     ✓     |    ✓     |
 
 ### Layer 3: Peripherals
 
@@ -91,6 +91,8 @@ Projects determine which development tools are installed.
 | Project   | Android | AWS | Consul | Docker | JS  | Nomad | Packer | Rust | Swift | Terraform |
 | --------- | :-----: | :-: | :----: | :----: | :-: | :---: | :----: | :--: | :---: | :-------: |
 | personal  |         |  ✓  |   ✓    |   ✓    |  ✓  |   ✓   |        |      |   ✓   |     ✓     |
+| dmc       |         |     |        |        |  ✓  |       |        |      |   ✓   |           |
+| emmett    |         |     |        |        |  ✓  |       |        |      |       |           |
 | vbr_tech  |         |  ✓  |   ✓    |   ✓    |  ✓  |   ✓   |   ✓    |  ✓   |       |     ✓     |
 | eurosport |         |  ✓  |        |   ✓    |  ✓  |       |        |      |       |     ✓     |
 | mega_lap  |    ✓    |  ✓  |        |   ✓    |  ✓  |       |        |  ✓   |   ✓   |           |

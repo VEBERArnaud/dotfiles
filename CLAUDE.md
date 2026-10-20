@@ -82,6 +82,8 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 ### Project Flags (hostname-based)
 
 - `project_personal` - Personal machines
+- `project_dmc` - DMC project machines
+- `project_emmett` - Emmett project machines
 - `project_eurosport` - Eurosport work machines
 - `project_mega_lap` - Mega Lap project machines
 - `project_vbr_tech` - VBR Tech project machines

@@ -33,6 +33,8 @@ jobs:
             user_emmett = false
             user_veberarnaud = true
             project_personal = true
+            project_dmc = false
+            project_emmett = false
             project_vbr_tech = false
             project_eurosport = false
             project_mega_lap = false
