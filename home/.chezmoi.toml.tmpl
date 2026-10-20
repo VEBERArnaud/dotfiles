@@ -84,13 +84,9 @@
 {{- if $project_personal -}}
 {{-   $with_aws = true -}}
 {{-   $with_docker = true -}}
-{{-   $with_golang = true -}}
 {{-   $with_javascript = true -}}
 {{-   $with_consul = true -}}
 {{-   $with_nomad = true -}}
-{{-   $with_packer = true -}}
-{{-   $with_php = true -}}
-{{-   $with_rust = true -}}
 {{-   $with_swift = true -}}
 {{-   $with_terraform = true -}}
 {{- end -}}
@@ -99,6 +95,10 @@
 {{-   $with_aws = true -}}
 {{-   $with_docker = true -}}
 {{-   $with_javascript = true -}}
+{{-   $with_consul = true -}}
+{{-   $with_nomad = true -}}
+{{-   $with_packer = true -}}
+{{-   $with_rust = true -}}
 {{-   $with_terraform = true -}}
 {{- end -}}
 
@@ -114,8 +114,8 @@
 {{-   $with_aws = true -}}
 {{-   $with_docker = true -}}
 {{-   $with_javascript = true -}}
+{{-   $with_rust = true -}}
 {{-   $with_swift = true -}}
-{{-   $with_terraform = true -}}
 {{- end -}}
 
 [data]

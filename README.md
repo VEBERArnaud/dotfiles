@@ -88,12 +88,12 @@ The repository uses a multi-dimensional identity model based on hostname. Each h
 
 Projects determine which development tools are installed. `VEBERArnaud-MacMini2023` also has `with_javascript` and `with_rust` set directly, in addition to its project.
 
-| Project   | AWS | Docker | Go  | JS  | Nomad | PHP | Rust | Terraform |
-| --------- | :-: | :----: | :-: | :-: | :---: | :-: | :--: | :-------: |
-| personal  |  ✓  |   ✓    |  ✓  |  ✓  |   ✓   |  ✓  |  ✓   |     ✓     |
-| vbr_tech  |  ✓  |   ✓    |     |  ✓  |       |     |      |     ✓     |
-| eurosport |  ✓  |   ✓    |     |  ✓  |       |     |      |     ✓     |
-| mega_lap  |  ✓  |   ✓    |     |  ✓  |       |     |      |     ✓     |
+| Project   | Android | AWS | Consul | Docker | JS  | Nomad | Packer | Rust | Swift | Terraform |
+| --------- | :-----: | :-: | :----: | :----: | :-: | :---: | :----: | :--: | :---: | :-------: |
+| personal  |         |  ✓  |   ✓    |   ✓    |  ✓  |   ✓   |        |      |   ✓   |     ✓     |
+| vbr_tech  |         |  ✓  |   ✓    |   ✓    |  ✓  |   ✓   |   ✓    |  ✓   |       |     ✓     |
+| eurosport |         |  ✓  |        |   ✓    |  ✓  |       |        |      |       |     ✓     |
+| mega_lap  |    ✓    |  ✓  |        |   ✓    |  ✓  |       |        |  ✓   |   ✓   |           |
 
 Configuration is defined in [`home/.chezmoi.toml.tmpl`](home/.chezmoi.toml.tmpl).
 
