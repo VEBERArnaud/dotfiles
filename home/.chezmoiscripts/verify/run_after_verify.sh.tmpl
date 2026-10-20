@@ -167,6 +167,7 @@ check_file "${HOME}/.ssh/config" || errors=$((errors + 1))
     "VEBERArnaud-MacMini2023"
     "VEBERArnaud-MacMini2023s"
     "VEBERArnaud-MacBookPro2023"
+    "VEBERArnaud-MacMini2026"
 }}
 {{ if has .chezmoi.hostname $hostsWithSSHKey -}}
 check_file "${HOME}/.ssh/id_ed25519.pub" || errors=$((errors + 1))

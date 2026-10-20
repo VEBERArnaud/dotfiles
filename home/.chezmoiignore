@@ -4,6 +4,7 @@
     "VEBERArnaud-MacMini2023"
     "VEBERArnaud-MacMini2023s"
     "VEBERArnaud-MacBookPro2023"
+    "VEBERArnaud-MacMini2026"
 -}}
 {{- $hasSSHKey := has .chezmoi.hostname $hostsWithSSHKey -}}
 
