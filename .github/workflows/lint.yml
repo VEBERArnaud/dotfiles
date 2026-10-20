@@ -30,9 +30,6 @@ jobs:
             is_windows = false
             is_unix = true
             is_apple_silicon = true
-            type_laptop = true
-            type_desktop = false
-            type_server = false
             user_emmett = false
             user_veberarnaud = true
             project_personal = true

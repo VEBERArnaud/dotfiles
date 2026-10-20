@@ -59,15 +59,7 @@ chsh -s $(which zsh)
 
 The repository uses a multi-dimensional identity model based on hostname. Each hostname maps to a combination of layers that determine what gets installed and configured.
 
-### Layer 1: Device Type
-
-| Hostname                   | laptop | desktop | server |
-| -------------------------- | :----: | :-----: | :----: |
-| VEBERArnaud-MacBookPro2023 |   ✓    |         |        |
-| VEBERArnaud-MacMini2023    |        |    ✓    |        |
-| VEBERArnaud-MacMini2023s   |        |    ✓    |        |
-
-### Layer 2: User
+### Layer 1: User
 
 | Hostname                   | veberarnaud | emmett |
 | -------------------------- | :---------: | :----: |
@@ -78,7 +70,7 @@ The repository uses a multi-dimensional identity model based on hostname. Each h
 - `veberarnaud` — human user (GUI apps, personal tools)
 - `emmett` — AI agent (headless, no GUI)
 
-### Layer 3: Projects
+### Layer 2: Projects
 
 | Hostname                   | personal | vbr_tech | eurosport | mega_lap |
 | -------------------------- | :------: | :------: | :-------: | :------: |
@@ -86,13 +78,13 @@ The repository uses a multi-dimensional identity model based on hostname. Each h
 | VEBERArnaud-MacMini2023    |          |          |     ✓     |          |
 | VEBERArnaud-MacMini2023s   |    ✓     |    ✓     |     ✓     |    ✓     |
 
-### Layer 4: Peripherals
+### Layer 3: Peripherals
 
 | Hostname                   | elgato | insta360 | scanner |
 | -------------------------- | :----: | :------: | :-----: |
 | VEBERArnaud-MacMini2023s   |   ✓    |    ✓     |    ✓    |
 
-### Layer 5: Tools (derived from projects)
+### Layer 4: Tools (derived from projects)
 
 Projects determine which development tools are installed. `VEBERArnaud-MacMini2023` also has `with_javascript` and `with_rust` set directly, in addition to its project.
 

@@ -74,12 +74,6 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 - `is_mac`, `is_linux`, `is_windows`, `is_unix`
 - `is_apple_silicon` - True for ARM64 Macs
 
-### Device Type Flags (hostname-based)
-
-- `type_laptop` - Portable machines (MacBook Pro, MacBook Air)
-- `type_desktop` - Stationary machines (Mac mini, iMac, Mac Studio, Mac Pro)
-- `type_server` - Server machines (headless)
-
 ### User Flags (hostname-based)
 
 - `user_veberarnaud` - Human user (GUI apps, personal tools)

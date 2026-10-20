@@ -40,10 +40,6 @@ Available in `.tmpl` files via `{{ .variable }}`:
 - `.is_mac`, `.is_linux`, `.is_windows`, `.is_unix`
 - `.is_apple_silicon` (ARM64 Macs)
 
-### Device type (hostname-based)
-
-- `.type_laptop`, `.type_desktop`, `.type_server`
-
 ### Users (hostname-based)
 
 - `.user_veberarnaud` (human user, GUI apps)

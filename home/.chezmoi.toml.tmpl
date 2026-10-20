@@ -5,11 +5,6 @@
 {{- $is_windows := false -}}
 {{- $is_apple_silicon := false -}}
 
-{{/* device type */}}
-{{- $type_laptop := false -}}
-{{- $type_desktop := false -}}
-{{- $type_server := false -}}
-
 {{/* user */}}
 {{- $user_emmett := false -}}
 {{- $user_veberarnaud := false -}}
@@ -60,7 +55,6 @@
 
 {{/* hosts */}}
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2023" -}}
-{{-   $type_laptop = true -}}
 {{-   $user_veberarnaud = true -}}
 {{-   $project_eurosport = true -}}
 {{-   $project_mega_lap = true -}}
@@ -69,7 +63,6 @@
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2023" -}}
-{{-   $type_desktop = true -}}
 {{-   $user_emmett = true -}}
 {{-   $project_eurosport = true -}}
 {{-   $with_javascript = true -}}
@@ -77,7 +70,6 @@
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2023s" -}}
-{{-   $type_desktop = true -}}
 {{-   $user_veberarnaud = true -}}
 {{-   $has_elgato = true -}}
 {{-   $has_insta360 = true -}}
@@ -132,9 +124,6 @@
     is_mac = {{ $is_mac }}
     is_unix = {{ $is_unix }}
     is_windows = {{ $is_windows }}
-    type_laptop = {{ $type_laptop }}
-    type_desktop = {{ $type_desktop }}
-    type_server = {{ $type_server }}
     user_emmett = {{ $user_emmett }}
     user_veberarnaud = {{ $user_veberarnaud }}
     project_eurosport = {{ $project_eurosport }}
