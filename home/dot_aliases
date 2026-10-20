@@ -213,15 +213,16 @@ wtd() {
   [[ ! -d "$wt_dir" ]] && { echo "Not found: $wt_dir"; return 1; }
   [[ "$(pwd)" == "$wt_dir"* ]] && { echo "Can't remove while inside"; return 1; }
 
-  # Kill tmux session if exists (sesh names sessions after the directory name)
-  local session_name="$(_wt_sanitize_branch "$branch")"
-  tmux has-session -t "$session_name" 2>/dev/null && tmux kill-session -t "$session_name"
-
-  # Core removal (delegated to standalone script)
+  # Core removal (delegated to standalone script, refuses uncommitted changes without -f)
   local args=()
   [[ "$force" == true ]] && args+=(--force)
   [[ "$keep_branch" == true ]] && args+=(--keep-branch)
-  wt-remove "${args[@]}" "$wt_dir"
+  wt-remove "${args[@]}" "$wt_dir" || return 1
+
+  # Kill tmux session if exists (sesh names sessions after the directory name)
+  local session_name="$(_wt_sanitize_branch "$branch")"
+  tmux has-session -t "$session_name" 2>/dev/null && tmux kill-session -t "$session_name"
+  return 0
 }
 
 # Zsh completions for worktree functions

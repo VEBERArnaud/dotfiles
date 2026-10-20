@@ -28,8 +28,8 @@ Branch names with slashes are converted to dashes: `feature/auth` -> `feature-au
 | `wt --editor <branch>`       | Create worktree and auto-open editor                    |
 | `wt --no-envrc <branch>`     | Create worktree without auto-creating .envrc            |
 | `wt --no-submodules <branch>` | Create worktree with empty submodule directories       |
-| `wtd <branch>`               | Delete worktree, tmux session, and local branch         |
-| `wtd -f <branch>`            | Force delete worktree and branch                        |
+| `wtd <branch>`               | Delete worktree, tmux session, and local branch (refuses uncommitted changes) |
+| `wtd -f <branch>`            | Force delete worktree and branch, even with changes     |
 | `wtd --keep-branch <branch>` | Delete worktree but keep local branch                   |
 | `git wl`                     | Native git worktree list                                |
 | `Ctrl-a W`                   | Tmux worktree picker (fzf)                              |
@@ -275,6 +275,11 @@ Make sure you're inside a git repository when running worktree commands.
 ### "Branch not found"
 
 The branch doesn't exist locally or on origin and you used `--no-create`. Remove the flag to create the branch automatically.
+
+### "Uncommitted changes in ..."
+
+`wtd` (and `wt-remove` without `--force`) refuses to delete a worktree with modified or untracked
+files, including inside its submodules, and lists them. Commit or stash them, or use `wtd -f`.
 
 ### "Can't remove while inside"
 
