@@ -27,8 +27,9 @@ Branch names with slashes are converted to dashes: `feature/auth` -> `feature-au
 | `wt --no-install <branch>`   | Create worktree without auto-installing deps            |
 | `wt --editor <branch>`       | Create worktree and auto-open editor                    |
 | `wt --no-envrc <branch>`     | Create worktree without auto-creating .envrc            |
-| `wtd <branch>`               | Delete worktree, tmux session, and local branch         |
-| `wtd -f <branch>`            | Force delete worktree and branch                        |
+| `wt --no-submodules <branch>` | Create worktree with empty submodule directories       |
+| `wtd <branch>`               | Delete worktree, tmux session, and local branch (refuses uncommitted changes) |
+| `wtd -f <branch>`            | Force delete worktree and branch, even with changes     |
 | `wtd --keep-branch <branch>` | Delete worktree but keep local branch                   |
 | `git wl`                     | Native git worktree list                                |
 | `Ctrl-a W`                   | Tmux worktree picker (fzf)                              |
@@ -201,6 +202,29 @@ export DEBUG=true
 
 Variables in `.envrc.override` take precedence over those from the main `.envrc`.
 
+## Submodules
+
+`git worktree add` leaves submodule directories empty, and `git submodule update --init` in the
+new worktree would clone each submodule again. Instead, `wt-create` checks out every submodule
+initialized in the main worktree as a **worktree of that clone**, at the commit recorded by the
+new worktree:
+
+- nothing is cloned: objects, fetches and branches are shared with the main worktree;
+- if the main worktree's clone lacks the recorded commit, it is fetched (with `--depth 1` when
+  that clone is shallow, so a shallow clone stays shallow and a full one stays full);
+- a submodule not initialized in the main worktree stays empty;
+- a branch created in a linked submodule lives in the main worktree's clone, so it survives `wtd`.
+
+`wt-remove` then prunes the worktree entries left in the main worktree's submodule clones.
+
+Two limits:
+
+- Git refuses to check out the same branch twice: keep the main worktree's submodules detached
+  (what `git submodule update` does) to use their branches in other worktrees.
+- Nested submodules (a submodule's own submodules) are not linked.
+
+Use `wt --no-submodules <branch>` to keep the directories empty.
+
 ## Claude Code Integration
 
 Claude Code supports `claude --worktree <name>` to run in an isolated worktree. This reuses the same `wt-create`/`wt-remove` scripts via hooks configured in `~/.claude/settings.json`.
@@ -251,6 +275,11 @@ Make sure you're inside a git repository when running worktree commands.
 ### "Branch not found"
 
 The branch doesn't exist locally or on origin and you used `--no-create`. Remove the flag to create the branch automatically.
+
+### "Uncommitted changes in ..."
+
+`wtd` (and `wt-remove` without `--force`) refuses to delete a worktree with modified or untracked
+files, including inside its submodules, and lists them. Commit or stash them, or use `wtd -f`.
 
 ### "Can't remove while inside"
 

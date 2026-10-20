@@ -2,11 +2,12 @@
 # wt-remove - Remove a git worktree and optionally its branch
 #
 # Usage: wt-remove [--force] [--keep-branch] <worktree-path>
-#   --force        Force remove even with changes
+#   --force        Remove even with uncommitted changes (submodules included)
 #   --keep-branch  Don't delete the local git branch
 #   <worktree-path>  Absolute path of the worktree to remove
 #
-# exit 0: success (always, tolerant to errors)
+# exit 0: success (tolerant to errors)
+# exit 1: uncommitted changes without --force, nothing removed
 
 set -euo pipefail
 
@@ -54,30 +55,58 @@ if [[ -f "${wt_path}/.git" ]]; then
 fi
 
 #######################################
+# Refuse to lose uncommitted work (unless --force)
+#######################################
+
+# git worktree remove refuses a dirty worktree, but also any worktree that
+# contains submodules, clean or not: check here, then always remove with
+# --force. The superproject's status reports changes inside submodules too.
+if [[ "${force}" == false ]]; then
+    changes=$(git -C "${wt_path}" status --porcelain 2>/dev/null || true)
+    if [[ -n "${changes}" ]]; then
+        echo "Uncommitted changes in ${wt_path}:" >&2
+        echo "${changes}" >&2
+        echo "Commit or stash them, or rerun with --force (wtd -f)" >&2
+        exit 1
+    fi
+fi
+
+#######################################
+# Find linked submodules
+#######################################
+
+# Submodules linked by wt-create are worktrees of the main worktree's clones:
+# remember those clones to prune their worktree entries once the directory is
+# gone. A submodule cloned inside this worktree goes away with it.
+sub_git_dirs=()
+if [[ -f "${wt_path}/.gitmodules" ]]; then
+    while read -r _ sub_path; do
+        wt_sub="${wt_path}/${sub_path}"
+        [[ -f "${wt_sub}/.git" ]] || continue
+        sub_git_dir=$(git -C "${wt_sub}" rev-parse --path-format=absolute --git-dir 2>/dev/null) || continue
+        sub_common_dir=$(git -C "${wt_sub}" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || continue
+        if [[ "${sub_git_dir}" != "${sub_common_dir}" ]]; then
+            sub_git_dirs+=("${sub_common_dir}")
+        fi
+    done < <(git -C "${wt_path}" config -f .gitmodules --get-regexp '\.path$' 2>/dev/null || true)
+fi
+
+#######################################
 # Remove worktree
 #######################################
 
 if [[ -n "${main_repo}" ]]; then
-    if [[ "${force}" == true ]]; then
-        git -C "${main_repo}" worktree remove --force "${wt_path}" 2>/dev/null || true
-    else
-        git -C "${main_repo}" worktree remove "${wt_path}" 2>/dev/null || {
-            # Fallback to force if normal remove fails
-            git -C "${main_repo}" worktree remove --force "${wt_path}" 2>/dev/null || true
-        }
-    fi
+    git -C "${main_repo}" worktree remove --force "${wt_path}" 2>/dev/null || true
     git -C "${main_repo}" worktree prune 2>/dev/null || true
 else
     # No main repo found, try from worktree path directly
-    if [[ "${force}" == true ]]; then
-        git worktree remove --force "${wt_path}" 2>/dev/null || true
-    else
-        git worktree remove "${wt_path}" 2>/dev/null || {
-            git worktree remove --force "${wt_path}" 2>/dev/null || true
-        }
-    fi
+    git worktree remove --force "${wt_path}" 2>/dev/null || true
     git worktree prune 2>/dev/null || true
 fi
+
+for sub_common_dir in ${sub_git_dirs[@]+"${sub_git_dirs[@]}"}; do
+    git --git-dir="${sub_common_dir}" worktree prune 2>/dev/null || true
+done
 
 #######################################
 # Delete local branch (unless --keep-branch)
