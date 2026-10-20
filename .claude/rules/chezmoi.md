@@ -21,7 +21,7 @@ Files are sourced in alphabetical order via `*.sh(N)` glob. Use numeric prefixes
 |---------|--------------------|-----------------------------------|
 | `00-09` | Base environment   | locale, editor, path, history, pager, terminal |
 | `10-19` | Package managers   | homebrew                          |
-| `20-29` | Languages/runtimes | golang, javascript, rust, android |
+| `20-29` | Languages/runtimes | javascript, rust, android |
 | `30-39` | Databases/services | mysql                             |
 | `40-49` | Shell tools        | direnv, fzf, zoxide              |
 | `50-79` | (reserved)         |                                   |
@@ -55,8 +55,8 @@ Available in `.tmpl` files via `{{ .variable }}`:
 
 ### Feature flags
 
-- `.with_android`, `.with_aws`, `.with_docker`, `.with_golang`, `.with_javascript`
-- `.with_nomad`, `.with_php`, `.with_rust`, `.with_swift`, `.with_terraform`
+- `.with_android`, `.with_aws`, `.with_docker`, `.with_javascript`
+- `.with_nomad`, `.with_rust`, `.with_swift`, `.with_terraform`
 
 ## Scripts
 

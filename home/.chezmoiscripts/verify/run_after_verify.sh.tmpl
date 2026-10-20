@@ -85,21 +85,11 @@ echo ""
 log_info "Checking Docker tools..."
 check_command_available docker || errors=$((errors + 1))
 {{ end -}}
-{{ if .with_golang -}}
-echo ""
-log_info "Checking Go tools..."
-check_command_available go || errors=$((errors + 1))
-{{ end -}}
 {{ if .with_javascript -}}
 echo ""
 log_info "Checking JavaScript tools..."
 check_command_available node || errors=$((errors + 1))
 check_command_available npm || errors=$((errors + 1))
-{{ end -}}
-{{ if .with_php -}}
-echo ""
-log_info "Checking PHP tools..."
-check_command_available php || errors=$((errors + 1))
 {{ end -}}
 {{ if .with_rust -}}
 echo ""

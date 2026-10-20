@@ -76,10 +76,6 @@
 {{-   $casks = concat $casks (list "docker-desktop") -}}
 {{- end -}}
 
-{{- if .with_golang -}}
-{{-   $brews = concat $brews (list "go") -}}
-{{- end -}}
-
 {{- if .with_javascript -}}
 {{-   $brews = concat $brews (list "nvm") -}}
 {{- end -}}
@@ -94,10 +90,6 @@
 
 {{- if .with_packer -}}
 {{-   $brews = concat $brews (list "hashicorp/tap/packer") -}}
-{{- end -}}
-
-{{- if .with_php -}}
-{{-   $brews = concat $brews (list "php") -}}
 {{- end -}}
 
 {{- if .with_rust -}}
