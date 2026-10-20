@@ -146,8 +146,9 @@ _wt_sanitize_branch() {
 #        wt --no-install branch  (create without auto-installing deps)
 #        wt --editor branch      (create and open editor)
 #        wt --no-envrc branch    (create without .envrc)
+#        wt --no-submodules branch  (leave submodule directories empty)
 wt() {
-  local no_create=false no_switch=false no_install=false open_editor=false no_envrc=false branch=""
+  local no_create=false no_switch=false no_install=false open_editor=false no_envrc=false no_submodules=false branch=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --no-create) no_create=true; shift ;;
@@ -155,11 +156,12 @@ wt() {
       --no-install) no_install=true; shift ;;
       --editor) open_editor=true; shift ;;
       --no-envrc) no_envrc=true; shift ;;
+      --no-submodules) no_submodules=true; shift ;;
       *) branch="$1"; shift ;;
     esac
   done
 
-  [[ -z "$branch" ]] && { echo "Usage: wt [--no-create] [--no-switch] [--no-install] [--editor] [--no-envrc] <branch>"; return 1; }
+  [[ -z "$branch" ]] && { echo "Usage: wt [--no-create] [--no-switch] [--no-install] [--editor] [--no-envrc] [--no-submodules] <branch>"; return 1; }
 
   local wt_base wt_dir created=false
   wt_base=$(_wt_base_dir) || { echo "Not in a git repo"; return 1; }
@@ -170,6 +172,7 @@ wt() {
   local args=()
   [[ "$no_create" == true ]] && args+=(--no-create)
   [[ "$no_envrc" == true ]] && args+=(--no-envrc)
+  [[ "$no_submodules" == true ]] && args+=(--no-submodules)
   wt-create "${args[@]}" "$branch" > /dev/null || return 1
 
   # Extras (not in core script)

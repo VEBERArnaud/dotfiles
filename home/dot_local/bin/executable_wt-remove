@@ -54,6 +54,26 @@ if [[ -f "${wt_path}/.git" ]]; then
 fi
 
 #######################################
+# Find linked submodules
+#######################################
+
+# Submodules linked by wt-create are worktrees of the main worktree's clones:
+# remember those clones to prune their worktree entries once the directory is
+# gone. A submodule cloned inside this worktree goes away with it.
+sub_git_dirs=()
+if [[ -f "${wt_path}/.gitmodules" ]]; then
+    while read -r _ sub_path; do
+        wt_sub="${wt_path}/${sub_path}"
+        [[ -f "${wt_sub}/.git" ]] || continue
+        sub_git_dir=$(git -C "${wt_sub}" rev-parse --path-format=absolute --git-dir 2>/dev/null) || continue
+        sub_common_dir=$(git -C "${wt_sub}" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || continue
+        if [[ "${sub_git_dir}" != "${sub_common_dir}" ]]; then
+            sub_git_dirs+=("${sub_common_dir}")
+        fi
+    done < <(git -C "${wt_path}" config -f .gitmodules --get-regexp '\.path$' 2>/dev/null || true)
+fi
+
+#######################################
 # Remove worktree
 #######################################
 
@@ -78,6 +98,10 @@ else
     fi
     git worktree prune 2>/dev/null || true
 fi
+
+for sub_common_dir in ${sub_git_dirs[@]+"${sub_git_dirs[@]}"}; do
+    git --git-dir="${sub_common_dir}" worktree prune 2>/dev/null || true
+done
 
 #######################################
 # Delete local branch (unless --keep-branch)

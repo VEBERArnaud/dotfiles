@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # wt-create - Create a git worktree following the <repo>.wt/<branch> convention
 #
-# Usage: wt-create [--no-create] [--no-envrc] [--cwd <dir>] <branch>
-#   --no-create   Error if branch doesn't exist (no auto-create)
-#   --no-envrc    Skip .envrc generation
-#   --cwd <dir>   Git repo directory (default: current dir)
-#   <branch>      Branch name (may contain slashes)
+# Usage: wt-create [--no-create] [--no-envrc] [--no-submodules] [--cwd <dir>] <branch>
+#   --no-create      Error if branch doesn't exist (no auto-create)
+#   --no-envrc       Skip .envrc generation
+#   --no-submodules  Leave submodule directories empty (no linking)
+#   --cwd <dir>      Git repo directory (default: current dir)
+#   <branch>         Branch name (may contain slashes)
 #
 # stdout: absolute path of the worktree (only output on stdout)
 # stderr: informational/error messages
@@ -19,6 +20,7 @@ set -euo pipefail
 
 no_create=false
 no_envrc=false
+no_submodules=false
 cwd=""
 branch=""
 
@@ -26,13 +28,14 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --no-create) no_create=true; shift ;;
         --no-envrc)  no_envrc=true; shift ;;
+        --no-submodules) no_submodules=true; shift ;;
         --cwd)       cwd="$2"; shift 2 ;;
         *)           branch="$1"; shift ;;
     esac
 done
 
 if [[ -z "${branch}" ]]; then
-    echo "Usage: wt-create [--no-create] [--no-envrc] [--cwd <dir>] <branch>" >&2
+    echo "Usage: wt-create [--no-create] [--no-envrc] [--no-submodules] [--cwd <dir>] <branch>" >&2
     exit 1
 fi
 
@@ -93,6 +96,39 @@ elif [[ "${no_create}" == false ]]; then
 else
     echo "Branch not found: ${branch}" >&2
     exit 1
+fi
+
+#######################################
+# Link submodules (unless --no-submodules)
+#######################################
+
+# A new worktree gets empty submodule directories. Each submodule initialized
+# in the main worktree is checked out instead as a worktree of that clone, at
+# the commit recorded by the new worktree: no new clone, and objects, fetches
+# and branches are shared with the main worktree.
+if [[ "${no_submodules}" == false && -f "${wt_dir}/.gitmodules" ]]; then
+    main_wt=$(git -C "${git_root}" worktree list --porcelain | awk 'NR == 1 { print $2 }')
+    while read -r _ sub_path; do
+        main_sub="${main_wt}/${sub_path}"
+        wt_sub="${wt_dir}/${sub_path}"
+        [[ -e "${main_sub}/.git" ]] || continue
+        [[ -z "$(ls -A "${wt_sub}" 2>/dev/null)" ]] || continue
+        sha=$(git -C "${wt_dir}" rev-parse --verify --quiet "HEAD:${sub_path}") || continue
+        if ! git -C "${main_sub}" cat-file -e "${sha}^{commit}" 2>/dev/null; then
+            # Keep a shallow clone shallow, never make a full one shallow
+            depth=()
+            if [[ "$(git -C "${main_sub}" rev-parse --is-shallow-repository)" == true ]]; then
+                depth=(--depth 1)
+            fi
+            git -C "${main_sub}" fetch --quiet ${depth[@]+"${depth[@]}"} origin "${sha}" >&2 || {
+                echo "Submodule ${sub_path}: commit ${sha} not found, left empty" >&2
+                continue
+            }
+        fi
+        rmdir "${wt_sub}" 2>/dev/null || true
+        git -C "${main_sub}" worktree add --quiet --detach "${wt_sub}" "${sha}" >&2 \
+            || echo "Submodule ${sub_path}: worktree add failed, left empty" >&2
+    done < <(git -C "${wt_dir}" config -f .gitmodules --get-regexp '\.path$' || true)
 fi
 
 #######################################
