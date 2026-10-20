@@ -78,6 +78,7 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 
 - `user_veberarnaud` - Human user (GUI apps, personal tools)
 - `user_emmett` - AI agent (headless, no GUI)
+- `user_dmc` - DMC orchestrator host (headless, runs agent sessions)
 
 ### Project Flags (hostname-based)
 
