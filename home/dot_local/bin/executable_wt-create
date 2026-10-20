@@ -125,9 +125,14 @@ if [[ "${no_submodules}" == false && -f "${wt_dir}/.gitmodules" ]]; then
                 continue
             }
         fi
+        # Drop entries of worktrees deleted without wt-remove, which would block the path
+        git -C "${main_sub}" worktree prune 2>/dev/null || true
         rmdir "${wt_sub}" 2>/dev/null || true
-        git -C "${main_sub}" worktree add --quiet --detach "${wt_sub}" "${sha}" >&2 \
-            || echo "Submodule ${sub_path}: worktree add failed, left empty" >&2
+        if ! git -C "${main_sub}" worktree add --quiet --detach "${wt_sub}" "${sha}" >&2; then
+            # Restore the empty directory: a missing one reads as a deleted submodule
+            mkdir -p "${wt_sub}"
+            echo "Submodule ${sub_path}: worktree add failed, left empty" >&2
+        fi
     done < <(git -C "${wt_dir}" config -f .gitmodules --get-regexp '\.path$' || true)
 fi
 
