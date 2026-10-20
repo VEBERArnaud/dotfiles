@@ -60,8 +60,10 @@
   changed = green
   untracked = cyan
 
-[credential]
-  helper = /usr/local/bin/git-credential-osxkeychain
+[credential "https://github.com"]
+  # Authenticate GitHub over HTTPS with the gh token, resolved from PATH
+  helper =
+  helper = !gh auth git-credential
 
 [commit]
   gpgsign = true
