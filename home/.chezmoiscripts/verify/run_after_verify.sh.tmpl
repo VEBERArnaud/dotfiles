@@ -80,6 +80,11 @@ echo ""
 log_info "Checking AWS tools..."
 check_command_available aws || errors=$((errors + 1))
 {{ end -}}
+{{ if .with_consul -}}
+echo ""
+log_info "Checking Consul tools..."
+check_command_available consul || errors=$((errors + 1))
+{{ end -}}
 {{ if .with_docker -}}
 echo ""
 log_info "Checking Docker tools..."
@@ -91,6 +96,16 @@ log_info "Checking JavaScript tools..."
 check_command_available node || errors=$((errors + 1))
 check_command_available npm || errors=$((errors + 1))
 {{ end -}}
+{{ if .with_nomad -}}
+echo ""
+log_info "Checking Nomad tools..."
+check_command_available nomad || errors=$((errors + 1))
+{{ end -}}
+{{ if .with_packer -}}
+echo ""
+log_info "Checking Packer tools..."
+check_command_available packer || errors=$((errors + 1))
+{{ end -}}
 {{ if .with_rust -}}
 echo ""
 log_info "Checking Rust tools..."
@@ -98,6 +113,13 @@ rustup_prefix="$(brew --prefix rustup)"
 export PATH="${rustup_prefix}/bin:${PATH}"
 check_command_available cargo || errors=$((errors + 1))
 check_command_available rustc || errors=$((errors + 1))
+{{ end -}}
+{{ if .with_swift -}}
+echo ""
+log_info "Checking Swift tools..."
+check_command_available swiftformat || errors=$((errors + 1))
+check_command_available swiftlint || errors=$((errors + 1))
+check_command_available xcodegen || errors=$((errors + 1))
 {{ end -}}
 {{ if .with_terraform -}}
 echo ""
