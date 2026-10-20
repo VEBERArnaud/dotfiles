@@ -75,7 +75,7 @@ The repository uses a multi-dimensional identity model based on hostname. Each h
 | Hostname                   | personal | vbr_tech | eurosport | mega_lap |
 | -------------------------- | :------: | :------: | :-------: | :------: |
 | VEBERArnaud-MacBookPro2023 |    ✓     |    ✓     |     ✓     |    ✓     |
-| VEBERArnaud-MacMini2023    |          |          |     ✓     |          |
+| VEBERArnaud-MacMini2023    |          |          |     ✓     |    ✓     |
 | VEBERArnaud-MacMini2023s   |    ✓     |    ✓     |     ✓     |    ✓     |
 
 ### Layer 3: Peripherals
@@ -86,7 +86,7 @@ The repository uses a multi-dimensional identity model based on hostname. Each h
 
 ### Layer 4: Tools (derived from projects)
 
-Projects determine which development tools are installed. `VEBERArnaud-MacMini2023` also has `with_javascript` and `with_rust` set directly, in addition to its project.
+Projects determine which development tools are installed.
 
 | Project   | Android | AWS | Consul | Docker | JS  | Nomad | Packer | Rust | Swift | Terraform |
 | --------- | :-----: | :-: | :----: | :----: | :-: | :---: | :----: | :--: | :---: | :-------: |
