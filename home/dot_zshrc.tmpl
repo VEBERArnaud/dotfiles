@@ -30,3 +30,10 @@ unsetopt CORRECT
 
 # ~/.extra can be used for other settings you don't want to commit.
 [[ -f ~/.extra ]] && source ~/.extra
+{{- if .with_docker }}
+# The following lines have been added by Docker Desktop to enable Docker CLI completions.
+fpath=({{ .chezmoi.homeDir }}/.docker/completions $fpath)
+autoload -Uz compinit
+(( ${+_comps[docker]} )) || compinit
+# End of Docker CLI completions
+{{- end }}
