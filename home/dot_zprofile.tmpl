@@ -1,0 +1,12 @@
+{{ if .with_docker -}}
+# The following lines were added by Docker Desktop to add commands to your PATH.
+export PATH="$PATH:{{ .chezmoi.homeDir }}/.docker/bin"
+# End of Docker Desktop section.
+
+{{ end -}}
+# Source all files in .zprofile.d/ if directory exists
+if [[ -d "${ZDOTDIR:-$HOME}/.zprofile.d" ]]; then
+  for file in "${ZDOTDIR:-$HOME}/.zprofile.d"/*.sh(N); do
+    source "$file"
+  done
+fi
