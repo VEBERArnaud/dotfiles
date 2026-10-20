@@ -61,14 +61,16 @@ The repository uses a multi-dimensional identity model based on hostname. Each h
 
 ### Layer 1: User
 
-| Hostname                   | veberarnaud | emmett |
-| -------------------------- | :---------: | :----: |
-| VEBERArnaud-MacBookPro2023 |      ✓      |        |
-| VEBERArnaud-MacMini2023    |             |   ✓    |
-| VEBERArnaud-MacMini2023s   |      ✓      |        |
+| Hostname                   | veberarnaud | emmett | dmc |
+| -------------------------- | :---------: | :----: | :-: |
+| VEBERArnaud-MacBookPro2023 |      ✓      |        |     |
+| VEBERArnaud-MacMini2023    |             |   ✓    |     |
+| VEBERArnaud-MacMini2023s   |      ✓      |        |     |
+| VEBERArnaud-MacMini2026    |             |        |  ✓  |
 
 - `veberarnaud` — human user (GUI apps, personal tools)
 - `emmett` — AI agent (headless, no GUI)
+- `dmc` — DMC orchestrator host (headless, runs agent sessions)
 
 ### Layer 2: Projects
 
@@ -77,6 +79,7 @@ The repository uses a multi-dimensional identity model based on hostname. Each h
 | VEBERArnaud-MacBookPro2023 |    ✓     |  ✓  |   ✓    |    ✓     |     ✓     |    ✓     |
 | VEBERArnaud-MacMini2023    |          |  ✓  |   ✓    |          |     ✓     |    ✓     |
 | VEBERArnaud-MacMini2023s   |    ✓     |  ✓  |   ✓    |    ✓     |     ✓     |    ✓     |
+| VEBERArnaud-MacMini2026    |    ✓     |  ✓  |   ✓    |    ✓     |     ✓     |    ✓     |
 
 ### Layer 3: Peripherals
 

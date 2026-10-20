@@ -44,6 +44,7 @@ Available in `.tmpl` files via `{{ .variable }}`:
 
 - `.user_veberarnaud` (human user, GUI apps)
 - `.user_emmett` (AI agent, headless)
+- `.user_dmc` (DMC orchestrator host, headless)
 
 ### Projects (hostname-based)
 
