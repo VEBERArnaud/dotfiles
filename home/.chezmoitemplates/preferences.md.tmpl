@@ -43,8 +43,11 @@
 {{- if .with_rust }}
 - Rust (cargo, rustup)
 {{- end }}
+{{- if .with_swift }}
+- Swift (Xcode)
+{{- end }}
 {{- if .with_aws }}
-- AWS CLI, gimme-aws-creds, aws sso
+- AWS CLI, aws sso{{ if .project_eurosport }}, gimme-aws-creds{{ end }}
 {{- end }}
 {{- if .with_terraform }}
 - Terraform (HashiCorp)
