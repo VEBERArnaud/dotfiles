@@ -141,10 +141,10 @@ Configuration is defined in [`home/.chezmoi.toml.tmpl`](home/.chezmoi.toml.tmpl)
    {{- end -}}
    ```
 
-3. Add the hostname to [`home/.chezmoiignore`](home/.chezmoiignore) (for 1Password integration):
+3. Add the hostname to the `$hostsWithSSHKey` list in [`home/.chezmoiignore`](home/.chezmoiignore) (deploys the SSH key) and in [`home/.chezmoiscripts/verify/run_after_verify.sh.tmpl`](home/.chezmoiscripts/verify/run_after_verify.sh.tmpl) (checks it):
 
    ```go
-   {{- $knownHosts := list
+   {{- $hostsWithSSHKey := list
        ...
        "VEBERArnaud-NewMachine"
    -}}
