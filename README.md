@@ -63,9 +63,6 @@ The repository uses a multi-dimensional identity model based on hostname. Each h
 
 | Hostname                   | laptop | desktop | server |
 | -------------------------- | :----: | :-----: | :----: |
-| VEBERArnaud-MacBookPro2012 |   ✓    |         |        |
-| VEBERArnaud-MacBookPro2017 |   ✓    |         |        |
-| VEBERArnaud-MacMini2020    |        |    ✓    |        |
 | VEBERArnaud-MacBookPro2023 |   ✓    |         |        |
 | VEBERArnaud-MacMini2023    |        |    ✓    |        |
 | VEBERArnaud-MacMini2023s   |        |    ✓    |        |
@@ -74,9 +71,6 @@ The repository uses a multi-dimensional identity model based on hostname. Each h
 
 | Hostname                   | veberarnaud | emmett |
 | -------------------------- | :---------: | :----: |
-| VEBERArnaud-MacBookPro2012 |      ✓      |        |
-| VEBERArnaud-MacBookPro2017 |      ✓      |        |
-| VEBERArnaud-MacMini2020    |      ✓      |        |
 | VEBERArnaud-MacBookPro2023 |      ✓      |        |
 | VEBERArnaud-MacMini2023    |             |   ✓    |
 | VEBERArnaud-MacMini2023s   |      ✓      |        |
@@ -88,9 +82,6 @@ The repository uses a multi-dimensional identity model based on hostname. Each h
 
 | Hostname                   | personal | vbr_tech | eurosport | mega_lap |
 | -------------------------- | :------: | :------: | :-------: | :------: |
-| VEBERArnaud-MacBookPro2012 |    ✓     |          |           |          |
-| VEBERArnaud-MacBookPro2017 |    ✓     |          |           |          |
-| VEBERArnaud-MacMini2020    |    ✓     |          |           |          |
 | VEBERArnaud-MacBookPro2023 |    ✓     |    ✓     |     ✓     |    ✓     |
 | VEBERArnaud-MacMini2023    |          |          |     ✓     |          |
 | VEBERArnaud-MacMini2023s   |    ✓     |    ✓     |     ✓     |    ✓     |

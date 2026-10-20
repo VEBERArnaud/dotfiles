@@ -1,9 +1,6 @@
 {{- $isCI := env "CI" | not | not -}}
 
 {{- $hostsWithSSHKey := list
-    "VEBERArnaud-MacBookPro2012"
-    "VEBERArnaud-MacBookPro2017"
-    "VEBERArnaud-MacMini2020"
     "VEBERArnaud-MacMini2023"
     "VEBERArnaud-MacMini2023s"
     "VEBERArnaud-MacBookPro2023"
