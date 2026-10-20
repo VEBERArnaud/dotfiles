@@ -1,9 +1,6 @@
 {{- $isCI := env "CI" | not | not -}}
 
 {{- $hostsWithSSHKey := list
-    "VEBERArnaud-MacBookPro2012"
-    "VEBERArnaud-MacBookPro2017"
-    "VEBERArnaud-MacMini2020"
     "VEBERArnaud-MacMini2023"
     "VEBERArnaud-MacMini2023s"
     "VEBERArnaud-MacBookPro2023"
@@ -17,8 +14,8 @@
 
 {{- $opFiles := list
     ".aws/config"
-    ".chezmoiscripts/run_after_import-gpg-key.sh"
-    ".chezmoiscripts/tools/run_after_gws_auth.sh"
+    ".chezmoiscripts/security/gpg_import.sh"
+    ".chezmoiscripts/tools/gws_auth.sh"
     ".config/.jira"
     ".config/dmc/api-key"
     ".npmrc"

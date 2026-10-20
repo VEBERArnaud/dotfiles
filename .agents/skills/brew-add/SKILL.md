@@ -29,10 +29,10 @@ Add a Homebrew formula, cask, or Mac App Store app to the dotfiles installation 
    - `$mas_apps` for Mac App Store apps (dict with ID as key, app name as value)
 6. Check if already present
 7. Add in alphabetical order within the list
-8. If package is tool-specific (e.g., Go tool), add in conditional block:
+8. If package is tool-specific (e.g., Terraform tool), add in conditional block:
    ```go
-   {{- if .with_golang -}}
-   {{-   $brews = concat $brews (list "new-go-tool") -}}
+   {{- if .with_terraform -}}
+   {{-   $brews = concat $brews (list "new-terraform-tool") -}}
    {{- end -}}
    ```
 
@@ -59,7 +59,7 @@ To add a new entry, add a new `"id" "Name"` pair in the dict, sorted by ID.
 ```
 /brew-add htop           # Adds to $brews
 /brew-add slack          # Adds to $casks
-/brew-add golangci-lint  # Adds to conditional Go block
+/brew-add tflint         # Adds to conditional Terraform block
 /brew-add Things         # Search mas, adds to $mas_apps
 /brew-add 904280696      # Add mas app by ID
 ```

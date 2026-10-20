@@ -41,7 +41,6 @@ Vim is configured via `home/dot_vimrc.tmpl` with [vim-plug](https://github.com/j
 | Plugin                    | Feature Flag       | Description                             |
 | ------------------------- | ------------------ | --------------------------------------- |
 | `ekalinin/Dockerfile.vim` | `.with_docker`     | Dockerfile syntax                       |
-| `fatih/vim-go`            | `.with_golang`     | Go development (auto-installs binaries) |
 | `pangloss/vim-javascript` | `.with_javascript` | JavaScript syntax                       |
 | `mxw/vim-jsx`             | `.with_javascript` | JSX syntax                              |
 | `rust-lang/rust.vim`      | `.with_rust`       | Rust syntax and formatting              |
@@ -79,7 +78,6 @@ Vim is configured via `home/dot_vimrc.tmpl` with [vim-plug](https://github.com/j
 - Lints on normal mode text change and insert leave
 - Auto-fixes on save
 - Signs: `✗` for errors, `⚠` for warnings
-- PHP: linters `php`, `phpcs` (PSR2), `phpmd`; fixer `php_cs_fixer`
 - Rust: fixer `rustfmt` (when `.with_rust`)
 - All files: `remove_trailing_lines`, `trim_whitespace`
 

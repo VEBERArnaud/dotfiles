@@ -32,10 +32,6 @@ Plug 'tpope/vim-surround'
 Plug 'ekalinin/Dockerfile.vim'
 {{ end }}
 
-{{ if .with_golang }}
-Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
-{{ end }}
-
 {{ if .with_javascript }}
 Plug 'pangloss/vim-javascript'
 Plug 'mxw/vim-jsx'
@@ -140,24 +136,13 @@ let g:ale_lint_on_text_changed = 'normal'
 let g:ale_lint_on_insert_leave = 1
 let g:ale_fix_on_save = 1
 
-" PHP linters and fixers
-let g:ale_linters = {
-\   'php': ['php', 'phpcs', 'phpmd'],
-\}
+" ALE fixers
 let g:ale_fixers = {
 \   '*': ['remove_trailing_lines', 'trim_whitespace'],
-\   'php': ['php_cs_fixer'],
 {{- if .with_rust }}
 \   'rust': ['rustfmt'],
 {{- end }}
 \}
-let g:ale_php_phpcs_standard = 'PSR2'
-
-" Disable download and install all necessary go binaries from vim-go plugin
-let g:go_disable_autoinstall = 1
-
-" Disable auto go fmt on save
-let g:go_fmt_autosave = 0
 
 " Enable auto terraform fmt on save
 let g:terraform_fmt_on_save = 1

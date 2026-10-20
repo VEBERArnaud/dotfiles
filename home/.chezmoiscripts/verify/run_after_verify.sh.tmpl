@@ -80,15 +80,15 @@ echo ""
 log_info "Checking AWS tools..."
 check_command_available aws || errors=$((errors + 1))
 {{ end -}}
+{{ if .with_consul -}}
+echo ""
+log_info "Checking Consul tools..."
+check_command_available consul || errors=$((errors + 1))
+{{ end -}}
 {{ if .with_docker -}}
 echo ""
 log_info "Checking Docker tools..."
 check_command_available docker || errors=$((errors + 1))
-{{ end -}}
-{{ if .with_golang -}}
-echo ""
-log_info "Checking Go tools..."
-check_command_available go || errors=$((errors + 1))
 {{ end -}}
 {{ if .with_javascript -}}
 echo ""
@@ -96,10 +96,15 @@ log_info "Checking JavaScript tools..."
 check_command_available node || errors=$((errors + 1))
 check_command_available npm || errors=$((errors + 1))
 {{ end -}}
-{{ if .with_php -}}
+{{ if .with_nomad -}}
 echo ""
-log_info "Checking PHP tools..."
-check_command_available php || errors=$((errors + 1))
+log_info "Checking Nomad tools..."
+check_command_available nomad || errors=$((errors + 1))
+{{ end -}}
+{{ if .with_packer -}}
+echo ""
+log_info "Checking Packer tools..."
+check_command_available packer || errors=$((errors + 1))
 {{ end -}}
 {{ if .with_rust -}}
 echo ""
@@ -108,6 +113,13 @@ rustup_prefix="$(brew --prefix rustup)"
 export PATH="${rustup_prefix}/bin:${PATH}"
 check_command_available cargo || errors=$((errors + 1))
 check_command_available rustc || errors=$((errors + 1))
+{{ end -}}
+{{ if .with_swift -}}
+echo ""
+log_info "Checking Swift tools..."
+check_command_available swiftformat || errors=$((errors + 1))
+check_command_available swiftlint || errors=$((errors + 1))
+check_command_available xcodegen || errors=$((errors + 1))
 {{ end -}}
 {{ if .with_terraform -}}
 echo ""
@@ -152,9 +164,6 @@ echo ""
 log_info "Checking SSH configuration..."
 check_file "${HOME}/.ssh/config" || errors=$((errors + 1))
 {{- $hostsWithSSHKey := list
-    "VEBERArnaud-MacBookPro2012"
-    "VEBERArnaud-MacBookPro2017"
-    "VEBERArnaud-MacMini2020"
     "VEBERArnaud-MacMini2023"
     "VEBERArnaud-MacMini2023s"
     "VEBERArnaud-MacBookPro2023"

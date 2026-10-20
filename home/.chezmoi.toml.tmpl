@@ -5,16 +5,13 @@
 {{- $is_windows := false -}}
 {{- $is_apple_silicon := false -}}
 
-{{/* device type */}}
-{{- $type_laptop := false -}}
-{{- $type_desktop := false -}}
-{{- $type_server := false -}}
-
 {{/* user */}}
 {{- $user_emmett := false -}}
 {{- $user_veberarnaud := false -}}
 
 {{/* project */}}
+{{- $project_dmc := false -}}
+{{- $project_emmett := false -}}
 {{- $project_eurosport := false -}}
 {{- $project_mega_lap := false -}}
 {{- $project_personal := false -}}
@@ -29,9 +26,7 @@
 {{- $with_android := false -}}
 {{- $with_aws := false -}}
 {{- $with_docker := false -}}
-{{- $with_golang := false -}}
 {{- $with_javascript := false -}}
-{{- $with_php := false -}}
 {{- $with_rust := false -}}
 {{- $with_swift := false -}}
 {{- $with_consul := false -}}
@@ -59,27 +54,10 @@
 {{- end -}}
 
 {{/* hosts */}}
-{{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2012" -}}
-{{-   $type_laptop = true -}}
-{{-   $user_veberarnaud = true -}}
-{{-   $project_personal = true -}}
-{{- end -}}
-
-{{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2017" -}}
-{{-   $type_laptop = true -}}
-{{-   $user_veberarnaud = true -}}
-{{-   $project_personal = true -}}
-{{- end -}}
-
-{{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2020" -}}
-{{-   $type_desktop = true -}}
-{{-   $user_veberarnaud = true -}}
-{{-   $project_personal = true -}}
-{{- end -}}
-
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacBookPro2023" -}}
-{{-   $type_laptop = true -}}
 {{-   $user_veberarnaud = true -}}
+{{-   $project_dmc = true -}}
+{{-   $project_emmett = true -}}
 {{-   $project_eurosport = true -}}
 {{-   $project_mega_lap = true -}}
 {{-   $project_personal = true -}}
@@ -87,19 +65,20 @@
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2023" -}}
-{{-   $type_desktop = true -}}
 {{-   $user_emmett = true -}}
+{{-   $project_dmc = true -}}
+{{-   $project_emmett = true -}}
 {{-   $project_eurosport = true -}}
-{{-   $with_javascript = true -}}
-{{-   $with_rust = true -}}
+{{-   $project_mega_lap = true -}}
 {{- end -}}
 
 {{- if eq .chezmoi.hostname "VEBERArnaud-MacMini2023s" -}}
-{{-   $type_desktop = true -}}
 {{-   $user_veberarnaud = true -}}
 {{-   $has_elgato = true -}}
 {{-   $has_insta360 = true -}}
 {{-   $has_scanner = true -}}
+{{-   $project_dmc = true -}}
+{{-   $project_emmett = true -}}
 {{-   $project_eurosport = true -}}
 {{-   $project_mega_lap = true -}}
 {{-   $project_personal = true -}}
@@ -110,13 +89,9 @@
 {{- if $project_personal -}}
 {{-   $with_aws = true -}}
 {{-   $with_docker = true -}}
-{{-   $with_golang = true -}}
 {{-   $with_javascript = true -}}
 {{-   $with_consul = true -}}
 {{-   $with_nomad = true -}}
-{{-   $with_packer = true -}}
-{{-   $with_php = true -}}
-{{-   $with_rust = true -}}
 {{-   $with_swift = true -}}
 {{-   $with_terraform = true -}}
 {{- end -}}
@@ -125,6 +100,10 @@
 {{-   $with_aws = true -}}
 {{-   $with_docker = true -}}
 {{-   $with_javascript = true -}}
+{{-   $with_consul = true -}}
+{{-   $with_nomad = true -}}
+{{-   $with_packer = true -}}
+{{-   $with_rust = true -}}
 {{-   $with_terraform = true -}}
 {{- end -}}
 
@@ -135,13 +114,22 @@
 {{-   $with_terraform = true -}}
 {{- end -}}
 
+{{- if $project_dmc -}}
+{{-   $with_javascript = true -}}
+{{-   $with_swift = true -}}
+{{- end -}}
+
+{{- if $project_emmett -}}
+{{-   $with_javascript = true -}}
+{{- end -}}
+
 {{- if $project_mega_lap -}}
 {{-   $with_android = true -}}
 {{-   $with_aws = true -}}
 {{-   $with_docker = true -}}
 {{-   $with_javascript = true -}}
+{{-   $with_rust = true -}}
 {{-   $with_swift = true -}}
-{{-   $with_terraform = true -}}
 {{- end -}}
 
 [data]
@@ -150,11 +138,10 @@
     is_mac = {{ $is_mac }}
     is_unix = {{ $is_unix }}
     is_windows = {{ $is_windows }}
-    type_laptop = {{ $type_laptop }}
-    type_desktop = {{ $type_desktop }}
-    type_server = {{ $type_server }}
     user_emmett = {{ $user_emmett }}
     user_veberarnaud = {{ $user_veberarnaud }}
+    project_dmc = {{ $project_dmc }}
+    project_emmett = {{ $project_emmett }}
     project_eurosport = {{ $project_eurosport }}
     project_mega_lap = {{ $project_mega_lap }}
     project_personal = {{ $project_personal }}
@@ -165,12 +152,10 @@
     with_android = {{ $with_android }}
     with_aws = {{ $with_aws }}
     with_docker = {{ $with_docker }}
-    with_golang = {{ $with_golang }}
     with_javascript = {{ $with_javascript }}
     with_consul = {{ $with_consul }}
     with_nomad = {{ $with_nomad }}
     with_packer = {{ $with_packer }}
-    with_php = {{ $with_php }}
     with_rust = {{ $with_rust }}
     with_swift = {{ $with_swift }}
     with_terraform = {{ $with_terraform }}

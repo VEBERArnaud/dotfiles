@@ -21,7 +21,7 @@ Files are sourced in alphabetical order via `*.sh(N)` glob. Use numeric prefixes
 |---------|--------------------|-----------------------------------|
 | `00-09` | Base environment   | locale, editor, path, history, pager, terminal |
 | `10-19` | Package managers   | homebrew                          |
-| `20-29` | Languages/runtimes | golang, javascript, rust, android |
+| `20-29` | Languages/runtimes | javascript, rust, android |
 | `30-39` | Databases/services | mysql                             |
 | `40-49` | Shell tools        | direnv, fzf, zoxide              |
 | `50-79` | (reserved)         |                                   |
@@ -40,10 +40,6 @@ Available in `.tmpl` files via `{{ .variable }}`:
 - `.is_mac`, `.is_linux`, `.is_windows`, `.is_unix`
 - `.is_apple_silicon` (ARM64 Macs)
 
-### Device type (hostname-based)
-
-- `.type_laptop`, `.type_desktop`, `.type_server`
-
 ### Users (hostname-based)
 
 - `.user_veberarnaud` (human user, GUI apps)
@@ -51,7 +47,7 @@ Available in `.tmpl` files via `{{ .variable }}`:
 
 ### Projects (hostname-based)
 
-- `.project_personal`, `.project_eurosport`, `.project_mega_lap`, `.project_vbr_tech`
+- `.project_personal`, `.project_dmc`, `.project_emmett`, `.project_eurosport`, `.project_mega_lap`, `.project_vbr_tech`
 
 ### Peripherals (hostname-based)
 
@@ -59,8 +55,8 @@ Available in `.tmpl` files via `{{ .variable }}`:
 
 ### Feature flags
 
-- `.with_android`, `.with_aws`, `.with_docker`, `.with_golang`, `.with_javascript`
-- `.with_nomad`, `.with_php`, `.with_rust`, `.with_swift`, `.with_terraform`
+- `.with_android`, `.with_aws`, `.with_consul`, `.with_docker`, `.with_javascript`
+- `.with_nomad`, `.with_packer`, `.with_rust`, `.with_swift`, `.with_terraform`
 
 ## Scripts
 

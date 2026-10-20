@@ -50,9 +50,8 @@ The `(N)` glob qualifier ensures no error if the directory is empty. Files are s
 | `04-pager.sh`           | No       | —                                      | Configures `less` as pager with sensible defaults          |
 | `05-terminal.sh`        | No       | —                                      | Sets `TERM=xterm-256color`, key timeout, cheat colors      |
 | `10-homebrew.sh.tmpl`   | Yes      | brew path exists                       | Initializes Homebrew shellenv, disables analytics          |
-| `20-golang.sh.tmpl`     | Yes      | `.with_golang`                         | Sets `GOPATH=~/Developer`, adds `$GOPATH/bin` to PATH      |
 | `21-javascript.sh.tmpl` | Yes      | `.with_javascript`                     | Loads nvm, auto-switches Node via `chpwd` hook on `.nvmrc` |
-| `22-rust.sh.tmpl`       | Yes      | `.with_rust`                           | Adds `~/.cargo/bin` to PATH                                |
+| `22-rust.sh.tmpl`       | Yes      | `.with_rust`                           | Adds Homebrew's rustup `bin` to PATH                       |
 | `24-android.sh.tmpl`    | Yes      | `.with_android`                        | Sets `ANDROID_HOME`, PATH; guarded `JAVA_HOME` (JDK 21)    |
 | `30-mysql.sh`           | No       | —                                      | Configures MySQL prompt format                             |
 | `40-direnv.sh`          | No       | —                                      | Hooks direnv into zsh                                      |
@@ -77,14 +76,13 @@ Template files (`.tmpl`) use chezmoi's Go template conditionals to produce an em
 Example pattern:
 
 ```go
-{{- if .with_golang }}
-# Go
-export GOPATH=$HOME/Developer
-export PATH=$PATH:$GOPATH/bin
+{{- if .with_rust }}
+# Rust
+export PATH="${HOMEBREW_PREFIX}/opt/rustup/bin:$PATH"
 {{- end }}
 ```
 
-If `.with_golang` is `false`, the rendered file is empty.
+If `.with_rust` is `false`, the rendered file is empty.
 
 ## Adding a New Drop-in File
 

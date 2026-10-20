@@ -4,14 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a personal dotfiles repository managed by [chezmoi](https://www.chezmoi.io/) (v2.68.0+), a dotfile manager that uses Go templating to handle multiple machines with different configurations. The repository configures a complete development environment for macOS, including shell (zsh with Prezto), editor (vim with vim-plug), terminal (Ghostty), terminal multiplexer (tmux), and various development tools.
+This is a personal dotfiles repository managed by [chezmoi](https://www.chezmoi.io/) (v2.70.0+), a dotfile manager that uses Go templating to handle multiple machines with different configurations. The repository configures a complete development environment for macOS, including shell (zsh with Prezto), editor (vim with vim-plug), terminal (Ghostty), terminal multiplexer (tmux), and various development tools.
 
 ## Repository Structure
 
 ```
 dotfiles/
 ├── .chezmoiroot              # Points to "home" as source directory
-├── .chezmoiversion           # Requires chezmoi 2.68.0+
+├── .chezmoiversion           # Requires chezmoi 2.70.0+
 ├── .github/workflows/        # CI validation (shellcheck, templates, linting)
 ├── .agents/skills/           # Project skills (source, shared by Claude Code and Codex)
 │   ├── dotfiles/             # /dotfiles skill
@@ -74,12 +74,6 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 - `is_mac`, `is_linux`, `is_windows`, `is_unix`
 - `is_apple_silicon` - True for ARM64 Macs
 
-### Device Type Flags (hostname-based)
-
-- `type_laptop` - Portable machines (MacBook Pro, MacBook Air)
-- `type_desktop` - Stationary machines (Mac mini, iMac, Mac Studio, Mac Pro)
-- `type_server` - Server machines (headless)
-
 ### User Flags (hostname-based)
 
 - `user_veberarnaud` - Human user (GUI apps, personal tools)
@@ -88,6 +82,8 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 ### Project Flags (hostname-based)
 
 - `project_personal` - Personal machines
+- `project_dmc` - DMC project machines
+- `project_emmett` - Emmett project machines
 - `project_eurosport` - Eurosport work machines
 - `project_mega_lap` - Mega Lap project machines
 - `project_vbr_tech` - VBR Tech project machines
@@ -102,11 +98,11 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 
 - `with_android` - Android development environment (Android Studio, Temurin JDK)
 - `with_aws` - AWS CLI and tools
+- `with_consul` - HashiCorp Consul
 - `with_docker` - Docker and related tools
-- `with_golang` - Go development environment
 - `with_javascript` - Node.js via nvm
 - `with_nomad` - HashiCorp Nomad
-- `with_php` - PHP development tools
+- `with_packer` - HashiCorp Packer
 - `with_rust` - Rust development environment
 - `with_swift` - Swift development environment (enables Swift LSP plugin)
 - `with_terraform` - Terraform infrastructure tools
@@ -294,7 +290,7 @@ chsh -s $(which zsh)
 ## Important Notes
 
 - Source directory is `home/` (not repo root) as specified in `.chezmoiroot`
-- Requires chezmoi 2.68.0+ (specified in `.chezmoiversion`)
+- Requires chezmoi 2.70.0+ (specified in `.chezmoiversion`)
 - 1Password CLI is required for SSH keys, GPG key import, and Claude MCP API keys
 - Scripts with `run_onchange_` prefix only re-run when their content changes
 - Post-apply verification script checks critical files and commands

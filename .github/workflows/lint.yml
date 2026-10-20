@@ -30,12 +30,11 @@ jobs:
             is_windows = false
             is_unix = true
             is_apple_silicon = true
-            type_laptop = true
-            type_desktop = false
-            type_server = false
             user_emmett = false
             user_veberarnaud = true
             project_personal = true
+            project_dmc = false
+            project_emmett = false
             project_vbr_tech = false
             project_eurosport = false
             project_mega_lap = false
@@ -46,11 +45,9 @@ jobs:
             with_aws = true
             with_consul = false
             with_docker = true
-            with_golang = true
             with_javascript = true
             with_nomad = false
             with_packer = false
-            with_php = false
             with_terraform = true
             with_rust = true
             with_swift = true
