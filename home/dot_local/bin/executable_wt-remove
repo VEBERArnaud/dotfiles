@@ -40,6 +40,9 @@ if [[ ! -d "${wt_path}" ]]; then
     exit 0
 fi
 
+# Absolute path: git -C <main repo> below would resolve a relative one from there
+wt_path=$(cd "${wt_path}" && pwd)
+
 #######################################
 # Resolve branch and main repo
 #######################################
