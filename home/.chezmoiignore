@@ -21,6 +21,7 @@
     ".config/dmc/api-key"
     ".npmrc"
     ".okta_aws_login_config"
+    ".ssh/authorized_keys"
     ".ssh/config.local"
     ".zshenv.d/40-eurosport-jira.sh"
     ".zshenv.d/41-things3.sh"
@@ -52,6 +53,9 @@
 {{- end }}
 
 # User-scoped files
+{{- if not (or .user_dmc .user_emmett) }}
+.ssh/authorized_keys
+{{- end }}
 {{- if not .user_dmc }}
 Library/LaunchAgents/pw.veber.dmc.plist
 {{- end }}

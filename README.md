@@ -153,7 +153,7 @@ Configuration is defined in [`home/.chezmoi.toml.tmpl`](home/.chezmoi.toml.tmpl)
    -}}
    ```
 
-4. Create SSH key in 1Password named `SSHKey VEBERArnaud-NewMachine`
+4. Create SSH key in 1Password named `SSHKey VEBERArnaud-NewMachine`. To log in from it to the headless hosts, also add it to `$clients` in [`home/dot_ssh/private_authorized_keys.tmpl`](home/dot_ssh/private_authorized_keys.tmpl), then `chezmoi apply` on those hosts
 
 5. Run `chezmoi init --apply veberarnaud` on the new machine
 
@@ -162,6 +162,8 @@ Configuration is defined in [`home/.chezmoi.toml.tmpl`](home/.chezmoi.toml.tmpl)
 `run_onchange_after_system_ui.sh.tmpl` restarts the Mac after a power failure or a freeze and prevents sleep. `run_after_remote_access.sh.tmpl` enables Remote Login (SSH), checks Screen Sharing, and on the `dmc` host turns Wi-Fi off (only when wired), FileVault off and enables automatic login (both ask for the account password). It runs on every `chezmoi apply` but only acts on what is missing, so a failed step is retried on the next apply.
 
 Manual steps, only when the script warns:
+
+`~/.ssh/authorized_keys` is generated on these hosts from the public keys of the human machines (`SSHKey <host>` in 1Password, listed in `private_authorized_keys.tmpl`). The whole file is managed: a key added by hand (`ssh-copy-id`) is removed on the next apply.
 
 - **Remote Login not enabled**: add the terminal to System Settings > Privacy & Security > Full Disk Access, reopen it, then `chezmoi apply`
 - **Screen Sharing off**: System Settings > General > Sharing > Screen Sharing, access for Administrators. It cannot be scripted: a service loaded through `launchctl` refuses connections ("Screen Sharing is not permitted"); if that happens, turn the toggle off and on again

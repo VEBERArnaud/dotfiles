@@ -1,0 +1,8 @@
+{{- /* Keys allowed to log in to the headless hosts: the human machines' public keys from 1Password. The whole file is generated: a key added by hand is removed on the next apply, add its host here instead */ -}}
+{{- $clients := list
+    "VEBERArnaud-MacBookPro2023"
+    "VEBERArnaud-MacMini2023s"
+-}}
+{{- range $clients -}}
+{{ onepasswordRead (printf "op://Personal/SSHKey %s/public key" .) }} {{ . }}
+{{ end -}}

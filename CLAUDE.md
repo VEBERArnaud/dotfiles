@@ -131,6 +131,7 @@ The configuration uses Go templates with variables defined in `.chezmoi.toml.tmp
 - GPG key auto-imported from 1Password
 - Global SSH config with connection pooling
 - Support for local overrides (`~/.ssh/config.local`)
+- Headless hosts (`user_dmc`, `user_emmett`): `~/.ssh/authorized_keys` generated from the human machines' public keys in 1Password (`dot_ssh/private_authorized_keys.tmpl`); the whole file is managed, hand-added keys are removed
 
 ### Claude Code Configuration
 
