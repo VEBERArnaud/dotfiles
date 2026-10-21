@@ -41,6 +41,24 @@ fi
 
 {{ if .user_dmc -}}
 ###############################################################################
+# Wi-Fi (DMC host)                                                            #
+###############################################################################
+
+# Wired only: off, so the .local name is announced on Ethernet alone. Only when
+# the default route goes through another interface, never cutting the network
+wifi_device="$(networksetup -listallhardwareports | awk '/^Hardware Port: Wi-Fi/ { getline; print $2 }')"
+default_interface="$(route -n get default 2>/dev/null | awk '/interface:/ { print $2 }')"
+if [[ -n "${wifi_device}" ]] && networksetup -getairportpower "${wifi_device}" | grep -q ': On$'; then
+    if [[ -n "${default_interface}" && "${default_interface}" != "${wifi_device}" ]]; then
+        log_info "Turning Wi-Fi off (wired through ${default_interface})..."
+        networksetup -setairportpower "${wifi_device}" off \
+            || log_warn "Could not turn Wi-Fi off: turn it off in System Settings > Wi-Fi"
+    else
+        log_warn "Wi-Fi left on: it carries the default route, plug Ethernet in and apply again"
+    fi
+fi
+
+###############################################################################
 # FileVault and automatic login (DMC host)                                    #
 ###############################################################################
 

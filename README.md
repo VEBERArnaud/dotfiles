@@ -159,7 +159,7 @@ Configuration is defined in [`home/.chezmoi.toml.tmpl`](home/.chezmoi.toml.tmpl)
 
 ### Headless hosts (`dmc`, `emmett`)
 
-`run_onchange_after_system_ui.sh.tmpl` restarts the Mac after a power failure or a freeze and prevents sleep. `run_after_remote_access.sh.tmpl` enables Remote Login (SSH), checks Screen Sharing, and on the `dmc` host turns FileVault off and enables automatic login (both ask for the account password). It runs on every `chezmoi apply` but only acts on what is missing, so a failed step is retried on the next apply.
+`run_onchange_after_system_ui.sh.tmpl` restarts the Mac after a power failure or a freeze and prevents sleep. `run_after_remote_access.sh.tmpl` enables Remote Login (SSH), checks Screen Sharing, and on the `dmc` host turns Wi-Fi off (only when wired), FileVault off and enables automatic login (both ask for the account password). It runs on every `chezmoi apply` but only acts on what is missing, so a failed step is retried on the next apply.
 
 Manual steps, only when the script warns:
 
