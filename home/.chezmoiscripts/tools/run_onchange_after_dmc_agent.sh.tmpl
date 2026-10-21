@@ -1,0 +1,30 @@
+{{- if and .is_mac .user_dmc -}}
+#!/usr/bin/env bash
+
+# Load the DMC launch agent, again whenever its plist changes
+# plist hash: {{ include "private_Library/private_LaunchAgents/pw.veber.dmc.plist.tmpl" | sha256sum }}
+
+set -euo pipefail
+
+{{ template "common.tmpl" . }}
+
+readonly LABEL="pw.veber.dmc"
+readonly PLIST="${HOME}/Library/LaunchAgents/${LABEL}.plist"
+readonly INSTANCE_DIR="${HOME}/.local/share/dmc"
+uid="$(id -u)"
+readonly DOMAIN="gui/${uid}"
+
+# launchd does not create the working directory or the log directory
+mkdir -p "${INSTANCE_DIR}/logs"
+
+# Reload so a changed plist takes effect: restarts DMC if it is running
+log_info "Loading the DMC launch agent..."
+launchctl bootout "${DOMAIN}/${LABEL}" 2>/dev/null || true
+retry launchctl bootstrap "${DOMAIN}" "${PLIST}"
+log_success "DMC launch agent loaded"
+
+if [[ ! -f "${INSTANCE_DIR}/.env" ]]; then
+    log_warn "No DMC instance in ${INSTANCE_DIR} yet: copy .env and data/ there, then"
+    log_warn "  launchctl kickstart ${DOMAIN}/${LABEL}"
+fi
+{{ end -}}

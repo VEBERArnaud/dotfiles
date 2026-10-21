@@ -172,7 +172,7 @@ Skills live in a tool-neutral location so removing either tool does not break th
 
 ### Post-apply (`run_after_`)
 
-- **`packages/run_after_node.sh.tmpl`** - Installs Node.js LTS versions via nvm
+- **`packages/run_after_node.sh.tmpl`** - Installs Node.js LTS versions via nvm and the global packages of `dot_nvm/default-packages.tmpl`; `npm update -g` skips the held ones (`@dmc-ai/cli`, upgraded by hand)
 - **`packages/run_after_rust.sh.tmpl`** - Installs Rust toolchains and components
 - **`security/run_after_gpg_import.sh.tmpl`** - Imports GPG key from 1Password
 - **`system/darwin/run_after_remote_access.sh.tmpl`** - Headless hosts: SSH, Screen Sharing check (System Settings only); DMC host: FileVault off, automatic login (only acts on what is missing)
@@ -191,6 +191,7 @@ Skills live in a tool-neutral location so removing either tool does not break th
 - **`system/darwin/run_onchange_after_apps.sh.tmpl`** - macOS app-level preferences
 - **`system/darwin/run_onchange_after_system_ui.sh.tmpl`** - macOS system & UI preferences
 - **`system/darwin/run_onchange_after_restart.sh.tmpl`** - Restart affected macOS services
+- **`tools/run_onchange_after_dmc_agent.sh.tmpl`** - DMC host: loads the `pw.veber.dmc` launch agent (`dmcli start` from `~/.local/share/dmc`), again when its plist changes
 - **`tools/run_onchange_after_whisper_model.sh.tmpl`** - Download Whisper speech model
 
 ## Common Commands

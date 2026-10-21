@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- DMC server: starts with the user session, restarted when it crashes -->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>pw.veber.dmc</string>
+    <!-- Login shell: nvm and Homebrew on PATH for dmcli, claude, codex and gh -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/zsh</string>
+        <string>-l</string>
+        <string>-c</string>
+        <string>[[ -f .env ]] || { echo "No .env in ${PWD}, DMC not started"; exit 0; }; exec dmcli start</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>{{ .chezmoi.homeDir }}/.local/share/dmc</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+    <key>StandardOutPath</key>
+    <string>{{ .chezmoi.homeDir }}/.local/share/dmc/logs/dmc.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{ .chezmoi.homeDir }}/.local/share/dmc/logs/dmc.log</string>
+</dict>
+</plist>
