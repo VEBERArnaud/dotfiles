@@ -109,10 +109,6 @@ sudo pmset -a autorestart 1 2>/dev/null || true
 # Headless hosts: no display or disk sleep, wake for network access
 sudo pmset -a displaysleep 0 disksleep 0 womp 1 2>/dev/null || true
 
-# Headless hosts: enable Remote Login (SSH)
-sudo systemsetup -setremotelogin on > /dev/null 2>&1 \
-    || log_warn "Could not enable Remote Login: grant Full Disk Access to the terminal or enable it in System Settings > General > Sharing"
-
 {{ end -}}
 
 # Check for software updates daily, not just once per week

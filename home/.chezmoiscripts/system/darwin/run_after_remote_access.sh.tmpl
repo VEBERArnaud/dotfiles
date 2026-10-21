@@ -1,0 +1,69 @@
+{{- if and .is_mac (or .user_dmc .user_emmett) -}}
+#!/usr/bin/env bash
+
+# Headless hosts: remote access and unattended boot
+# Runs on every apply: each step checks its state first and only asks for sudo
+# when something is missing, so a step that failed is retried on the next apply
+
+set -euo pipefail
+
+{{ template "common.tmpl" . }}
+
+###############################################################################
+# Remote Login (SSH)                                                          #
+###############################################################################
+
+# systemsetup needs Full Disk Access for the terminal running chezmoi
+if ! launchctl print system/com.openssh.sshd > /dev/null 2>&1; then
+    log_info "Enabling Remote Login (SSH)..."
+    if sudo systemsetup -setremotelogin on > /dev/null 2>&1; then
+        log_success "Remote Login enabled"
+    else
+        log_warn "Could not enable Remote Login: ${TERM_PROGRAM:-the terminal} needs Full Disk Access"
+        log_warn "  1. open 'x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles'"
+        log_warn "  2. add ${TERM_PROGRAM:-the terminal} to Full Disk Access, then quit and reopen it"
+        log_warn "  3. run chezmoi apply again"
+    fi
+fi
+
+###############################################################################
+# Screen Sharing (VNC)                                                        #
+###############################################################################
+
+if ! launchctl print system/com.apple.screensharing > /dev/null 2>&1; then
+    log_info "Enabling Screen Sharing..."
+    sudo launchctl enable system/com.apple.screensharing 2>/dev/null || true
+    sudo launchctl bootstrap system /System/Library/LaunchDaemons/com.apple.screensharing.plist 2>/dev/null || true
+    if launchctl print system/com.apple.screensharing > /dev/null 2>&1; then
+        log_success "Screen Sharing enabled"
+    else
+        log_warn "Could not enable Screen Sharing: enable it in System Settings > General > Sharing"
+    fi
+fi
+
+{{ if .user_dmc -}}
+###############################################################################
+# FileVault and automatic login (DMC host)                                    #
+###############################################################################
+
+# FileVault off, otherwise every boot stops at the unlock screen and automatic
+# login is refused
+if fdesetup isactive > /dev/null 2>&1; then
+    log_info "Disabling FileVault (asks for the account password)..."
+    sudo fdesetup disable -user "${USER}" \
+        || log_warn "Could not disable FileVault: turn it off in System Settings > Privacy & Security > FileVault"
+fi
+
+# Log in automatically at boot so DMC starts without anyone at the Mac
+if [[ "$(defaults read /Library/Preferences/com.apple.loginwindow autoLoginUser 2>/dev/null || true)" != "${USER}" ]]; then
+    if fdesetup isactive > /dev/null 2>&1; then
+        log_warn "FileVault is still on: automatic login is retried on the next apply"
+    else
+        log_info "Enabling automatic login (asks for the account password)..."
+        sudo sysadminctl -autologin set -userName "${USER}" -password - \
+            || log_warn "Could not enable automatic login (FileVault may still be decrypting): retried on the next apply"
+    fi
+fi
+
+{{ end -}}
+{{- end -}}
