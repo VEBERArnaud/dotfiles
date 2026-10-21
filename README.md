@@ -168,6 +168,14 @@ Manual steps, only when the script warns:
 - **Automatic login refused**: FileVault is still decrypting; `chezmoi apply` again once `fdesetup status` reports `FileVault is Off`
 - **No display attached**: Screen Sharing uses a low-resolution virtual display; an HDMI dummy plug gives a usable resolution
 
+### DMC host
+
+The `dmc` host runs the DMC instance from `~/.local/share/dmc` (`.env`, `data/`), outside the repository tree:
+
+- `@dmc-ai/cli` is installed from `~/.nvm/default-packages`, but held back from `npm update -g`: upgrade it by hand with `dmcli upgrade`, then `launchctl kickstart -k gui/$(id -u)/pw.veber.dmc`
+- The launch agent `pw.veber.dmc` runs `dmcli start` when the session opens (automatic login) and restarts it when it crashes; it does nothing until `.env` exists
+- Logs: `~/.local/share/dmc/logs/dmc.log`
+
 ## Local Overrides
 
 Several configuration files support local overrides that are not tracked in git:

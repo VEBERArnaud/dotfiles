@@ -51,6 +51,11 @@
 .aws/config
 {{- end }}
 
+# User-scoped files
+{{- if not .user_dmc }}
+Library/LaunchAgents/pw.veber.dmc.plist
+{{- end }}
+
 # Tool-scoped files
 {{- if not .with_javascript }}
 .npmrc

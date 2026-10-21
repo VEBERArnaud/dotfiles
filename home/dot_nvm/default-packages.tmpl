@@ -9,3 +9,7 @@ pnpm
 serve
 tldr
 yarn
+{{- if .user_dmc }}
+# Upgraded by hand with dmcli upgrade: held back from npm update -g
+@dmc-ai/cli
+{{- end }}

@@ -54,7 +54,16 @@ nvm alias default {{ last $nodes }}
 # Sync global npm packages from default-packages
 nvm use default
 log_info "Updating global npm packages..."
-npm update -g
+# Packages upgraded by hand are held back
+held_packages=({{ if .user_dmc }}"@dmc-ai/cli"{{ end }})
+update_packages=()
+while IFS= read -r pkg; do
+    [[ " ${held_packages[*]-} " == *" ${pkg} "* ]] && continue
+    update_packages+=("${pkg}")
+done < <(npm ls -g --depth=0 --parseable | sed -n 's|.*/node_modules/||p')
+if [[ ${#update_packages[@]} -gt 0 ]]; then
+    npm update -g "${update_packages[@]}"
+fi
 
 default_packages="${NVM_DIR}/default-packages"
 if [ -f "${default_packages}" ]; then
