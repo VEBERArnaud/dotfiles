@@ -1,7 +1,9 @@
 {{- /* Génère la config SSH locale depuis les items Server 1Password tagués 'ssh-config' */ -}}
-{{- $items := output "op" "item" "list" "--tags" "ssh-config" "--format" "json" | fromJson -}}
-{{- range $items }}
-{{- $item := onepassword .id }}
+{{- /* Index item ids by title and range over sorted titles: op lists items in no stable order */ -}}
+{{- $items := dict -}}
+{{- range output "op" "item" "list" "--tags" "ssh-config" "--format" "json" | fromJson }}{{ $_ := set $items .title .id }}{{ end -}}
+{{- range $title := keys $items | sortAlpha }}
+{{- $item := onepassword (get $items $title) }}
 {{- $hostname := "" }}
 {{- $user := "" }}
 {{- $aliases := list }}
