@@ -157,6 +157,17 @@ Configuration is defined in [`home/.chezmoi.toml.tmpl`](home/.chezmoi.toml.tmpl)
 
 5. Run `chezmoi init --apply veberarnaud` on the new machine
 
+### Headless hosts (`dmc`, `emmett`)
+
+`run_onchange_after_system_ui.sh.tmpl` restarts the Mac after a power failure or a freeze and prevents sleep. `run_after_remote_access.sh.tmpl` enables Remote Login (SSH), checks Screen Sharing, and on the `dmc` host turns FileVault off and enables automatic login (both ask for the account password). It runs on every `chezmoi apply` but only acts on what is missing, so a failed step is retried on the next apply.
+
+Manual steps, only when the script warns:
+
+- **Remote Login not enabled**: add the terminal to System Settings > Privacy & Security > Full Disk Access, reopen it, then `chezmoi apply`
+- **Screen Sharing off**: System Settings > General > Sharing > Screen Sharing, access for Administrators. It cannot be scripted: a service loaded through `launchctl` refuses connections ("Screen Sharing is not permitted"); if that happens, turn the toggle off and on again
+- **Automatic login refused**: FileVault is still decrypting; `chezmoi apply` again once `fdesetup status` reports `FileVault is Off`
+- **No display attached**: Screen Sharing uses a low-resolution virtual display; an HDMI dummy plug gives a usable resolution
+
 ## Local Overrides
 
 Several configuration files support local overrides that are not tracked in git:

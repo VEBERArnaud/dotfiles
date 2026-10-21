@@ -175,6 +175,7 @@ Skills live in a tool-neutral location so removing either tool does not break th
 - **`packages/run_after_node.sh.tmpl`** - Installs Node.js LTS versions via nvm
 - **`packages/run_after_rust.sh.tmpl`** - Installs Rust toolchains and components
 - **`security/run_after_gpg_import.sh.tmpl`** - Imports GPG key from 1Password
+- **`system/darwin/run_after_remote_access.sh.tmpl`** - Headless hosts: SSH, Screen Sharing check (System Settings only); DMC host: FileVault off, automatic login (only acts on what is missing)
 - **`tools/run_after_claude_mcp.sh.tmpl`** - Claude Code MCP servers
 - **`tools/run_after_claude_plugins.sh.tmpl`** - Claude Code plugins
 - **`tools/run_after_codex_mcp.sh.tmpl`** - Codex CLI MCP servers (same as Claude Code)
