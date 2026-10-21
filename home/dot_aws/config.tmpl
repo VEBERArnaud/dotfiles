@@ -1,7 +1,9 @@
 {{- /* Generate AWS config from 1Password items tagged 'aws-sso-session' and 'aws-sso-profile' */ -}}
-{{- $sessions := output "op" "item" "list" "--tags" "aws-sso-session" "--format" "json" | fromJson -}}
-{{- range $sessions }}
-{{- $item := onepassword .id }}
+{{- /* Index item ids by title and range over sorted titles: op lists items in no stable order */ -}}
+{{- $sessions := dict -}}
+{{- range output "op" "item" "list" "--tags" "aws-sso-session" "--format" "json" | fromJson }}{{ $_ := set $sessions .title .id }}{{ end -}}
+{{- range $title := keys $sessions | sortAlpha }}
+{{- $item := onepassword (get $sessions $title) }}
 {{- $start_url := "" }}
 {{- $region := "" }}
 {{- range $item.fields }}
@@ -15,9 +17,10 @@ sso_registration_scopes = sso:account:access
 
 {{ end -}}
 
-{{- $profiles := output "op" "item" "list" "--tags" "aws-sso-profile" "--format" "json" | fromJson -}}
-{{- range $profiles }}
-{{- $item := onepassword .id }}
+{{- $profiles := dict -}}
+{{- range output "op" "item" "list" "--tags" "aws-sso-profile" "--format" "json" | fromJson }}{{ $_ := set $profiles .title .id }}{{ end -}}
+{{- range $title := keys $profiles | sortAlpha }}
+{{- $item := onepassword (get $profiles $title) }}
 {{- $sso_session := "" }}
 {{- $account_id := "" }}
 {{- $role_name := "" }}
