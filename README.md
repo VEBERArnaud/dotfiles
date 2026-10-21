@@ -174,9 +174,37 @@ Manual steps, only when the script warns:
 
 The `dmc` host runs the DMC instance from `~/.local/share/dmc` (`.env`, `data/`), outside the repository tree:
 
-- `@dmc-ai/cli` is installed from `~/.nvm/default-packages`, but held back from `npm update -g`: upgrade it by hand with `dmcli upgrade`, then `launchctl kickstart -k gui/$(id -u)/pw.veber.dmc`
+- `@dmc-ai/cli` is installed from `~/.nvm/default-packages`, but held back from `npm update -g`: it is upgraded by hand (see below)
 - The launch agent `pw.veber.dmc` runs `dmcli start` when the session opens (automatic login) and restarts it when it crashes; it does nothing until `.env` exists
 - Logs: `~/.local/share/dmc/logs/dmc.log`, rotated every day at 04:00 by the launch agent `pw.veber.dmc-logrotate` (`~/.local/bin/dmc-logrotate`: copy then truncate, so DMC is not restarted; 14 compressed archives `dmc.log.N.gz`)
+
+#### Upgrading DMC
+
+`dmcli upgrade` only replaces the global CLI (`npm install -g @dmc-ai/cli@latest`, after a confirmation): it does not stop DMC, and the database migrations run at the next start. No command rolls a migration back, so take a backup first. See DMC's `docs/operations/maintenance.md` §4.
+
+1. Check that no run is in flight (web UI, or `get_stats` through the `dmc` MCP server): the restart fails every running run
+2. Back up the database:
+
+   ```bash
+   sqlite3 ~/.local/share/dmc/data/data.db ".backup '$HOME/.local/share/dmc/data/backup-$(date +%Y%m%d%H%M%S).db'"
+   ```
+
+3. Upgrade the CLI and note the previous version it prints: `dmcli upgrade`
+4. Check the auth stack before restarting, a single `@better-auth/core` version is expected:
+
+   ```bash
+   (cd "$(npm root -g)/@dmc-ai/cli" && npm ls better-auth @better-auth/core)
+   ```
+
+5. Restart DMC, which applies the migrations, then check it:
+
+   ```bash
+   launchctl kickstart -k gui/$(id -u)/pw.veber.dmc
+   tail -f ~/.local/share/dmc/logs/dmc.log   # "API server running"
+   (cd ~/.local/share/dmc && dmcli doctor)
+   ```
+
+Rolling back: stop the agent (`launchctl bootout gui/$(id -u)/pw.veber.dmc`, a plain kill is restarted by launchd), copy the backup over `data/data.db` and remove `data/data.db-wal` and `data/data.db-shm`, reinstall the previous version (`npm install -g @dmc-ai/cli@<version>`), then `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/pw.veber.dmc.plist`.
 
 ## Local Overrides
 
