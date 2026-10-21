@@ -1,0 +1,24 @@
+{{- if and .is_mac .user_dmc -}}
+#!/usr/bin/env bash
+
+# Load the DMC log rotation launch agent, again whenever its plist changes.
+# Separate from the DMC agent script: reloading this one never restarts DMC.
+# plist hash: {{ include "private_Library/private_LaunchAgents/pw.veber.dmc-logrotate.plist.tmpl" | sha256sum }}
+
+set -euo pipefail
+
+{{ template "common.tmpl" . }}
+
+readonly LABEL="pw.veber.dmc-logrotate"
+readonly PLIST="${HOME}/Library/LaunchAgents/${LABEL}.plist"
+uid="$(id -u)"
+readonly DOMAIN="gui/${uid}"
+
+# launchd does not create the log directory
+mkdir -p "${HOME}/.local/share/dmc/logs"
+
+log_info "Loading the DMC log rotation launch agent..."
+launchctl bootout "${DOMAIN}/${LABEL}" 2>/dev/null || true
+retry launchctl bootstrap "${DOMAIN}" "${PLIST}"
+log_success "DMC log rotation launch agent loaded"
+{{ end -}}

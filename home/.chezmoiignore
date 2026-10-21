@@ -53,7 +53,9 @@
 
 # User-scoped files
 {{- if not .user_dmc }}
+.local/bin/dmc-logrotate
 Library/LaunchAgents/pw.veber.dmc.plist
+Library/LaunchAgents/pw.veber.dmc-logrotate.plist
 {{- end }}
 
 # Tool-scoped files
