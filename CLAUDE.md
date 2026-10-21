@@ -13,6 +13,7 @@ dotfiles/
 ├── .chezmoiroot              # Points to "home" as source directory
 ├── .chezmoiversion           # Requires chezmoi 2.70.0+
 ├── .github/workflows/        # CI validation (shellcheck, templates, linting)
+├── docs/dmc-host.md          # DMC host operations (instance, launch agents, upgrade, migration)
 ├── .agents/skills/           # Project skills (source, shared by Claude Code and Codex)
 │   ├── dotfiles/             # /dotfiles skill
 │   └── brew-add/             # /brew-add skill
