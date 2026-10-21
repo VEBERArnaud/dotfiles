@@ -30,15 +30,13 @@ fi
 # Screen Sharing (VNC)                                                        #
 ###############################################################################
 
+# Only the System Settings toggle grants access: a service loaded through
+# launchctl listens on 5900 but refuses connections ("Screen Sharing is not
+# permitted"), so log the steps instead
 if ! launchctl print system/com.apple.screensharing > /dev/null 2>&1; then
-    log_info "Enabling Screen Sharing..."
-    sudo launchctl enable system/com.apple.screensharing 2>/dev/null || true
-    sudo launchctl bootstrap system /System/Library/LaunchDaemons/com.apple.screensharing.plist 2>/dev/null || true
-    if launchctl print system/com.apple.screensharing > /dev/null 2>&1; then
-        log_success "Screen Sharing enabled"
-    else
-        log_warn "Could not enable Screen Sharing: enable it in System Settings > General > Sharing"
-    fi
+    log_warn "Screen Sharing is off: it can only be enabled from System Settings"
+    log_warn "  1. open 'x-apple.systempreferences:com.apple.Sharing-Settings.extension'"
+    log_warn "  2. turn Screen Sharing on, allow access for Administrators"
 fi
 
 {{ if .user_dmc -}}
