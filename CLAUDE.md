@@ -50,7 +50,7 @@ dotfiles/
     │   ├── dmc/private_api-key.tmpl  # DMC MCP API key, rendered from 1Password (600)
     │   ├── ghostty/config            # Ghostty terminal configuration
     │   └── starship.toml             # Starship prompt configuration
-    ├── dot_local/bin/                # ~/.local/bin/ scripts (sesh-picker, dmc-mcp-headers)
+    ├── dot_local/bin/                # ~/.local/bin/ scripts (sesh-picker, dmc-mcp-headers, dmc-logrotate)
     ├── dot_zprofile.d/               # ~/.zprofile.d/ drop-in files (numbered)
     ├── dot_zshenv.d/                 # ~/.zshenv.d/ drop-in files
     ├── dot_ssh/                      # SSH config with 1Password integration
@@ -192,6 +192,7 @@ Skills live in a tool-neutral location so removing either tool does not break th
 - **`system/darwin/run_onchange_after_system_ui.sh.tmpl`** - macOS system & UI preferences
 - **`system/darwin/run_onchange_after_restart.sh.tmpl`** - Restart affected macOS services
 - **`tools/run_onchange_after_dmc_agent.sh.tmpl`** - DMC host: loads the `pw.veber.dmc` launch agent (`dmcli start` from `~/.local/share/dmc`), again when its plist changes
+- **`tools/run_onchange_after_dmc_logrotate_agent.sh.tmpl`** - DMC host: loads the `pw.veber.dmc-logrotate` launch agent (daily `~/.local/bin/dmc-logrotate`, copy then truncate of `dmc.log`); separate so reloading it never restarts DMC
 - **`tools/run_onchange_after_whisper_model.sh.tmpl`** - Download Whisper speech model
 
 ## Common Commands

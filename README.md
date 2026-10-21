@@ -174,7 +174,7 @@ The `dmc` host runs the DMC instance from `~/.local/share/dmc` (`.env`, `data/`)
 
 - `@dmc-ai/cli` is installed from `~/.nvm/default-packages`, but held back from `npm update -g`: upgrade it by hand with `dmcli upgrade`, then `launchctl kickstart -k gui/$(id -u)/pw.veber.dmc`
 - The launch agent `pw.veber.dmc` runs `dmcli start` when the session opens (automatic login) and restarts it when it crashes; it does nothing until `.env` exists
-- Logs: `~/.local/share/dmc/logs/dmc.log`
+- Logs: `~/.local/share/dmc/logs/dmc.log`, rotated every day at 04:00 by the launch agent `pw.veber.dmc-logrotate` (`~/.local/bin/dmc-logrotate`: copy then truncate, so DMC is not restarted; 14 compressed archives `dmc.log.N.gz`)
 
 ## Local Overrides
 
