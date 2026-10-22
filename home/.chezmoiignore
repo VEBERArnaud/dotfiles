@@ -57,8 +57,10 @@
 .ssh/authorized_keys
 {{- end }}
 {{- if not .user_dmc }}
+.local/bin/dmc-backup
 .local/bin/dmc-logrotate
 Library/LaunchAgents/pw.veber.dmc.plist
+Library/LaunchAgents/pw.veber.dmc-backup.plist
 Library/LaunchAgents/pw.veber.dmc-logrotate.plist
 {{- end }}
 
