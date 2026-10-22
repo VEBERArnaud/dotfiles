@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Backs up the DMC database, run daily by the pw.veber.dmc-backup launch agent
+# on the DMC host, and by hand before an upgrade.
+#
+# `sqlite3 .backup` takes a consistent copy while DMC keeps writing. The copy
+# is kept only if it passes `pragma integrity_check`, then gzipped. Only the
+# KEEP most recent backups are kept.
+#
+# Usage:
+#   dmc-backup               # prints the path of the new backup
+set -euo pipefail
+
+readonly DB="${HOME}/.local/share/dmc/data/data.db"
+readonly BACKUP_DIR="${HOME}/.local/share/dmc/backups"
+readonly KEEP=7
+
+# The database holds DMC's encrypted secrets and the agent sessions
+umask 077
+
+if [[ ! -f "${DB}" ]]; then
+    echo "No DMC database at ${DB}" >&2
+    exit 1
+fi
+
+mkdir -p "${BACKUP_DIR}"
+backup="${BACKUP_DIR}/data-$(date +%Y%m%d-%H%M%S).db"
+# A failed or rejected copy is never left behind (gzip removes it on success)
+trap 'rm -f "${backup}" "${backup}-wal" "${backup}-shm"' EXIT
+
+/usr/bin/sqlite3 "${DB}" ".backup '${backup}'"
+# The copy inherits WAL mode, and macOS's SQLite keeps the -wal and -shm files
+# on close: switch it to a rollback journal so the archive is self-contained
+/usr/bin/sqlite3 "${backup}" 'pragma journal_mode=delete;' > /dev/null
+if [[ "$(/usr/bin/sqlite3 "${backup}" 'pragma integrity_check;')" != "ok" ]]; then
+    echo "Backup failed the integrity check, not kept" >&2
+    exit 1
+fi
+gzip -f "${backup}"
+
+# Names sort by date: drop everything past the KEEP most recent
+find "${BACKUP_DIR}" -name 'data-*.db.gz' | sort -r | tail -n +$((KEEP + 1)) \
+    | while IFS= read -r old; do rm -f "${old}"; done
+
+echo "${backup}.gz"
