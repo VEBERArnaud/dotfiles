@@ -8,7 +8,7 @@ The unattended boot it relies on (automatic restart, no sleep, automatic login, 
 
 | What | Where | Managed by |
 |---|---|---|
-| Instance (`.env`, `data/data.db`) | `~/.local/share/dmc/` | by hand (state and the auth secret, never in the repository) |
+| Instance (`.env`, `data/data.db`) | `~/.local/share/dmc/` | by hand (state and the auth secret, never in the repository); a copy of `.env` in 1Password, `op://Personal/DMC/Instance/env` |
 | CLI `@dmc-ai/cli` | global npm package of the default nvm Node | `dot_nvm/default-packages.tmpl`, held back from `npm update -g` |
 | Server: `dmcli start` | launch agent `pw.veber.dmc`, user session | `private_Library/private_LaunchAgents/pw.veber.dmc.plist.tmpl`, loaded by `run_onchange_after_dmc_agent` |
 | Logs | `~/.local/share/dmc/logs/dmc.log` | written by launchd (`StandardOutPath`) |
@@ -20,6 +20,13 @@ The unattended boot it relies on (automatic restart, no sleep, automatic login, 
 A user agent rather than a daemon: Claude Code keeps its OAuth session in the login keychain, only available in the user session. The agent runs `dmcli` through a login shell (`zsh -l`) so nvm, Homebrew, `claude`, `codex` and `gh` are on `PATH`, outside tmux and with no TTY: an agent session reaching a tmux server that hosts `dmcli` can freeze it.
 
 The backup is a `sqlite3 .backup` copy, consistent while DMC keeps writing, kept only if it passes `pragma integrity_check`, switched to a rollback journal so the archive is self-contained, then gzipped (about a quarter of the database size). The copies stay on the host: they cover a failed upgrade, a corrupted database or a mistake, not the loss of the disk.
+
+The `.env` holds `BETTER_AUTH_SECRET`, which encrypts the secrets stored in DMC and signs its sessions and API keys: a database restored without it loses every stored secret and API key. Its copy lives in 1Password, attached to the `DMC` item (section `Instance`, file `env`), the off-host backup of the instance configuration:
+
+```bash
+op read --force --out-file "$HOME/.local/share/dmc/.env" "op://Personal/DMC/Instance/env"   # restore (written as 600)
+op item edit DMC --vault Personal "Instance.env[file]=$HOME/.local/share/dmc/.env"            # update after editing .env
+```
 
 The log is copied then truncated, not renamed: launchd keeps it open in append mode and DMC never reopens it, so `newsyslog` would leave DMC writing to the rotated file.
 
@@ -44,7 +51,6 @@ A plain `kill` is not a stop: `KeepAlive` restarts DMC when it exits with an err
 
 1. Check that no run is in flight (web UI, or `get_stats` through the `dmc` MCP server): the restart fails every running run
 2. Back up the database: `dmc-backup`, and note the archive it prints
-
 3. Upgrade the CLI and note the previous version it prints: `dmcli upgrade`
 4. Check the auth stack before restarting, a single `@better-auth/core` version is expected (dmc-ai/dmc#479):
 
@@ -74,9 +80,10 @@ Every run, session and configuration change since the backup is lost.
    gzcat ../backups/data-<date>.db.gz > data.db && chmod 600 data.db
    ```
 
-3. Start the agent: `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/pw.veber.dmc.plist`, then check the log and `dmcli doctor`
+3. If `.env` is lost too, restore it from 1Password (see §1): the archive is useless without its `BETTER_AUTH_SECRET`
+4. Start the agent: `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/pw.veber.dmc.plist`, then check the log and `dmcli doctor`
 
-To roll back an upgrade, restore the backup taken before it and reinstall the previous version (`npm install -g @dmc-ai/cli@<version>`) before step 3.
+To roll back an upgrade, restore the backup taken before it and reinstall the previous version (`npm install -g @dmc-ai/cli@<version>`) before step 4.
 
 ## 5. Moving the instance to another host
 
@@ -90,7 +97,7 @@ The new host gets the `user_dmc` flag in `home/.chezmoi.toml.tmpl`; `chezmoi app
    sqlite3 data/data.db ".backup '/tmp/data.db'"   # on the old host, DMC stopped
    ```
 
-   - Into `~/.local/share/dmc/` on the new host: `data/data.db` and `.env`, then `chmod 600 .env data/data.db`
+   - Into `~/.local/share/dmc/` on the new host: `data/data.db` and `.env` (or restore it from 1Password, see §1), then `chmod 600 .env data/data.db`
    - Not `dmc.yaml` (no longer read by DMC), nor a `.nvmrc` (it would switch Node away from the version the CLI is installed under)
    - Remove `CONFIG_PATH` and `DATABASE_PATH` from `.env`: both are ignored by current DMC
 4. Clone the missing project checkouts. DMC clones a project only when it is created or imported, never at run time, so a run on a missing checkout fails:
