@@ -150,6 +150,7 @@ MCP servers configured via `run_after_claude_mcp.sh.tmpl`:
 - **qonto** - Qonto banking, remote server with OAuth (`user_veberarnaud` only)
 - **plaud** - Plaud recordings and meeting notes, OAuth on first use (`user_veberarnaud` only)
 - **finary** - Finary wealth data, remote read-only server with OAuth (`user_veberarnaud` only)
+- **dougs** - Dougs accounting, remote server with OAuth (`user_veberarnaud` only)
 - **dmc** - The DMC instance's MCP endpoint (`<instance>/api/mcp`, the URL read from 1Password at apply time): runs, sessions, triggers and config of the orchestrator, `x-api-key` auth, on every host including the agent host that runs DMC. The key is not in the server entry: `headersHelper` runs `~/.local/bin/dmc-mcp-headers` on every connection, which reads `~/.config/dmc/api-key`, rendered from 1Password by chezmoi, so a rotation is a 1Password edit plus `chezmoi apply`
 - **datadog** - Datadog EU observability with all toolsets, remote server with OAuth (`project_eurosport` only)
 

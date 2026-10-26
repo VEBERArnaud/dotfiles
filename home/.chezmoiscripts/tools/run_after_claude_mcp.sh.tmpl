@@ -100,6 +100,18 @@ else
     fi
 fi
 
+# Add dougs MCP server (remote, OAuth login via /mcp)
+if mcp_exists "dougs"; then
+    log_info "  MCP server dougs already configured"
+else
+    log_info "  Adding MCP server: dougs..."
+    if claude mcp add "dougs" --scope user --transport http https://app.dougs.fr/mcp &>/dev/null; then
+        log_success "  dougs added"
+    else
+        log_error "  Failed to add dougs"
+    fi
+fi
+
 {{ end -}}
 # Add dmc MCP server (the DMC instance, x-api-key auth). The instance URL
 # lives in 1Password, not in this repository. The key is not in the entry
