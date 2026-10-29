@@ -173,7 +173,8 @@ wt() {
   [[ "$no_create" == true ]] && args+=(--no-create)
   [[ "$no_envrc" == true ]] && args+=(--no-envrc)
   [[ "$no_submodules" == true ]] && args+=(--no-submodules)
-  wt-create "${args[@]}" "$branch" > /dev/null || return 1
+  # Submodules link in the background: the session opens before they are checked out
+  wt-create --background-submodules "${args[@]}" "$branch" > /dev/null || return 1
 
   # Extras (not in core script)
   if [[ "$created" == true ]]; then
