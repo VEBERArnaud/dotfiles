@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # wt-create - Create a git worktree following the <repo>.wt/<branch> convention
 #
-# Usage: wt-create [--no-create] [--no-envrc] [--no-submodules] [--cwd <dir>] <branch>
+# Usage: wt-create [--no-create] [--no-envrc] [--no-submodules] [--background-submodules] [--cwd <dir>] <branch>
 #   --no-create      Error if branch doesn't exist (no auto-create)
 #   --no-envrc       Skip .envrc generation
 #   --no-submodules  Leave submodule directories empty (no linking)
+#   --background-submodules  Link submodules in a detached job, return at once
 #   --cwd <dir>      Git repo directory (default: current dir)
 #   <branch>         Branch name (may contain slashes)
 #
@@ -21,6 +22,7 @@ set -euo pipefail
 no_create=false
 no_envrc=false
 no_submodules=false
+background_submodules=false
 cwd=""
 branch=""
 
@@ -29,13 +31,14 @@ while [[ $# -gt 0 ]]; do
         --no-create) no_create=true; shift ;;
         --no-envrc)  no_envrc=true; shift ;;
         --no-submodules) no_submodules=true; shift ;;
+        --background-submodules) background_submodules=true; shift ;;
         --cwd)       cwd="$2"; shift 2 ;;
         *)           branch="$1"; shift ;;
     esac
 done
 
 if [[ -z "${branch}" ]]; then
-    echo "Usage: wt-create [--no-create] [--no-envrc] [--no-submodules] [--cwd <dir>] <branch>" >&2
+    echo "Usage: wt-create [--no-create] [--no-envrc] [--no-submodules] [--background-submodules] [--cwd <dir>] <branch>" >&2
     exit 1
 fi
 
@@ -106,7 +109,9 @@ fi
 # in the main worktree is checked out instead as a worktree of that clone, at
 # the commit recorded by the new worktree: no new clone, and objects, fetches
 # and branches are shared with the main worktree.
-if [[ "${no_submodules}" == false && -f "${wt_dir}/.gitmodules" ]]; then
+link_submodules() {
+    local main_wt sub_path main_sub wt_sub sha
+    local -a depth
     main_wt=$(git -C "${git_root}" worktree list --porcelain | awk 'NR == 1 { print $2 }')
     while read -r _ sub_path; do
         main_sub="${main_wt}/${sub_path}"
@@ -134,6 +139,28 @@ if [[ "${no_submodules}" == false && -f "${wt_dir}/.gitmodules" ]]; then
             echo "Submodule ${sub_path}: worktree add failed, left empty" >&2
         fi
     done < <(git -C "${wt_dir}" config -f .gitmodules --get-regexp '\.path$' || true)
+}
+
+if [[ "${no_submodules}" == false && -f "${wt_dir}/.gitmodules" ]]; then
+    if [[ "${background_submodules}" == true ]]; then
+        # Checking out large submodules takes minutes: return the path now and
+        # link them in a detached job, logged in the worktree's git dir (gone
+        # with the worktree), with a tmux message when done
+        log="$(git -C "${wt_dir}" rev-parse --path-format=absolute --git-dir)/wt-submodules.log"
+        (
+            trap '' HUP
+            link_submodules >"${log}" 2>&1
+            if [[ -n "${TMUX:-}" ]]; then
+                if [[ -s "${log}" ]]; then
+                    tmux display-message "wt: submodules of ${sanitized} linked with errors, see ${log}"
+                else
+                    tmux display-message "wt: submodules of ${sanitized} linked"
+                fi
+            fi
+        ) </dev/null >/dev/null 2>&1 &
+    else
+        link_submodules
+    fi
 fi
 
 #######################################

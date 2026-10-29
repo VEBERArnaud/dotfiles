@@ -217,6 +217,11 @@ new worktree:
 
 `wt-remove` then prunes the worktree entries left in the main worktree's submodule clones.
 
+Checking out large submodules takes minutes, so `wt` (and the tmux picker) passes
+`--background-submodules`: the session opens as soon as the worktree exists, the submodules fill
+in behind it, and a tmux message says when they are done. Errors go to `wt-submodules.log` in the
+worktree's git dir. The Claude Code hook links them before returning.
+
 Two limits:
 
 - Git refuses to check out the same branch twice: keep the main worktree's submodules detached
