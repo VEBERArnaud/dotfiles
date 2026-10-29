@@ -121,6 +121,18 @@ else
     fi
 fi
 
+# Add dougs MCP server (remote, OAuth login via `codex mcp login dougs`)
+if mcp_exists "dougs"; then
+    log_info "  MCP server dougs already configured"
+else
+    log_info "  Adding MCP server: dougs..."
+    if mcp_add_http "dougs" "https://app.dougs.fr/mcp"; then
+        log_success "  dougs added"
+    else
+        log_error "  Failed to add dougs"
+    fi
+fi
+
 {{ end -}}
 {{ if .project_eurosport -}}
 # Add datadog MCP server (remote, EU site, OAuth login via `codex mcp login datadog`)
