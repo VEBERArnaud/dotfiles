@@ -68,6 +68,14 @@ add_marketplace "eurosport" "vbr-tech/eurosport-cc"
 {{ end -}}
 add_marketplace "claude-plugins-official" "anthropics/claude-plugins-official"
 
+# Refresh all marketplaces so plugin updates are visible
+log_info "  Updating marketplaces..."
+if claude plugin marketplace update &>/dev/null; then
+    log_success "  Marketplaces updated"
+else
+    log_warn "  Failed to update marketplaces"
+fi
+
 # Plugins to install and enable
 plugins=(
     "mattpocock-skills@claude-plugins-official"
@@ -87,9 +95,13 @@ plugins=(
 )
 
 for plugin in "${plugins[@]}"; do
-    # Install if not installed
+    # Install if not installed, update otherwise
     if plugin_installed "${plugin}"; then
-        log_info "  Plugin ${plugin} already installed"
+        if claude plugin update "${plugin}" </dev/null &>/dev/null; then
+            log_info "  Plugin ${plugin} up to date"
+        else
+            log_warn "  Failed to update plugin ${plugin}"
+        fi
     else
         log_info "  Installing plugin: ${plugin}..."
         if claude plugin install "${plugin}" &>/dev/null; then

@@ -56,6 +56,15 @@ add_marketplace "eurosport" "git@github.com:vbr-tech/eurosport-cc.git"
 {{ end -}}
 add_marketplace "claude-plugins-official" "anthropics/claude-plugins-official"
 
+# Refresh all Git marketplace snapshots; installed plugins follow the
+# refreshed revision
+log_info "  Upgrading marketplaces..."
+if codex plugin marketplace upgrade &>/dev/null; then
+    log_success "  Marketplaces upgraded"
+else
+    log_warn "  Failed to upgrade marketplaces"
+fi
+
 # Plugins to install (same set as Claude Code, minus LSP plugins which are
 # Claude-specific: rust-analyzer-lsp, swift-lsp)
 plugins=(
