@@ -69,3 +69,8 @@ Library/LaunchAgents/pw.veber.dmc-logrotate.plist
 .npmrc
 .nvm
 {{- end }}
+
+# Human user only
+{{- if not .user_veberarnaud }}
+Library/Application Support/com.pais.handy
+{{- end }}

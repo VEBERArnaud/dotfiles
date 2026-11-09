@@ -22,6 +22,19 @@ pre-commit:
         done
         exit $rc
 
+    - name: shellcheck modify scripts
+      glob: "home/**/modify_*"
+      run: |
+        rc=0
+        for file in {staged_files}; do
+          head -n 1 "$file" | grep -q bash || continue # bash only
+          case "$file" in
+            *.tmpl) chezmoi execute-template < "$file" ;;
+            *) cat "$file" ;;
+          esac | shellcheck -s bash - || rc=1
+        done
+        exit $rc
+
     - name: taplo
       glob: "*.toml"
       exclude:
@@ -42,6 +55,20 @@ pre-push:
           chezmoi execute-template < "$file" | shellcheck -s bash -e SC1091 - || rc=1
         done
         exit $rc
+
+    - name: shellcheck modify scripts
+      run: |
+        find home -name "modify_*" | {
+          rc=0
+          while IFS= read -r file; do
+            head -n 1 "$file" | grep -q bash || continue # bash only
+            case "$file" in
+              *.tmpl) chezmoi execute-template < "$file" ;;
+              *) cat "$file" ;;
+            esac | shellcheck -s bash - || rc=1
+          done
+          exit $rc
+        }
 
     - name: taplo
       run: find home -name "*.toml" ! -name "modify_*" -exec taplo lint {} +

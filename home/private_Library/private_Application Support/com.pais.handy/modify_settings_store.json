@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# chezmoi modify script for Handy's settings_store.json.
+#
+# Handy owns this file: it writes it on first launch and rewrites it with its
+# own state (onboarding, microphones, model, post-processing keys). Only the
+# keys in MANAGED, under .settings, are enforced by chezmoi; every other key
+# is passed through untouched. Quit Handy before `chezmoi apply`, or it may
+# overwrite the enforced keys when it next saves.
+set -euo pipefail
+
+if ! command -v jq >/dev/null 2>&1; then
+    echo "jq is required to manage Handy's settings_store.json" >&2
+    exit 1
+fi
+
+MANAGED='{
+  "shortcut_activation": "push_to_talk",
+  "show_tray_icon": false,
+  "spoken_languages": ["en", "fr"],
+  "start_hidden": true
+}'
+
+# Empty stdin: Handy has not been launched yet. Output nothing so chezmoi
+# does not create the file, and let Handy write its full defaults first.
+current="$(cat)"
+if [[ -z "${current//[[:space:]]/}" ]]; then
+    exit 0
+fi
+
+# Handy writes the file without a trailing newline; match it to keep the diff clean.
+printf '%s' "$(printf '%s\n' "${current}" | jq --argjson managed "${MANAGED}" '.settings += $managed')"
