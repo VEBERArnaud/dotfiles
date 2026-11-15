@@ -61,9 +61,32 @@ fi
 # this script: on the first apply the app is missing and this block is not
 # rendered, the next apply registers it.
 {{ if stat "/Applications/DMC.app" -}}
-dmc_login_items="$(osascript -e 'tell application "System Events" to get the name of every login item' 2>/dev/null || true)"
-if [[ "${dmc_login_items}" == *"DMC"* ]]; then
+# Match by path, not by name: an old manual install (for example
+# ~/Downloads/DMC.app) registers a login item named "DMC" too. Replace that
+# entry with the /Applications one; never touch a login item of another app.
+dmc_login_paths="$(osascript -e 'tell application "System Events" to get the path of every login item' 2>/dev/null || true)"
+dmc_registered=false
+dmc_old_path=""
+IFS=',' read -ra dmc_paths <<< "${dmc_login_paths}"
+for dmc_path in "${dmc_paths[@]}"; do
+    dmc_path="${dmc_path# }"
+    [[ -z "${dmc_path}" ]] && continue
+    if [[ "${dmc_path}" == "/Applications/DMC.app" ]]; then
+        dmc_registered=true
+    elif [[ "${dmc_path}" == */DMC.app ]]; then
+        dmc_old_path="${dmc_path}"
+    fi
+done
+
+if [[ "${dmc_registered}" == true ]]; then
     log_info "DMC.app already starts at login"
+elif [[ -n "${dmc_old_path}" ]]; then
+    if osascript -e "tell application \"System Events\" to delete (every login item whose path is \"${dmc_old_path}\")" &>/dev/null \
+        && osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/DMC.app", hidden:false}' &>/dev/null; then
+        log_success "DMC.app login item replaced (was ${dmc_old_path})"
+    else
+        log_warn "Could not replace the login item pointing to ${dmc_old_path} (allow the terminal to control System Events, or fix it in System Settings > General > Login Items)"
+    fi
 elif osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/DMC.app", hidden:false}' &>/dev/null; then
     log_success "DMC.app set to start at login"
 else

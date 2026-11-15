@@ -123,13 +123,14 @@ The macOS menu bar app (`DMC.app`, bundle id `ai.dmc.menubar`) is installed and 
 
 ### What the script does
 
-- Writes the instance URL (`defaults write ai.dmc.menubar baseURL`), read from `op://Personal/DMC/website` at run time, never stored in the repository. Without `op`, or when it is not signed in, the step is skipped with a warning
+- Writes the instance URL (`defaults write ai.dmc.menubar baseURL`), read from `op://Personal/DMC/website` at run time, never stored in the repository. Without `op`, or when it is not signed in, the step is skipped with a warning. This runs on every apply and re-asserts the pinned URL: see the note below
 - Exits if `/Applications/DMC.app` is already at the pinned version
 - Without `gh`, or with `gh` not authenticated, prints a warning (run `gh auth login`, then `chezmoi apply`) and exits 0: it never fails `chezmoi apply`
+- If a previous run was interrupted between staging and swapping the app, leaving only `/Applications/.DMC.app.old` and no `DMC.app`, restores it first so a failure can never leave the host without an app
 - Downloads `DMC-<version>-macOS-arm64.zip` from the private release `v<version>` of `dmc-ai/dmc` into a temporary directory, checks its SHA-256 (a mismatch aborts and leaves the installed app untouched) and unpacks it with `ditto`
 - Quits the running app (`osascript`, up to 15 s), copies the new bundle next to the old one, swaps them with a rename (the old one is put back and relaunched on failure), clears the quarantine flag and relaunches the app if it was running
 - While the app is not at the pinned version the script is stamped with the time, so it runs again on every `chezmoi apply` (a failed download or checksum is retried)
-- `run_onchange_after_autostart.sh.tmpl` adds `/Applications/DMC.app` to the login items. It runs before the install: on a first apply the app is missing, so run `chezmoi apply` a second time to register it
+- `run_onchange_after_autostart.sh.tmpl` adds `/Applications/DMC.app` to the login items, matching by path rather than by name: a login item left over from a manual install elsewhere (for example `~/Downloads/DMC.app`) is replaced rather than mistaken for the real one. It runs before the install: on a first apply the app is missing, so run `chezmoi apply` a second time to register it
 
 ### First steps on each host
 
@@ -137,6 +138,12 @@ The macOS menu bar app (`DMC.app`, bundle id `ai.dmc.menubar`) is installed and 
 2. `chezmoi apply`; allow the terminal to control System Events when asked (login item). If refused, add the app in System Settings > General > Login Items
 3. Open the app, Settings, paste the API key (scope `operate`) once. It is kept in the Keychain and survives updates
 4. Click **Always Allow** when macOS asks for Keychain access
+
+Note: the script re-asserts `baseURL` from 1Password on every apply, so pointing the app at a different instance by hand (for a test, for example) is reverted on the next `chezmoi apply`.
+
+### Migrating from a manual install
+
+If the app was previously installed by hand elsewhere (for example `~/Downloads/DMC.app`), its login item is replaced automatically by `run_onchange_after_autostart.sh.tmpl` (see above). Once `/Applications/DMC.app` is in place, delete the old copy by hand; the script never does this for you.
 
 ### Out of scope
 

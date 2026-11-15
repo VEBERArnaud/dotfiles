@@ -145,8 +145,9 @@ STUB
 # --- the install script -------------------------------------------------------
 
 # run_case: sets up T, runs the rendered script, leaves $OUT, $RC, $T, $APPS.
-# Knobs (env, set by the caller): ZIP_KIND, SHA, INSTALLED, RUNNING, NO_GH,
-# NO_OP, GH_AUTH, GH_DL_FAIL, OP_SIGNED, OP_URL, QUIT_OK, MV_FAIL, CURRENT_URL
+# Knobs (env, set by the caller): ZIP_KIND, SHA, INSTALLED, OLD_LEFTOVER,
+# RUNNING, NO_GH, NO_OP, GH_AUTH, GH_DL_FAIL, OP_SIGNED, OP_URL, QUIT_OK,
+# MV_FAIL, CURRENT_URL
 run_case() {
     T="$(mktemp -d "${WORK}/case.XXXXXX")"
     APPS="${T}/apps"
@@ -158,6 +159,10 @@ run_case() {
     if [[ -n "${INSTALLED:-}" ]]; then
         mkapp "${APPS}/DMC.app" "${INSTALLED}"
         touch "${APPS}/DMC.app/marker"
+    fi
+    if [[ -n "${OLD_LEFTOVER:-}" ]]; then
+        mkapp "${APPS}/.DMC.app.old" "${OLD_LEFTOVER}"
+        touch "${APPS}/.DMC.app.old/marker"
     fi
     [[ -z "${RUNNING:-}" ]] || touch "${T}/running"
     [[ -z "${CURRENT_URL:-}" ]] || printf '%s\n' "${CURRENT_URL}" > "${T}/baseurl"
@@ -173,7 +178,7 @@ run_case() {
         PATH="${T}/bin:/usr/bin:/bin:/usr/sbin:/sbin" bash "${T}/script.sh" 2>&1)" || RC=$?
     HOME="${REAL_HOME}"; unset ZIP TMPDIR
     printf '%s\n' "${OUT}" > "${T}/out.log"
-    unset ZIP_KIND SHA INSTALLED RUNNING NO_GH NO_OP GH_AUTH GH_DL_FAIL OP_SIGNED OP_URL QUIT_OK MV_FAIL CURRENT_URL
+    unset ZIP_KIND SHA INSTALLED OLD_LEFTOVER RUNNING NO_GH NO_OP GH_AUTH GH_DL_FAIL OP_SIGNED OP_URL QUIT_OK MV_FAIL CURRENT_URL
 }
 
 app_version() {
@@ -290,6 +295,15 @@ assert_eq "yes" "$([[ -f "${APPS}/DMC.app/marker" ]] && echo yes || echo no)" "i
 assert_eq "" "$(leftovers)" "staged bundle cleaned"
 assert_has "${T}/calls.log" "open ${APPS}/DMC.app" "app relaunched after the quit"
 
+echo "AC9 leftover .DMC.app.old from an interrupted run"
+OLD_LEFTOVER="1.0.0" run_case
+assert_eq "0" "${RC}" "exit 0"
+assert_has "${T}/out.log" "Restoring" "warns about the restore"
+assert_has "${T}/out.log" ".DMC.app.old" "restore message names the leftover"
+assert_has "${T}/calls.log" "gh release download" "update proceeds normally after the restore"
+assert_eq "${VERSION}" "$(app_version)" "ends up at the pinned version"
+assert_eq "" "$(leftovers)" "no .old leftover remains"
+
 echo "AC11 baseURL from 1Password"
 INSTALLED="${VERSION}" OP_URL="https://dmc.example.invalid/" run_case
 assert_has "${T}/calls.log" "op read op://Personal/DMC/website" "reads op://Personal/DMC/website"
@@ -332,7 +346,8 @@ for f in ${AUTOSTART}; do
     assert_eq "0" "${n}" "Intel host: autostart has no DMC block"
 done
 assert_has "${AUTOSTART}" 'make login item at end with properties {path:"/Applications/DMC.app"' "adds a login item with the app path"
-assert_has "${AUTOSTART}" 'get the name of every login item' "checks existing login items first (idempotent)"
+assert_has "${AUTOSTART}" 'get the path of every login item' "checks existing login items by path first (idempotent)"
+assert_has "${AUTOSTART}" 'delete (every login item whose path is' "replaces a login item pointing at another path"
 assert_has "${AUTOSTART}" 'Could not add DMC.app to the login items' "warns instead of failing"
 if render "${AUTOSTART}" '{"is_mac":true,"is_apple_silicon":true,"user_veberarnaud":true}' | bash -n; then ok "rendered autostart parses"; else ko "rendered autostart parses"; fi
 
@@ -347,30 +362,56 @@ cat > "${li_dir}/bin/osascript" <<'STUB'
 #!/bin/bash
 echo "osascript $*" >> "${LI_LOG}"
 case "$*" in
-    *"get the name of every login item"*) printf '%s\n' "${LI_ITEMS:-}" ;;
+    *"get the path of every login item"*) printf '%s\n' "${LI_PATHS:-}" ;;
+    *"delete (every login item"*) [[ "${LI_DELETE_FAIL:-0}" == 0 ]] ;;
     *"make login item"*) [[ "${LI_ADD_FAIL:-0}" == 0 ]] ;;
 esac
 STUB
 chmod +x "${li_dir}/bin/osascript"
-run_li() { # items add-fail
+run_li() { # paths delete-fail add-fail
     LI_LOG="${li_dir}/log"; : > "${LI_LOG}"
-    export LI_LOG LI_ITEMS="$1" LI_ADD_FAIL="$2"
+    export LI_LOG LI_PATHS="$1" LI_DELETE_FAIL="$2" LI_ADD_FAIL="$3"
     LI_RC=0
     LI_OUT="$(PATH="${li_dir}/bin:${PATH}" bash -c 'set -euo pipefail
 log_info() { echo "INFO $*"; }; log_success() { echo "OK $*"; }; log_warn() { echo "WARN $*"; }
 '"$(cat "${li_dir}/block.sh")" 2>&1)" || LI_RC=$?
 }
-run_li "Dock, Other" 0
-assert_eq "0" "${LI_RC}" "not registered: exit 0"
-assert_has "${LI_LOG}" 'make login item at end with properties {path:"/Applications/DMC.app"' "not registered: adds the login item"
-assert_eq "OK DMC.app set to start at login" "${LI_OUT}" "not registered: reports success"
-run_li "Dock, DMC" 0
-assert_eq "0" "${LI_RC}" "already registered: exit 0"
-assert_lacks "${LI_LOG}" "make login item" "already registered: no second login item (idempotent)"
-assert_eq "INFO DMC.app already starts at login" "${LI_OUT}" "already registered: reports it"
-run_li "" 1
+
+run_li "" 0 0
+assert_eq "0" "${LI_RC}" "no login item: exit 0"
+assert_has "${LI_LOG}" 'make login item at end with properties {path:"/Applications/DMC.app"' "no login item: adds the login item"
+assert_lacks "${LI_LOG}" "delete" "no login item: nothing to delete"
+assert_eq "OK DMC.app set to start at login" "${LI_OUT}" "no login item: reports success"
+
+run_li "/Applications/Dock.app, /Applications/DMC.app" 0 0
+assert_eq "0" "${LI_RC}" "item already at /Applications: exit 0"
+assert_lacks "${LI_LOG}" "make login item" "item already at /Applications: no second login item (idempotent)"
+assert_lacks "${LI_LOG}" "delete" "item already at /Applications: nothing deleted"
+assert_eq "INFO DMC.app already starts at login" "${LI_OUT}" "item already at /Applications: reports it"
+
+run_li "/Users/test/Downloads/DMC.app" 0 0
+assert_eq "0" "${LI_RC}" "item at ~/Downloads (old manual install): exit 0"
+assert_has "${LI_LOG}" 'delete (every login item whose path is "/Users/test/Downloads/DMC.app")' "item at ~/Downloads: deletes the old login item"
+assert_has "${LI_LOG}" 'make login item at end with properties {path:"/Applications/DMC.app"' "item at ~/Downloads: adds the /Applications one"
+assert_eq "OK DMC.app login item replaced (was /Users/test/Downloads/DMC.app)" "${LI_OUT}" "item at ~/Downloads: reports which path was replaced"
+
+run_li "/Applications/DMC Helper.app" 0 0
+assert_eq "0" "${LI_RC}" "another app named like DMC: exit 0"
+assert_lacks "${LI_LOG}" "delete" "another app named like DMC: never deleted"
+assert_has "${LI_LOG}" 'make login item at end with properties {path:"/Applications/DMC.app"' "another app named like DMC: adds the real one anyway"
+assert_eq "OK DMC.app set to start at login" "${LI_OUT}" "another app named like DMC: reports success"
+
+run_li "" 0 1
 assert_eq "0" "${LI_RC}" "Automation refused: exit 0"
 if [[ "${LI_OUT}" == "WARN Could not add DMC.app to the login items"* ]]; then ok "Automation refused: warns"; else ko "Automation refused: warns (${LI_OUT})"; fi
+
+run_li "/Users/test/Downloads/DMC.app" 1 0
+assert_eq "0" "${LI_RC}" "delete fails: exit 0"
+if [[ "${LI_OUT}" == "WARN Could not replace the login item pointing to /Users/test/Downloads/DMC.app"* ]]; then
+    ok "delete fails: warns and names the path"
+else
+    ko "delete fails: warns and names the path (${LI_OUT})"
+fi
 
 echo "AC14 verify"
 render "${VERIFY}" "${G}" > "${WORK}/verify.sh"

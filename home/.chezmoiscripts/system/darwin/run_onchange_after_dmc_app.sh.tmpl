@@ -5,6 +5,11 @@
 # (home/.chezmoidata/dmc.toml). Never fails `chezmoi apply`: every problem is
 # a warning and leaves the installed app untouched.
 # pinned: {{ .dmc.app.version }} {{ .dmc.app.sha256 }}
+# The 8.0.0 release's Info.plist is XML (checked against the release zip). If
+# a future release ships a binary plist, the regex below stops matching: the
+# only effect is that this script stays stamped and reruns on every apply,
+# but it then exits early through PlistBuddy (Print below), which does read
+# binary plists. Nothing breaks either way.
 {{- $plist := "/Applications/DMC.app/Contents/Info.plist" }}
 {{- $installed := "" }}
 {{- if stat $plist }}
@@ -43,6 +48,15 @@ cleanup() {
     fi
 }
 trap cleanup EXIT
+
+# A previous run could have been interrupted between the two `mv` below,
+# leaving only the old bundle aside and no DMC.app at all. Restore it first,
+# so a later failure never leaves the user without an app, then continue
+# normally (the restored bundle is handled like any outdated install below).
+if [[ ! -d "${APP}" && -d "${APP_OLD}" ]]; then
+    log_warn "Restoring ${APP_OLD} as ${APP} (a previous run was interrupted)"
+    mv -f "${APP_OLD}" "${APP}" || log_error "Could not restore ${APP_OLD} as ${APP}"
+fi
 
 installed_version() {
     /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" \
