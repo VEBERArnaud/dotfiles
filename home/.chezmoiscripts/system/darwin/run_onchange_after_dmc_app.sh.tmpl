@@ -1,0 +1,185 @@
+{{- if and .is_mac .is_apple_silicon .user_veberarnaud -}}
+#!/usr/bin/env bash
+
+# Install or update the DMC menu bar app (dmc-ai/dmc) at the pinned version
+# (home/.chezmoidata/dmc.toml). Never fails `chezmoi apply`: every problem is
+# a warning and leaves the installed app untouched.
+# pinned: {{ .dmc.app.version }} {{ .dmc.app.sha256 }}
+# The 8.0.0 release's Info.plist is XML (checked against the release zip). If
+# a future release ships a binary plist, the regex below stops matching: the
+# only effect is that this script stays stamped and reruns on every apply,
+# but it then exits early through PlistBuddy (Print below), which does read
+# binary plists. Nothing breaks either way.
+{{- $plist := "/Applications/DMC.app/Contents/Info.plist" }}
+{{- $installed := "" }}
+{{- if stat $plist }}
+{{-   $installed = regexReplaceAll "(?s).*CFBundleShortVersionString</key>\\s*<string>([^<]*)</string>.*" (include $plist) "${1}" }}
+{{- end }}
+{{- if ne $installed .dmc.app.version }}
+# pending: run_onchange does not rerun after a clean exit, so stamp every apply
+# until the app is at the pinned version: {{ now | unixEpoch }}
+{{- end }}
+
+set -euo pipefail
+
+{{ template "common.tmpl" . }}
+
+readonly APPS_DIR="/Applications"
+readonly APP="${APPS_DIR}/DMC.app"
+readonly APP_NEW="${APPS_DIR}/.DMC.app.new"
+readonly APP_OLD="${APPS_DIR}/.DMC.app.old"
+readonly BUNDLE_ID="ai.dmc.menubar"
+readonly PROCESS_NAME="DMCMenuBar"
+readonly VERSION="{{ .dmc.app.version }}"
+readonly SHA256="{{ .dmc.app.sha256 }}"
+readonly ASSET="DMC-${VERSION}-macOS-arm64.zip"
+readonly QUIT_WAIT_SECONDS=15
+
+tmp_dir=""
+
+cleanup() {
+    if [[ -n "${tmp_dir}" ]]; then
+        command rm -rf "${tmp_dir}"
+    fi
+    command rm -rf "${APP_NEW}"
+    # Keep the old bundle if the app is missing: it is the only copy
+    if [[ -d "${APP}" ]]; then
+        command rm -rf "${APP_OLD}"
+    fi
+}
+trap cleanup EXIT
+
+# A previous run could have been interrupted between the two `mv` below,
+# leaving only the old bundle aside and no DMC.app at all. Restore it first,
+# so a later failure never leaves the user without an app, then continue
+# normally (the restored bundle is handled like any outdated install below).
+if [[ ! -d "${APP}" && -d "${APP_OLD}" ]]; then
+    log_warn "Restoring ${APP_OLD} as ${APP} (a previous run was interrupted)"
+    mv -f "${APP_OLD}" "${APP}" || log_error "Could not restore ${APP_OLD} as ${APP}"
+fi
+
+installed_version() {
+    /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" \
+        "${APP}/Contents/Info.plist" 2>/dev/null || true
+}
+
+# Point the app at the instance. The URL lives in 1Password, not in this
+# repository, and is never logged. The API key is out of scope: it is pasted
+# once in the app's Settings (the Keychain is never touched from here).
+set_base_url() {
+    if ! check_command op; then
+        log_warn "1Password CLI not found. Skipping the DMC baseURL."
+        return 0
+    fi
+    if ! op whoami &>/dev/null; then
+        log_warn "Not signed in to 1Password. Skipping the DMC baseURL."
+        return 0
+    fi
+    local url current
+    url="$(op read "op://Personal/DMC/website" 2>/dev/null || true)"
+    if [[ -z "${url}" ]]; then
+        log_warn "DMC URL not found in 1Password (op://Personal/DMC/website). Skipping the DMC baseURL."
+        return 0
+    fi
+    url="${url%/}"
+    current="$(defaults read "${BUNDLE_ID}" baseURL 2>/dev/null || true)"
+    if [[ "${current}" == "${url}" ]]; then
+        return 0
+    fi
+    if defaults write "${BUNDLE_ID}" baseURL -string "${url}"; then
+        log_success "DMC baseURL set"
+    else
+        log_warn "Could not write the DMC baseURL."
+    fi
+}
+
+set_base_url
+
+if [[ "$(installed_version)" == "${VERSION}" ]]; then
+    log_info "DMC.app ${VERSION} already installed"
+    exit 0
+fi
+
+if ! check_command gh || ! gh auth status &>/dev/null; then
+    log_warn "DMC.app ${VERSION} not installed: run \`gh auth login\`, then \`chezmoi apply\`"
+    exit 0
+fi
+
+log_info "Installing DMC.app ${VERSION}..."
+
+tmp_dir="$(mktemp -d)"
+
+if ! gh release download "v${VERSION}" -R dmc-ai/dmc -p "${ASSET}" -D "${tmp_dir}" &>/dev/null; then
+    log_warn "Could not download ${ASSET} from dmc-ai/dmc (access or network). Skipping DMC.app."
+    exit 0
+fi
+
+actual="$(shasum -a 256 "${tmp_dir}/${ASSET}" | awk '{print $1}')"
+if [[ "${actual}" != "${SHA256}" ]]; then
+    log_error "Checksum mismatch for ${ASSET}: expected ${SHA256}, got ${actual}. DMC.app left untouched."
+    exit 0
+fi
+
+mkdir -p "${tmp_dir}/unpacked"
+if ! ditto -x -k "${tmp_dir}/${ASSET}" "${tmp_dir}/unpacked"; then
+    log_warn "Could not unpack ${ASSET}. Skipping DMC.app."
+    exit 0
+fi
+if [[ ! -x "${tmp_dir}/unpacked/DMC.app/Contents/MacOS/${PROCESS_NAME}" ]]; then
+    log_warn "${ASSET} does not contain DMC.app/Contents/MacOS/${PROCESS_NAME}. Skipping DMC.app."
+    exit 0
+fi
+
+# Stage on the destination volume so the final move is a rename
+command rm -rf "${APP_NEW}" "${APP_OLD}"
+if ! ditto "${tmp_dir}/unpacked/DMC.app" "${APP_NEW}"; then
+    log_warn "Could not copy DMC.app to ${APPS_DIR}. Skipping DMC.app."
+    exit 0
+fi
+
+was_running=false
+if pgrep -x "${PROCESS_NAME}" &>/dev/null; then
+    was_running=true
+    log_info "Quitting DMC.app..."
+    osascript -e "quit app id \"${BUNDLE_ID}\"" &>/dev/null || true
+    waited=0
+    while pgrep -x "${PROCESS_NAME}" &>/dev/null; do
+        if [[ "${waited}" -ge "${QUIT_WAIT_SECONDS}" ]]; then
+            log_warn "DMC.app did not quit within ${QUIT_WAIT_SECONDS}s. Skipping the update, rerun \`chezmoi apply\`."
+            exit 0
+        fi
+        sleep 1
+        waited=$((waited + 1))
+    done
+fi
+
+relaunch() {
+    if [[ "${was_running}" == true ]]; then
+        open "${APP}" || log_warn "Could not relaunch DMC.app"
+    fi
+}
+
+if [[ -d "${APP}" ]]; then
+    if ! mv -f "${APP}" "${APP_OLD}"; then
+        log_warn "Could not move the installed DMC.app aside (write access to ${APPS_DIR}?). Skipping."
+        relaunch
+        exit 0
+    fi
+fi
+if ! mv -f "${APP_NEW}" "${APP}"; then
+    log_warn "Could not move the new DMC.app into ${APPS_DIR}. Restoring the previous one."
+    if [[ -d "${APP_OLD}" ]]; then
+        mv -f "${APP_OLD}" "${APP}" || log_error "Could not restore the previous DMC.app, it is in ${APP_OLD}"
+    fi
+    relaunch
+    exit 0
+fi
+
+# gh only sets com.apple.provenance, so the attribute is usually absent
+xattr -dr com.apple.quarantine "${APP}" 2>/dev/null || true
+
+log_success "DMC.app ${VERSION} installed"
+log_info "macOS asks for Keychain access once after an update: click Always Allow"
+
+relaunch
+{{ end -}}

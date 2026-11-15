@@ -174,7 +174,7 @@ Manual steps, only when the script warns:
 
 The `dmc` host runs the DMC instance from `~/.local/share/dmc`, started by the launch agent `pw.veber.dmc` when the session opens, with a daily database backup and log rotation. `@dmc-ai/cli` is held back from `npm update -g` and upgraded by hand.
 
-See [docs/dmc-host.md](docs/dmc-host.md): what runs where, day-to-day commands, upgrading DMC, restoring a backup, moving the instance to another host.
+See [docs/dmc-host.md](docs/dmc-host.md): what runs where, day-to-day commands, upgrading DMC, restoring a backup, moving the instance to another host, and the DMC menu bar app installed on the human hosts (pinned in `home/.chezmoidata/dmc.toml`, installed from the private GitHub release by `run_onchange_after_dmc_app.sh.tmpl`).
 
 ## Local Overrides
 

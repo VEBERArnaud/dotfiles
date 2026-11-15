@@ -127,6 +127,19 @@ log_info "Checking Terraform tools..."
 check_command_available terraform || errors=$((errors + 1))
 {{ end -}}
 
+{{ if and .is_mac .is_apple_silicon .user_veberarnaud -}}
+echo ""
+log_info "Checking DMC.app..."
+dmc_app_version="$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "/Applications/DMC.app/Contents/Info.plist" 2>/dev/null || true)"
+if [[ -z "${dmc_app_version}" ]]; then
+    log_warn "/Applications/DMC.app is missing (run \`gh auth login\`, then \`chezmoi apply\`)"
+elif [[ "${dmc_app_version}" != "{{ .dmc.app.version }}" ]]; then
+    log_warn "DMC.app is at ${dmc_app_version}, pinned version is {{ .dmc.app.version }}"
+else
+    log_success "DMC.app ${dmc_app_version}"
+fi
+{{ end -}}
+
 # External dependencies
 echo ""
 log_info "Checking external dependencies..."
