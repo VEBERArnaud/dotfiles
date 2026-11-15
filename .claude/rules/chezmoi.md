@@ -59,6 +59,10 @@ Available in `.tmpl` files via `{{ .variable }}`:
 - `.with_android`, `.with_aws`, `.with_consul`, `.with_docker`, `.with_javascript`
 - `.with_nomad`, `.with_packer`, `.with_rust`, `.with_swift`, `.with_terraform`
 
+### Pinned data
+
+- `.dmc.app.version`, `.dmc.app.sha256`: DMC.app release, from `home/.chezmoidata/dmc.toml`
+
 ## Scripts
 
 Located in `home/.chezmoiscripts/`:

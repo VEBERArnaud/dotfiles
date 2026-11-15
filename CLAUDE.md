@@ -13,7 +13,8 @@ dotfiles/
 ├── .chezmoiroot              # Points to "home" as source directory
 ├── .chezmoiversion           # Requires chezmoi 2.70.0+
 ├── .github/workflows/        # CI validation (shellcheck, templates, linting)
-├── docs/dmc-host.md          # DMC host operations (instance, launch agents, upgrade, migration)
+├── docs/dmc-host.md          # DMC host operations (instance, launch agents, upgrade, migration, menu bar app)
+├── tests/dmc-app.sh          # Offline tests of the DMC.app install (stubbed gh/op/osascript, temp /Applications)
 ├── .agents/skills/           # Project skills (source, shared by Claude Code and Codex)
 │   ├── dotfiles/             # /dotfiles skill
 │   └── brew-add/             # /brew-add skill
@@ -23,6 +24,7 @@ dotfiles/
 └── home/                     # Source directory for all dotfiles
     ├── .chezmoi.toml.tmpl            # Main config with feature flags
     ├── .chezmoiexternal.toml         # External dependencies (zprezto, tpm, vim-plug)
+    ├── .chezmoidata/                 # Pinned data (dmc.toml: DMC.app version and sha256)
     ├── .chezmoiscripts/              # Automation scripts
     │   ├── editors/                  # Editor setup (vim, cursor)
     │   ├── packages/                 # Package installation (brew, node, rust)
@@ -193,6 +195,7 @@ Skills live in a tool-neutral location so removing either tool does not break th
 - **`editors/run_onchange_after_vim_plugins.sh.tmpl`** - Installs vim-plug plugins, generates tmuxline
 - **`system/darwin/run_onchange_after_apps.sh.tmpl`** - macOS app-level preferences
 - **`system/darwin/run_onchange_after_system_ui.sh.tmpl`** - macOS system & UI preferences
+- **`system/darwin/run_onchange_after_dmc_app.sh.tmpl`** - `user_veberarnaud` Apple Silicon Macs: installs or updates `/Applications/DMC.app` from the private `dmc-ai/dmc` release pinned in `.chezmoidata/dmc.toml` (`gh` download, SHA-256 check, swap by rename), writes `baseURL` from 1Password, never touches the Keychain; warns instead of failing without `gh` or `op`
 - **`system/darwin/run_onchange_after_restart.sh.tmpl`** - Restart affected macOS services
 - **`tools/run_onchange_after_dmc_agent.sh.tmpl`** - DMC host: loads the `pw.veber.dmc` launch agent (`dmcli start` from `~/.local/share/dmc`), again when its plist changes
 - **`tools/run_onchange_after_dmc_backup_agent.sh.tmpl`** - DMC host: loads the `pw.veber.dmc-backup` launch agent (daily `~/.local/bin/dmc-backup` at 03:30, 7 gzipped `sqlite3 .backup` copies in `~/.local/share/dmc/backups`); separate so reloading it never restarts DMC
@@ -228,6 +231,9 @@ chezmoi add ~/.newfile
 
 # Debug template rendering
 chezmoi execute-template '{{ .is_mac }}'
+
+# Test the DMC.app install script (touches nothing outside a temp dir)
+tests/dmc-app.sh
 ```
 
 ## Local Overrides

@@ -1,0 +1,7 @@
+# DMC macOS menu bar app (dmc-ai/dmc, private), pinned for
+# home/.chezmoiscripts/system/darwin/run_onchange_after_dmc_app.sh.tmpl.
+# To move to a release: download DMC-<version>-macOS-arm64.zip from the
+# GitHub release, run `shasum -a 256` on it, update both values.
+[dmc.app]
+version = "8.0.0"
+sha256 = "85237f15991f79694e9df4d5c3b1d659264d728fe40db40e4925c504a872e9bb"
