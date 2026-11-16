@@ -76,7 +76,8 @@ triggers:
       - Sinon : un commit conventionnel par changement (`fix`/`chore` selon
       le cas),
         corps du commit justifiant la décision (dates, raison du remplaçant choisi).
-      - Vérifie le rendu des templates (`chezmoi diff`) avant de committer.
+      - Vérifie le rendu des templates (`chezmoi --source "$PWD/home" diff`)
+      avant de committer.
 
       - Branche `chore/tooling-audit-YYYY-Www` (semaine ISO), PR titrée
       `chore: tooling audit semaine <WW> <année>` contenant :
