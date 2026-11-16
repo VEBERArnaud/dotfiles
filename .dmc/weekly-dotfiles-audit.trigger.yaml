@@ -86,3 +86,4 @@ triggers:
         - Section « ⚠️ Actions manuelles après merge » : `brew uninstall` des paquets retirés
           (retirer de la liste ne désinstalle pas), rechargement des services impactés,
           commandes de vérification — à refaire sur chaque machine gérée par chezmoi.
+    enabled: true
