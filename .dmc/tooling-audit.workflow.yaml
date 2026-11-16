@@ -17,6 +17,29 @@ workflows:
             dette annexe) va dans une section « Hors périmètre » de la PR ou du rapport, sans investigation.
           - Une fois la PR ouverte et sa CI verte, ou le rapport rendu s'il n'y a rien à changer,
             arrête-toi : pas de vérification supplémentaire.
+
+          ## Le host est en lecture seule
+
+          Tu tournes sur le host qui exécute DMC lui-même : le casser coupe l'accès à DMC
+          et fait échouer tous les runs en cours. Tes seules écritures sont dans ce worktree
+          (fichiers, commits), sur la branche poussée et dans la PR.
+
+          - Ne modifie jamais l'état de la machine : pas de `chezmoi apply`/`update`/`init`,
+            pas de `brew install`/`upgrade`/`uninstall`/`update`/`services`, pas de
+            `npm install -g`/`update -g`, `nvm install`, `rustup`, `cargo install`,
+            pas de `launchctl`, `dmcli`, `defaults write`, `sudo`, `kill`/`pkill`/`killall`.
+          - Ne touche jamais à tmux : aucune commande `tmux`, même `tmux -f <fichier>`,
+            qui se connecte au serveur tmux en cours. Une config tmux se vérifie en la lisant.
+          - Aucune commande interactive ou qui ouvre un éditeur, un pager ou une UI
+            (`starship config`, `vim`, `less`, `top`, `brew edit`...). Chaque commande
+            doit se terminer seule, sans TTY.
+          - Valide une config seulement avec une commande non interactive ciblant le fichier
+            du worktree (`ghostty +validate-config --config-file=...`, `taplo check`,
+            `shellcheck`, `vint`), jamais en la chargeant dans un programme en cours.
+          - Rendu des templates : `chezmoi --source "$PWD/home" diff` (le worktree, pas
+            la source installée du host), sans jamais appliquer.
+          - Une vérification qui demanderait l'une de ces actions va dans la section
+            « ⚠️ Actions manuelles après merge » de la PR, ou dans le rapport.
         model: claude-thinking
         timeout: 3600
         then: done
