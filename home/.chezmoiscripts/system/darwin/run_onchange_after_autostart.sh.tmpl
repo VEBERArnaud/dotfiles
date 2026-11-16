@@ -11,19 +11,6 @@ set -euo pipefail
 log_info "Disabling app autostart..."
 
 ###############################################################################
-# Adobe Creative Cloud                                                        #
-###############################################################################
-
-# Disable the launch-at-login agents via the launchd override database
-# (persists across reboots and Adobe updates; CC still works when launched
-# manually)
-if [[ -f "/Library/LaunchAgents/com.adobe.AdobeCreativeCloud.plist" ]]; then
-    launchctl disable "gui/$(id -u)/com.adobe.AdobeCreativeCloud" 2>/dev/null || true
-    launchctl disable "gui/$(id -u)/com.adobe.ccxprocess" 2>/dev/null || true
-    log_success "Adobe Creative Cloud autostart disabled"
-fi
-
-###############################################################################
 # Docker Desktop                                                              #
 ###############################################################################
 
