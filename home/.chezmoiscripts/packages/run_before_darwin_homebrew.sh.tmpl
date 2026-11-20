@@ -118,6 +118,7 @@
 {{- end -}}
 
 {{- if .user_veberarnaud -}}
+{{-   $taps = concat $taps (list "stablyai/orca") -}}
 {{-   $casks = concat $casks (list
         "caffeine"
         "chatgpt"
@@ -134,6 +135,7 @@
         "obsidian"
         "plaud"
         "slack"
+        "stablyai/orca/orca"
         "studio-3t-community"
         "tailscale-app"
         "telegram"
