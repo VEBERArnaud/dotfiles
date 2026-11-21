@@ -160,6 +160,9 @@ MANAGED='{
   }
 {{- end }},
   "effortLevel": "xhigh",
+{{- if .user_veberarnaud }}
+  "theme": "custom:orca",
+{{- end }}
   "autoUpdatesChannel": "latest"
 }'
 
@@ -169,4 +172,13 @@ if [[ -z "${current//[[:space:]]/}" ]]; then
     current='{}'
 fi
 
-printf '%s\n' "${current}" | jq --argjson managed "${MANAGED}" '. + $managed'
+# Orca installs its own hooks (calling ~/.orca/agent-hooks/) at launch and
+# keeps them in step with its version, so they are kept next to the managed
+# ones instead of being dropped by every apply. Any other hook is replaced.
+printf '%s\n' "${current}" | jq --argjson managed "${MANAGED}" '
+    def orca: [.[]? | select(any(.hooks[]?; .command? // "" | contains("/.orca/agent-hooks/")))];
+    (.hooks // {}) as $current
+    | . + $managed
+    | .hooks = (reduce ($current | to_entries[]) as $e (.hooks;
+        ($e.value | orca) as $kept
+        | if ($kept | length) > 0 then .[$e.key] = ((.[$e.key] // []) + $kept) else . end))'

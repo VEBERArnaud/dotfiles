@@ -72,5 +72,7 @@ Library/LaunchAgents/pw.veber.dmc-logrotate.plist
 
 # Human user only
 {{- if not .user_veberarnaud }}
+.claude/keybindings.json
+.claude/themes
 Library/Application Support/com.pais.handy
 {{- end }}
